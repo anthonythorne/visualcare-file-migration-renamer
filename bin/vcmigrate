@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Visualcare File Migration Renamer
+# Main entry point script
+
+set -euo pipefail
+
+# Default configuration path
+CONFIG_FILE="config/config.yaml"
+VERBOSE=false
+DRY_RUN=false
+
+# Source core utilities
+source "$(dirname "$0")/../core/utils/logging.sh"
+source "$(dirname "$0")/../core/utils/config.sh"
+source "$(dirname "$0")/../core/utils/validation.sh"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -c|--config)
+            CONFIG_FILE="$2"
+            shift 2
+            ;;
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -d|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            log_error "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+# Initialize logging
+init_logging "$VERBOSE"
+
+# Load and validate configuration
+if ! load_config "$CONFIG_FILE"; then
+    log_error "Failed to load configuration from $CONFIG_FILE"
+    exit 1
+fi
+
+# Source pre-processing hooks
+for hook in plugins/pre-process/*.sh; do
+    if [[ -f "$hook" ]]; then
+        log_info "Loading pre-process hook: $hook"
+        source "$hook"
+    fi
+done
+
+# Main processing logic
+main() {
+    log_info "Starting file migration process"
+    
+    # Validate input directory exists
+    if [[ ! -d "$INPUT_DIR" ]]; then
+        log_error "Input directory does not exist: $INPUT_DIR"
+        exit 1
+    }
+    
+    # Process files
+    find "$INPUT_DIR" -type f | while read -r file; do
+        process_file "$file"
+    done
+    
+    log_info "File migration process completed"
+}
+
+# Show help message
+show_help() {
+    cat << EOF
+Visualcare File Migration Renamer
+
+Usage: $(basename "$0") [OPTIONS]
+
+Options:
+    -c, --config FILE    Configuration file path (default: config/config.yaml)
+    -v, --verbose        Enable verbose logging
+    -d, --dry-run        Perform a dry run without making changes
+    -h, --help          Show this help message
+
+EOF
+}
+
+# Execute main function
+main "$@" 
