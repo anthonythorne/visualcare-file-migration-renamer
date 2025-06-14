@@ -195,6 +195,15 @@ Below is a list of realistic permutations and variations for matching dates in f
 - **MM-DD-YY**: Month, day, and two-digit year with hyphens (e.g., 05-06-23).
 - **MM/DD/YY**: Month, day, and two-digit year with slashes (e.g., 05/06/23).
 
+### Ambiguous Date Formats (Not Honored)
+- **American Format (MM/DD/YYYY)**: Dates in the format MM/DD/YYYY are not honored unless the day is greater than 12 (e.g., 05/06/2023 is interpreted as June 5, 2023, not May 6, 2023).
+- **Dates with Ordinal Indicators**: Dates like "5th June 2023" are not matched.
+- **Dates with Dots**: Dates like "06.05.2023", "6.5.2023", "6.5.23", "5.6.23" are not matched.
+
+### Grey Areas and Assumptions
+- **Years from the Last Decade**: Years like 15-25 are assumed to be 2015-2025.
+- **Common Sense Dates**: If the day is greater than 12, it is assumed to be a day, not a month (e.g., 13/05/2023 is interpreted as May 13, 2023).
+
 ### Filename Context Variations
 - **Date embedded in filename**: Date appears as part of a longer filename (e.g., report_20230506.pdf, invoice-2023-05-06.pdf).
 - **Date with additional text**: Date surrounded by words such as "report", "summary", "statement", etc. (e.g., report_20230506_final.pdf).
