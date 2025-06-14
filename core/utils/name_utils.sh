@@ -7,18 +7,15 @@
 generate_name_permutations() {
     local full_name="$1"
     local first_name last_name
-    
-    # Split into first and last name
     first_name=$(echo "$full_name" | cut -d' ' -f1)
     last_name=$(echo "$full_name" | cut -d' ' -f2)
-    
-    # Lowercase and original case
     local first_lower=$(echo "$first_name" | tr '[:upper:]' '[:lower:]')
     local last_lower=$(echo "$last_name" | tr '[:upper:]' '[:lower:]')
+    local first_initial_lower=$(echo "$first_name" | cut -c1 | tr '[:upper:]' '[:lower:]')
+    local first_initial=$(echo "$first_name" | cut -c1)
 
-    # Build permutations as an array
     local perms=()
-    # Basic and separator permutations
+    # Full name permutations
     perms+=("${first_lower}${last_lower}")
     perms+=("${first_lower}-${last_lower}")
     perms+=("${first_lower}_${last_lower}")
@@ -29,13 +26,20 @@ generate_name_permutations() {
     perms+=("${first_name}_${last_name}")
     perms+=("${first_name}.${last_name}")
     perms+=("${first_name} ${last_name}")
-    # Wildcard/non-adjacent patterns
-    perms+=("${first_lower}-*-${last_lower}")
-    perms+=("${first_lower}_*_${last_lower}")
-    perms+=("${first_lower} * ${last_lower}")
-    perms+=("${first_name}-*-${last_name}")
-    perms+=("${first_name}_*_${last_name}")
-    perms+=("${first_name} * ${last_name}")
+    # Non-adjacent (wildcard) patterns: allow any non-letter chars between names
+    perms+=("${first_lower}*${last_lower}")
+    perms+=("${first_name}*${last_name}")
+    # Initials (must be followed by separator and last name)
+    perms+=("${first_initial_lower}${last_lower}")
+    perms+=("${first_initial_lower}-${last_lower}")
+    perms+=("${first_initial_lower}_${last_lower}")
+    perms+=("${first_initial_lower}.${last_lower}")
+    perms+=("${first_initial_lower} ${last_lower}")
+    perms+=("${first_initial}${last_name}")
+    perms+=("${first_initial}-${last_name}")
+    perms+=("${first_initial}_${last_name}")
+    perms+=("${first_initial}.${last_name}")
+    perms+=("${first_initial} ${last_name}")
 
     # Remove duplicates
     local seen=()
@@ -58,7 +62,6 @@ generate_name_permutations() {
 filename_contains_name() {
     local filename="$1"
     local full_name="$2"
-    local found=1
     local filename_lower=$(echo "$filename" | tr '[:upper:]' '[:lower:]')
     local permutations
     permutations=$(generate_name_permutations "$full_name")
@@ -67,21 +70,28 @@ filename_contains_name() {
     last_name=$(echo "$full_name" | cut -d' ' -f2)
     local first_lower=$(echo "$first_name" | tr '[:upper:]' '[:lower:]')
     local last_lower=$(echo "$last_name" | tr '[:upper:]' '[:lower:]')
+    local first_initial_lower=$(echo "$first_name" | cut -c1 | tr '[:upper:]' '[:lower:]')
+    local found=1
     while IFS= read -r perm; do
         local perm_lower=$(echo "$perm" | tr '[:upper:]' '[:lower:]')
-        if [[ "$perm_lower" == *"-*-${last_lower}" || "$perm_lower" == *"_*_${last_lower}" || "$perm_lower" == *" * ${last_lower}" ]]; then
-            # Wildcard pattern: match first and last name with any non-letter sequence in between
-            local pattern="(^|[^a-z0-9])($first_lower|$first_name)[^a-zA-Z]+($last_lower|$last_name)([^a-z0-9]|$)"
+        # Non-adjacent pattern: allow any non-letter chars between names
+        if [[ "$perm_lower" == *"*${last_lower}" ]]; then
+            local pattern="(^|[^a-z0-9])${first_lower}[^a-zA-Z]+${last_lower}([^a-zA-Z0-9]|$)"
             if [[ "$filename_lower" =~ $pattern ]]; then
-                # Check that the between part does not contain letters (to avoid matching extra names)
-                local between=$(echo "$filename_lower" | sed -n "s/.*$first_lower\([^a-zA-Z]*\)$last_lower.*/\1/p")
-                if [[ -n "$between" && "$between" =~ ^[^a-zA-Z]+$ ]]; then
-                    found=0
-                    break
-                fi
+                found=0
+                break
+            fi
+        # Initials: must be followed by separator and last name
+        elif [[ "$perm_lower" =~ ^${first_initial_lower} ]]; then
+            local pattern="(^|[^a-z0-9])${first_initial_lower}[^a-zA-Z0-9]*${last_lower}([^a-zA-Z0-9]|$)"
+            if [[ "$filename_lower" =~ $pattern ]]; then
+                found=0
+                break
             fi
         else
-            if [[ "$filename_lower" =~ (^|[^a-z0-9])$perm_lower([^a-z0-9]|$) ]]; then
+            # Full name: last name must not be followed by a letter
+            local pattern="(^|[^a-z0-9])$perm_lower([^a-zA-Z0-9]|$)"
+            if [[ "$filename_lower" =~ $pattern ]]; then
                 found=0
                 break
             fi
@@ -102,42 +112,35 @@ extract_name_and_remainder() {
     last_name=$(echo "$full_name" | cut -d' ' -f2)
     local first_lower=$(echo "$first_name" | tr '[:upper:]' '[:lower:]')
     local last_lower=$(echo "$last_name" | tr '[:upper:]' '[:lower:]')
+    local first_initial_lower=$(echo "$first_name" | cut -c1 | tr '[:upper:]' '[:lower:]')
     local best_match=""
     local best_length=0
     local best_remainder=""
     while IFS= read -r perm; do
         local perm_lower=$(echo "$perm" | tr '[:upper:]' '[:lower:]')
-        if [[ "$perm_lower" == *"-*-${last_lower}" || "$perm_lower" == *"_*_${last_lower}" || "$perm_lower" == *" * ${last_lower}" ]]; then
-            # Wildcard pattern: match first and last name with any non-letter sequence in between
-            local pattern="(^|[^a-z0-9])(($first_name|$first_lower)[^a-zA-Z]+($last_name|$last_lower))([^a-z0-9]|$)"
-            if [[ "$filename" =~ $pattern ]]; then
-                local match_val="${BASH_REMATCH[2]}"
-                local between=$(echo "$match_val" | sed -n "s/$first_name\([^a-zA-Z]*\)$last_name.*/\1/p;s/$first_lower\([^a-zA-Z]*\)$last_lower.*/\1/p")
-                if [[ -n "$between" && "$between" =~ ^[^a-zA-Z]+$ ]]; then
-                    if (( ${#match_val} > best_length )); then
-                        best_match="$match_val"
-                        # Remove the first occurrence of the matched permutation (with any leading/trailing separator)
-                        local esc_match=$(printf '%s
-' "$match_val" | sed -e 's/[]\/.*^$[]/\\&/g')
-                        local remainder=$(echo "$filename" | sed -E "0,/(^|[^a-zA-Z0-9])$esc_match([^a-zA-Z0-9]|$)/s//\1_\2/")
-                        remainder=$(echo "$remainder" | sed -E 's/([_-])\1+/\1\1/g; s/^[_-]+|[_-]+$//g')
-                        best_remainder="$remainder"
-                        best_length=${#match_val}
-                    fi
-                fi
-            fi
+        local pattern
+        if [[ "$perm_lower" == *"*${last_lower}" ]]; then
+            pattern="(^|[^a-z0-9])(${first_name}|${first_lower})[^a-zA-Z]+(${last_name}|${last_lower})([^a-zA-Z0-9]|$)"
+        elif [[ "$perm_lower" =~ ^${first_initial_lower} ]]; then
+            pattern="(^|[^a-z0-9])${first_initial_lower}[^a-zA-Z0-9]*${last_lower}([^a-zA-Z0-9]|$)"
         else
-            if [[ "$filename_lower" =~ (^|[^a-z0-9])($perm_lower)([^a-z0-9]|$) ]]; then
-                local match_val="${BASH_REMATCH[2]}"
-                if (( ${#match_val} > best_length )); then
-                    best_match="$match_val"
-                    local esc_match=$(printf '%s
-' "$match_val" | sed -e 's/[]\/.*^$[]/\\&/g')
-                    local remainder=$(echo "$filename" | sed -E "0,/(^|[^a-zA-Z0-9])$esc_match([^a-zA-Z0-9]|$)/s//\1_\2/")
-                    remainder=$(echo "$remainder" | sed -E 's/([_-])\1+/\1\1/g; s/^[_-]+|[_-]+$//g')
-                    best_remainder="$remainder"
-                    best_length=${#match_val}
-                fi
+            pattern="(^|[^a-z0-9])($perm_lower)([^a-zA-Z0-9]|$)"
+        fi
+        if [[ "$filename_lower" =~ $pattern ]]; then
+            # Find the actual match in the original filename
+            local match_start=${BASH_REMATCH_START[2]:-0}
+            local match_len=${#BASH_REMATCH[2]}
+            local match_val="${BASH_REMATCH[2]}"
+            if (( match_len > best_length )); then
+                best_match="$match_val"
+                # Remove the matched substring from the original filename
+                local before=${filename:0:match_start}
+                local after=${filename:match_start+match_len}
+                local remainder="$before$after"
+                # Clean up leading/trailing separators
+                remainder=$(echo "$remainder" | sed -E 's/^[-_. ]+//; s/[-_. ]+$//')
+                best_remainder="$remainder"
+                best_length=$match_len
             fi
         fi
     done <<< "$permutations"

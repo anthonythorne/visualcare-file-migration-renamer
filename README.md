@@ -1,3 +1,49 @@
+# VisualCare File Migration Renamer
+
+## Overview
+This project automates the renaming and preparation of bulk client, staff, and policy documents for upload into VisualCare. The script standardises file naming conventions, extracts or assigns dates, maps client/staff names to IDs, handles management flagging, and supports iterative testing and refinement.
+
+## Name Matching Rules
+
+### Full Name Matching
+- **Allowed:** Any non-letter characters (numbers, underscores, dashes, spaces, periods) between the *full* first and last name.
+  - Examples:
+    - `john_doe`, `john-2023-doe`, `john.doe`, `john 2023 doe` → **Match** for "John Doe"
+- **Not Allowed:** Additional letters after the last name.
+  - Examples:
+    - `john_doe-smith` → **No match** for "John Doe" (has additional last name)
+    - `john_doe_report` → **No match** for "John Doe" (has additional text)
+
+### Initials Matching
+- **Allowed:** Initials can be anywhere in the word (start, middle, end) and must be followed by a separator and the last name.
+  - Examples:
+    - `j_doe`, `j-doe`, `j.2023.doe`, `j_doe_report.pdf` → **Match** for "J Doe"
+    - `abcdj ads doe` → **Match** for "Doe" (filename becomes "abcdj ads")
+    - `abcdjdoe` → **Match** for "jdoe" (filename becomes "abcd")
+- **Not Allowed:** Last name followed by additional letters.
+  - Examples:
+    - `j_doe-smith` → **No match** for "J Doe" (has additional last name)
+    - `j_doe_report` → **No match** for "J Doe" (has additional text)
+
+### Case Insensitivity
+- All matching is case-insensitive.
+
+### Extraction
+- Remove the matched name (full or initial + last) and any leading/trailing separators.
+- Preserve original case and internal separators in the remainder.
+
+## Usage
+[Usage instructions and examples will be added here.]
+
+## Testing
+Run the test suite using BATS:
+```bash
+bats tests/unit/name_utils_test.bats
+```
+
+## Contributing
+[Contributing guidelines will be added here.]
+
 # Visualcare File Migration Renamer
 
 A flexible, extensible command-line utility for migrating and renaming files to meet Visualcare's import requirements. This tool is designed to be modular and plugin-based, allowing for custom business rules and integration with various data sources.
@@ -241,3 +287,46 @@ Below is a list of realistic permutations and variations for matching dates in f
 | Whitespace/typos | 2023 05 06.pdf |
 | Localisation/Unicode | 06.05.2023, 06/05/2023 |
 | Hidden/invisible chars | (Not visible—zero-width, BOM) |
+
+## Table-Driven Name Extraction Tests
+
+To ensure robust and transparent name extraction logic, this project uses a table-driven approach for testing. Test cases are defined in a CSV file and automatically run by a BATS test script.
+
+### Test Matrix Location
+- **CSV file:** `tests/fixtures/name_extraction_cases.csv`
+- **Test runner:** `tests/unit/name_utils_table_test.bats`
+
+### CSV Format
+Each row in the CSV represents a test case with the following columns:
+- `filename`: The input filename (with extension) to test.
+- `expected_match`: The expected matched name permutation (or empty if no match is expected).
+- `expected_remainder`: The expected filename after the matched name is removed (or the original filename if no match).
+
+#### Example:
+```
+filename,expected_match,expected_remainder
+john_doe_20230101.pdf,john_doe,20230101.pdf
+john-ads-doe_report.pdf,john-ads-doe,report.pdf
+abcdjdoe_report.pdf,jdoe,abcd_report.pdf
+...
+```
+
+### Running the Table-Driven Tests
+To run all table-driven name extraction tests:
+
+```sh
+bats tests/unit/name_utils_table_test.bats
+```
+
+### Expanding the Test Matrix
+- Add new rows to `tests/fixtures/name_extraction_cases.csv` to cover additional permutations, edge cases, or real-world examples.
+- The test runner will automatically include all cases in the CSV.
+- This approach makes it easy to visualize, review, and maintain comprehensive test coverage.
+
+### Contribution Guidelines
+- Please add new test cases for any new logic, bugfix, or edge case you encounter.
+- If you find a filename that is not handled as expected, add it to the CSV and submit a pull request.
+
+---
+
+For more details on the matching rules and logic, see the [Name Matching Rules](#name-matching-rules) section above.

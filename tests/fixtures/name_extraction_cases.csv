@@ -1,0 +1,21 @@
+filename,expected_match,expected_remainder,name_to_match
+john_doe_20230101.pdf,john_doe,20230101.pdf,John Doe
+john-ads-doe_report.pdf,john-ads-doe,report.pdf,John Doe
+abcdjdoe_report.pdf,jdoe,abcd_report.pdf,John Doe
+john_doe_smith_20230101.pdf,,john_doe_smith_20230101.pdf,John Doe
+jane_doe_20230101.pdf,,jane_doe_20230101.pdf,John Doe
+j_doe_20230101.pdf,j_doe,20230101.pdf,John Doe
+John_Doe_Report_20230101.pdf,John_Doe,Report_20230101.pdf,John Doe
+JoHn_DoE_Report_20230101.pdf,JoHn_DoE,Report_20230101.pdf,John Doe
+john.doe-2023.pdf,john.doe,2023.pdf,John Doe
+john*doe-2023.pdf,,john*doe-2023.pdf,John Doe
+john_doe2023.pdf,john_doe,2023.pdf,John Doe
+abcdj ads doe.pdf,doe,abcdj ads .pdf,John Doe
+abcdjdoe.pdf,jdoe,abcd.pdf,John Doe
+johndoe.pdf,johndoe,.pdf,John Doe
+john_doe.pdf,john_doe,.pdf,John Doe
+jane-smith.pdf,,jane-smith.pdf,John Doe
+jane_doe-smith.pdf,,jane_doe-smith.pdf,John Doe
+jane_doe-smith_2023.pdf,,jane_doe-smith_2023.pdf,John Doe
+jane_doe_2023.pdf,,jane_doe_2023.pdf,John Doe
+jane_doe.pdf,,jane_doe.pdf,John Doe 
