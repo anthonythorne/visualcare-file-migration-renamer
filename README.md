@@ -15,36 +15,141 @@ This project automates the renaming and preparation of bulk client, staff, and p
   - `johndoe` does NOT match "John Doe" (no separator between names)
 
 ### Initials Matching
-- Matches initials that are followed by a separator and the last name
-- Initials can be anywhere in the word
-- Examples:
-  - `j_doe` matches "John Doe"
-  - `abcdjdoe` matches "John Doe" (extracts "jdoe")
-  - `jdoe` does NOT match "John Doe" (no separator)
+There are three distinct rules for handling initials:
+
+1. Both Initials (e.g., "JD", "jd", "Jd", "jD"):
+   - Must have known separators around them
+   - Examples:
+     - `abcd-jd-home.pdf` matches "jd" (has `-` separators)
+     - `abcd_jd_home.pdf` matches "jd" (has `_` separators)
+     - `abcdjdhome.pdf` does NOT match (no separators)
+
+2. First Initial + Last Name (e.g., "jdoe", "Jdoe", "jDoe", "JDoe"):
+   - Does NOT need separators around it
+   - Examples:
+     - `abcdjdoe_report.pdf` matches "jdoe"
+     - `abcdjdoehome.pdf` matches "jdoe"
+     - `abcdJdoe_report.pdf` matches "Jdoe"
+     - `abcdjDoe_report.pdf` matches "jDoe"
+
+3. First Name + Last Initial (e.g., "johnD", "JohnD", "johnD", "JohnD"):
+   - Does NOT need separators around it
+   - Examples:
+     - `abcdjohnD_report.pdf` matches "johnD"
+     - `abcdjohnDhome.pdf` matches "johnD"
+     - `abcdJohnD_report.pdf` matches "JohnD"
 
 ### Case Insensitivity
 - All matching is case-insensitive
 - Original case is preserved in the extracted name and remainder
 
+### Numbers and Special Characters
+- Names containing numbers are matched if they contain valid name parts
+- Examples:
+  - `john123-doe` matches "john doe"
+  - `123john-doe` matches "john doe"
+  - `john-doe123` matches "john doe"
+  - `123john-doe123` matches "john doe"
+- Special characters in names are treated similarly
+- Examples:
+  - `john@-doe` matches "john doe"
+  - `john-doe@` matches "john doe"
+  - `@john-doe` matches "john doe"
+
+### Unicode and Accented Characters
+- Names with accented characters are matched if they contain valid name parts
+- Examples:
+  - `jón-doe` matches "jón doe"
+  - `jóhn-doe` matches "jóhn doe"
+  - `jôhn-doe` matches "jôhn doe"
+  - `jöhn-doe` matches "jöhn doe"
+- Common variations and typos are handled
+- Examples:
+  - `jón-doe` and `jon-doe` both match
+  - `jóhn-doe` and `jôhn-doe` both match
+
+### Multiple Match Handling
+- All valid name matches in a filename are extracted
+- Duplicate matches are removed (e.g., "john-doe-john-doe" → "john,doe")
+- Different variations of the same name are treated as unique:
+  - "john-doe-jdoe" → "john,doe,jdoe"
+  - "john-doe-johnD" → "john,doe,johnD"
+  - "jdoe-johnD" → "jdoe,johnD"
+- Matches are preserved in their original case
+- The remainder is cleaned of any matched names and their surrounding separators
+
+### Folder and Category Handling
+- Names are extracted from files in various folder structures:
+  - Management folders: `management/john-doe-report.pdf`
+  - Category folders: `hazard_reports/john-doe-report.pdf`
+  - Nested folders: `client/john_doe/hazard_reports/report.pdf`
+- Category information is preserved in the remainder
+- Examples:
+  - `management/john-doe-report.pdf` → "john,doe" with remainder "management-report.pdf"
+  - `hazard_reports/john_doe_report.pdf` → "john,doe" with remainder "hazard_reports-report.pdf"
+  - `client/john_doe/management/report.pdf` → "john,doe" with remainder "client-management-report.pdf"
+
+### Version Numbers and Dates
+- Version numbers are preserved in the remainder
+- Examples:
+  - `john-doe-report-v1.0.pdf` → "john,doe" with remainder "report-v1.0.pdf"
+  - `john-doe-report-v2.1.pdf` → "john,doe" with remainder "report-v2.1.pdf"
+- Dates in various formats are preserved
+- Examples:
+  - `john_doe_2023-01-01.pdf` → "john,doe" with remainder "2023-01-01.pdf"
+  - `john_doe_23rd_June_2023.pdf` → "john,doe" with remainder "23rd_June_2023.pdf"
+
 ### Extraction Logic
 - Removes the matched name permutation from the filename
 - Trims leading/trailing separators from the remainder
 - Preserves original case and internal separators in the remainder
-- For multiple matches (e.g., "john,doe"), returns comma-separated list
-- Examples:
-  - `john-ads-doe_report.pdf` → "john,doe" with remainder "ads-report.pdf"
-  - `john*doe-2023.pdf` → "john,doe" with remainder "2023.pdf"
-  - `abcdjdoe_report.pdf` → "jdoe" with remainder "abcd_report.pdf"
-
-## Usage
-[Usage instructions and examples will be added here.]
+- For multiple matches:
+  - Returns comma-separated list of unique matches (duplicates are removed)
+  - Matches are returned in order of appearance
+  - Examples:
+    - `john-doe-john-doe-report.pdf` → "john,doe" (duplicate removed)
+    - `john-ads-doe_report.pdf` → "john,doe" with remainder "ads-report.pdf"
+    - `john*doe-2023.pdf` → "john,doe" with remainder "2023.pdf"
+    - `abcdjdoe_report.pdf` → "jdoe" with remainder "abcd_report.pdf"
+    - `john-doe-sarah-smith-report.pdf` → "john,doe,sarah,smith" with remainder "report.pdf"
+    - `john-doe-jdoe-report.pdf` → "john,doe,jdoe" with remainder "report.pdf"
+    - `jdoe-john-doe-report.pdf` → "jdoe,john,doe" with remainder "report.pdf"
 
 ## Testing
-Run the test suite using BATS:
+The project includes a comprehensive test matrix covering all name matching scenarios. Run the test suite using BATS:
 ```bash
 bats tests/unit/name_utils_test.bats
 bats tests/unit/name_utils_table_test.bats
 ```
+
+For a complete list of test cases and examples, see [tests/fixtures/name_extraction_cases.csv](tests/fixtures/name_extraction_cases.csv). This file contains all the test cases used to verify the name extraction functionality, including examples of:
+- Basic name formats with standard separators
+- Multiple separators
+- Mixed separators
+- Non-standard separators
+- Extra content between names
+- Initials variations
+- Case variations
+- Names with numbers and special characters
+- Multiple matches in same filename
+- Initials with extra content
+- No match cases
+- Edge cases
+- Date variations
+- Common name variations and typos
+- Mixed variations
+- Management flag cases
+- Document category cases
+- Nested folder cases
+- Complex nested paths
+- Multiple names with complex paths
+- Version numbers with dates
+- Multiple dates
+- Complex separators with categories
+- Mixed content with categories
+
+## Usage
+[Usage instructions and examples will be added here.]
 
 ## Contributing
 [Contributing guidelines will be added here.]

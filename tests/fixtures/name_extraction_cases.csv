@@ -1,133 +1,207 @@
-filename,name_to_match,expected_match,extracted_name,raw_remainder,cleaned_remainder
-# Basic name formats
-john_doe_20230101.pdf,John Doe,true,john_doe,_20230101.pdf,20230101.pdf
-john-doe-20230101.pdf,John Doe,true,john-doe,-20230101.pdf,20230101.pdf
-john.doe.20230101.pdf,John Doe,true,john.doe,.20230101.pdf,20230101.pdf
-john doe 20230101.pdf,John Doe,true,john doe,20230101.pdf,20230101.pdf
+filename,expected_match,extracted_name,raw_remainder,cleaned_remainder
+# Basic name formats with standard separators
+john-doe-report.pdf,true,john doe,-report.pdf,report.pdf
+john_doe_report.pdf,true,john doe,_report.pdf,report.pdf
+john doe report.pdf,true,john doe,report.pdf,report.pdf
+john.doe.report.pdf,true,john doe,.report.pdf,report.pdf
 
 # Multiple separators
-john__doe__20230101.pdf,John Doe,true,john__doe,__20230101.pdf,20230101.pdf
-john--doe--20230101.pdf,John Doe,true,john--doe,--20230101.pdf,20230101.pdf
-john..doe..20230101.pdf,John Doe,true,john..doe,..20230101.pdf,20230101.pdf
-john  doe  20230101.pdf,John Doe,true,john  doe,20230101.pdf,20230101.pdf
+john--doe--report.pdf,true,john doe,--report.pdf,report.pdf
+john__doe__report.pdf,true,john doe,__report.pdf,report.pdf
+john  doe  report.pdf,true,john doe,report.pdf,report.pdf
 
 # Mixed separators
-john_doe-20230101.pdf,John Doe,true,john_doe,-20230101.pdf,20230101.pdf
-john-doe_20230101.pdf,John Doe,true,john-doe,_20230101.pdf,20230101.pdf
-john.doe_20230101.pdf,John Doe,true,john.doe,_20230101.pdf,20230101.pdf
-john_doe.20230101.pdf,John Doe,true,john_doe,.20230101.pdf,20230101.pdf
+john-doe_report.pdf,true,john doe,_report.pdf,report.pdf
+john_doe-report.pdf,true,john doe,-report.pdf,report.pdf
+john.doe-report.pdf,true,john doe,-report.pdf,report.pdf
 
 # Non-standard separators
-john*doe-2023.pdf,John Doe,true,"john,doe",*-2023.pdf,2023.pdf
-john@doe-2023.pdf,John Doe,true,"john,doe",@-2023.pdf,2023.pdf
-john#doe-2023.pdf,John Doe,true,"john,doe",#-2023.pdf,2023.pdf
-john$doe-2023.pdf,John Doe,true,"john,doe",$-2023.pdf,2023.pdf
+john*doe-report.pdf,true,john doe,-report.pdf,report.pdf
+john@doe-report.pdf,true,john doe,-report.pdf,report.pdf
+john#doe-report.pdf,true,john doe,-report.pdf,report.pdf
 
 # Extra content between names
-john-ads-doe_report.pdf,John Doe,true,"john,doe",-ads-_report.pdf,ads-report.pdf
-john_123_doe_report.pdf,John Doe,true,"john,doe",_123_report.pdf,123_report.pdf
-john.xyz.doe_report.pdf,John Doe,true,"john,doe",.xyz._report.pdf,xyz-report.pdf
-john abc doe report.pdf,John Doe,true,"john,doe",abc report.pdf,abc report.pdf
+john-ads-doe_report.pdf,true,john doe,-ads-_report.pdf,ads-report.pdf
+john_ads_doe-report.pdf,true,john doe,-ads--report.pdf,ads-report.pdf
+john ads doe report.pdf,true,john doe,ads report.pdf,ads-report.pdf
 
 # Initials variations
-j_doe_20230101.pdf,John Doe,true,j_doe,_20230101.pdf,20230101.pdf
-j-doe-20230101.pdf,John Doe,true,j-doe,-20230101.pdf,20230101.pdf
-j.doe.20230101.pdf,John Doe,true,j.doe,.20230101.pdf,20230101.pdf
-j doe 20230101.pdf,John Doe,true,j doe,20230101.pdf,20230101.pdf
+jd-report.pdf,true,jd,-report.pdf,report.pdf
+j-doe-report.pdf,true,j doe,-report.pdf,report.pdf
+john-d-report.pdf,true,john d,-report.pdf,report.pdf
+jdoe-report.pdf,true,jdoe,-report.pdf,report.pdf
+johnD-report.pdf,true,johnD,-report.pdf,report.pdf
 
-# Initials with extra content
-abcdjdoe_report.pdf,John Doe,true,jdoe,abcd_report.pdf,abcd_report.pdf
-abcdj_doe_report.pdf,John Doe,true,j_doe,abcd_report.pdf,abcd_report.pdf
-abcdj-doe_report.pdf,John Doe,true,j-doe,abcd_report.pdf,abcd_report.pdf
-abcdj.doe_report.pdf,John Doe,true,j.doe,abcd_report.pdf,abcd_report.pdf
+# Initials with separators
+j-d-report.pdf,true,j d,-report.pdf,report.pdf
+j_d_report.pdf,true,j d,_report.pdf,report.pdf
+j.d.report.pdf,true,j d,.report.pdf,report.pdf
 
 # Case variations
-John_Doe_20230101.pdf,John Doe,true,John_Doe,_20230101.pdf,20230101.pdf
-JOHN_DOE_20230101.pdf,John Doe,true,JOHN_DOE,_20230101.pdf,20230101.pdf
-john_DOE_20230101.pdf,John Doe,true,john_DOE,_20230101.pdf,20230101.pdf
-JOHN_doe_20230101.pdf,John Doe,true,JOHN_doe,_20230101.pdf,20230101.pdf
+JOHN-DOE-report.pdf,true,JOHN DOE,-report.pdf,report.pdf
+John-Doe-report.pdf,true,John Doe,-report.pdf,report.pdf
+john-DOE-report.pdf,true,john DOE,-report.pdf,report.pdf
+JOHN-doe-report.pdf,true,JOHN doe,-report.pdf,report.pdf
 
-# Mixed case with extra content
-John-ads-Doe_report.pdf,John Doe,true,"John,Doe",-ads-_report.pdf,ads-report.pdf
-JOHN_123_DOE_report.pdf,John Doe,true,"JOHN,DOE",_123_report.pdf,123_report.pdf
-john.XYZ.Doe_report.pdf,John Doe,true,"john,Doe",.XYZ._report.pdf,XYZ-report.pdf
-John ABC Doe report.pdf,John Doe,true,"John,Doe",ABC report.pdf,ABC report.pdf
+# Names with numbers and special characters
+john123-doe-report.pdf,true,john doe,-report.pdf,report.pdf
+123john-doe-report.pdf,true,john doe,-report.pdf,report.pdf
+john-doe123-report.pdf,true,john doe,-report.pdf,report.pdf
+123john-doe123-report.pdf,true,john doe,-report.pdf,report.pdf
+john@-doe-report.pdf,true,john doe,-report.pdf,report.pdf
+john-doe@-report.pdf,true,john doe,-report.pdf,report.pdf
+@john-doe-report.pdf,true,john doe,-report.pdf,report.pdf
+john-doe@report.pdf,true,john doe,@report.pdf,report.pdf
 
-# Date variations
-john_doe_2023-01-01.pdf,John Doe,true,john_doe,_2023-01-01.pdf,2023-01-01.pdf
-john_doe_01-01-2023.pdf,John Doe,true,john_doe,_01-01-2023.pdf,01-01-2023.pdf
-john_doe_01012023.pdf,John Doe,true,john_doe,_01012023.pdf,01012023.pdf
-john_doe_2023.01.01.pdf,John Doe,true,john_doe,_2023.01.01.pdf,2023.01.01.pdf
+# Multiple matches in same filename
+john-doe-john-doe-report.pdf,true,"john doe,john doe",-report.pdf,report.pdf
+john-doe-jdoe-report.pdf,true,"john doe,jdoe",-report.pdf,report.pdf
+jdoe-john-doe-report.pdf,true,"jdoe,john doe",-report.pdf,report.pdf
+john_doe_smith_20230101.pdf,true,"john,doe",_smith_20230101.pdf,smith_20230101.pdf
+john_doe_smith_jones_20230101.pdf,true,"john,doe",_smith_jones_20230101.pdf,smith_jones_20230101.pdf
+
+# Initials with extra content
+abc-j-def-doe-text.pdf,true,"j,doe",abc--def--text.pdf,abc-def-text.pdf
+abc-john-d-text.pdf,true,"john,d",abc--text.pdf,abc-text.pdf
+abc-jdoe-def-text.pdf,true,jdoe,abc--def--text.pdf,abc-def-text.pdf
+abc-johnD-def-text.pdf,true,johnD,abc--def--text.pdf,abc-def-text.pdf
 
 # No match cases
-jane-smith.pdf,John Doe,false,,jane-smith.pdf,jane-smith.pdf
-jane_doe-smith.pdf,John Doe,true,doe,jane-smith.pdf,jane-smith.pdf
-jane_doe-smith_2023.pdf,John Doe,true,doe,jane-smith_2023.pdf,jane-smith_2023.pdf
-jane_doe_2023.pdf,John Doe,true,doe,jane_2023.pdf,jane_2023.pdf
-jane_doe.pdf,John Doe,true,doe,jane.pdf,jane.pdf
+random-report.pdf,false,,-report.pdf,report.pdf
+unknown-report.pdf,false,,-report.pdf,report.pdf
+report.pdf,false,,report.pdf,report.pdf
+jane-smith.pdf,false,,jane-smith.pdf,jane-smith.pdf
 
 # Edge cases
-john_doe_20230101_v1.0.pdf,John Doe,true,john_doe,_20230101_v1.0.pdf,20230101_v1.0.pdf
-john_doe_20230101_final.pdf,John Doe,true,john_doe,_20230101_final.pdf,20230101_final.pdf
-john_doe_20230101_draft.pdf,John Doe,true,john_doe,_20230101_draft.pdf,20230101_draft.pdf
-john_doe_20230101_review.pdf,John Doe,true,john_doe,_20230101_review.pdf,20230101_review.pdf
+john-doe-2023.pdf,true,john doe,-2023.pdf,2023.pdf
+john-doe-v2.pdf,true,john doe,-v2.pdf,v2.pdf
+john-doe-final.pdf,true,john doe,-final.pdf,final.pdf
+john-doe-draft.pdf,true,john doe,-draft.pdf,draft.pdf
 
-# Special characters in remainder
-john_doe_20230101@email.com.pdf,John Doe,true,john_doe,_20230101@email.com.pdf,20230101@email.com.pdf
-john_doe_20230101#tag.pdf,John Doe,true,john_doe,_20230101#tag.pdf,20230101#tag.pdf
-john_doe_20230101$price.pdf,John Doe,true,john_doe,_20230101$price.pdf,20230101$price.pdf
-john_doe_20230101%off.pdf,John Doe,true,john_doe,_20230101%off.pdf,20230101%off.pdf
+# Date variations
+john_doe_2023-01-01.pdf,true,john doe,_2023-01-01.pdf,2023-01-01.pdf
+john_doe_01-01-2023.pdf,true,john doe,_01-01-2023.pdf,01-01-2023.pdf
+john_doe_01012023.pdf,true,john doe,_01012023.pdf,01012023.pdf
+john_doe_2023.01.01.pdf,true,john doe,_2023.01.01.pdf,2023.01.01.pdf
+john_doe_2023_01_01.pdf,true,john doe,_2023_01_01.pdf,2023_01_01.pdf
+john_doe_01_01_2023.pdf,true,john doe,_01_01_2023.pdf,01_01_2023.pdf
+john_doe_20230101_123456.pdf,true,john doe,_20230101_123456.pdf,20230101_123456.pdf
+john_doe_2023.01.01_123456.pdf,true,john doe,_2023.01.01_123456.pdf,2023.01.01_123456.pdf
 
-# Multiple name matches
-john_doe_smith_20230101.pdf,John Doe,true,"john,doe",_smith_20230101.pdf,smith_20230101.pdf
-john_doe_smith_jones_20230101.pdf,John Doe,true,"john,doe",_smith_jones_20230101.pdf,smith_jones_20230101.pdf
-john_doe_smith_jones_brown_20230101.pdf,John Doe,true,"john,doe",_smith_jones_brown_20230101.pdf,smith_jones_brown_20230101.pdf
-john_doe_smith_jones_brown_white_20230101.pdf,John Doe,true,"john,doe",_smith_jones_brown_white_20230101.pdf,smith_jones_brown_white_20230101.pdf
+# Common name variations and typos
+jón-doe-report.pdf,true,jón doe,-report.pdf,report.pdf
+jon-doe-report.pdf,true,jon doe,-report.pdf,report.pdf
+jóhn-doe-report.pdf,true,jóhn doe,-report.pdf,report.pdf
+jôhn-doe-report.pdf,true,jôhn doe,-report.pdf,report.pdf
+jöhn-doe-report.pdf,true,jöhn doe,-report.pdf,report.pdf
+j0hn-doe-report.pdf,true,j0hn doe,-report.pdf,report.pdf
+j0hn-d03-report.pdf,true,j0hn d03,-report.pdf,report.pdf
 
-# Unicode and special characters
-john_doé_20230101.pdf,John Doe,false,,john_doé_20230101.pdf,john_doé_20230101.pdf
-jöhn_doe_20230101.pdf,John Doe,false,,jöhn_doe_20230101.pdf,jöhn_doe_20230101.pdf
-john_doe_20230101_ñ.pdf,John Doe,true,john_doe,_20230101_ñ.pdf,20230101_ñ.pdf
-john_doe_20230101_é.pdf,John Doe,true,john_doe,_20230101_é.pdf,20230101_é.pdf
+# Mixed variations
+jón-d03-report.pdf,true,jón d03,-report.pdf,report.pdf
+j0hn-döe-report.pdf,true,j0hn döe,-report.pdf,report.pdf
+jôhn-d03_report.pdf,true,jôhn d03,_report.pdf,report.pdf
+jöhn_d03-report.pdf,true,jöhn d03,-report.pdf,report.pdf
 
-# Numbers in names (should not match)
-john1_doe_20230101.pdf,John Doe,false,,john1_doe_20230101.pdf,john1_doe_20230101.pdf
-john_doe1_20230101.pdf,John Doe,false,,john_doe1_20230101.pdf,john_doe1_20230101.pdf
-1john_doe_20230101.pdf,John Doe,false,,1john_doe_20230101.pdf,1john_doe_20230101.pdf
-john_1doe_20230101.pdf,John Doe,false,,john_1doe_20230101.pdf,john_1doe_20230101.pdf
+# Initial variations with accents
+jón-d-report.pdf,true,jón d,-report.pdf,report.pdf
+j-döe-report.pdf,true,j döe,-report.pdf,report.pdf
+jôhn-d-report.pdf,true,jôhn d,-report.pdf,report.pdf
+j-d03-report.pdf,true,j d03,-report.pdf,report.pdf
 
-# Complex separators
-john___doe___20230101.pdf,John Doe,true,john___doe,___20230101.pdf,20230101.pdf
-john---doe---20230101.pdf,John Doe,true,john---doe,---20230101.pdf,20230101.pdf
-john...doe...20230101.pdf,John Doe,true,john...doe,...20230101.pdf,20230101.pdf
-john   doe   20230101.pdf,John Doe,true,john   doe,20230101.pdf,20230101.pdf
+# Multiple variations
+jón-döe-j0hn-d03-report.pdf,true,"jón döe,j0hn d03",-report.pdf,report.pdf
+jôhn_d03_jöhn_doe-report.pdf,true,"jôhn d03,jöhn doe",-report.pdf,report.pdf
+j0hn-döe-jón-d03_report.pdf,true,"j0hn döe,jón d03",_report.pdf,report.pdf
 
-# Mixed case with numbers
-John1_doe_20230101.pdf,John Doe,false,,John1_doe_20230101.pdf,John1_doe_20230101.pdf
-john_Doe1_20230101.pdf,John Doe,false,,john_Doe1_20230101.pdf,john_Doe1_20230101.pdf
-JOHN1_doe_20230101.pdf,John Doe,false,,JOHN1_doe_20230101.pdf,JOHN1_doe_20230101.pdf
-john_doe1_20230101.pdf,John Doe,false,,john_doe1_20230101.pdf,john_doe1_20230101.pdf
+# Edge cases with variations
+jón-döe-2023.pdf,true,jón döe,-2023.pdf,2023.pdf
+j0hn-d03-v2.pdf,true,j0hn d03,-v2.pdf,v2.pdf
+jôhn-döe-final.pdf,true,jôhn döe,-final.pdf,final.pdf
+jöhn-d03-draft.pdf,true,jöhn d03,-draft.pdf,draft.pdf
 
-# Special characters in names (should not match)
-john@doe_20230101.pdf,John Doe,false,,john@doe_20230101.pdf,john@doe_20230101.pdf
-john#doe_20230101.pdf,John Doe,false,,john#doe_20230101.pdf,john#doe_20230101.pdf
-john$doe_20230101.pdf,John Doe,false,,john$doe_20230101.pdf,john$doe_20230101.pdf
-john%doe_20230101.pdf,John Doe,false,,john%doe_20230101.pdf,john%doe_20230101.pdf
+# Special characters with variations
+jón@döe-report.pdf,true,jón döe,-report.pdf,report.pdf
+j0hn#d03-report.pdf,true,j0hn d03,-report.pdf,report.pdf
+jôhn$döe-report.pdf,true,jôhn döe,-report.pdf,report.pdf
+jöhn%d03-report.pdf,true,jöhn d03,-report.pdf,report.pdf
 
-# Mixed separators with numbers
-john_123_doe_20230101.pdf,John Doe,true,"john,doe",_123_20230101.pdf,123_20230101.pdf
-john-123-doe-20230101.pdf,John Doe,true,"john,doe",-123-20230101.pdf,123-20230101.pdf
-john.123.doe.20230101.pdf,John Doe,true,"john,doe",.123.20230101.pdf,123.20230101.pdf
-john 123 doe 20230101.pdf,John Doe,true,"john,doe",123 20230101.pdf,123 20230101.pdf
+# Complex separators with variations
+jón___döe___report.pdf,true,jón döe,___report.pdf,report.pdf
+j0hn---d03---report.pdf,true,j0hn d03,---report.pdf,report.pdf
+jôhn...döe...report.pdf,true,jôhn döe,...report.pdf,report.pdf
+jöhn   d03   report.pdf,true,jöhn d03,report.pdf,report.pdf
 
-# Complex date formats
-john_doe_2023_01_01.pdf,John Doe,true,john_doe,_2023_01_01.pdf,2023_01_01.pdf
-john_doe_01_01_2023.pdf,John Doe,true,john_doe,_01_01_2023.pdf,01_01_2023.pdf
-john_doe_20230101_123456.pdf,John Doe,true,john_doe,_20230101_123456.pdf,20230101_123456.pdf
-john_doe_2023.01.01_123456.pdf,John Doe,true,john_doe,_2023.01.01_123456.pdf,2023.01.01_123456.pdf
+# Mixed content with variations
+jón123-döe456-report.pdf,true,jón döe,-report.pdf,report.pdf
+123j0hn-456d03-report.pdf,true,j0hn d03,-report.pdf,report.pdf
+jôhn@123-döe#456-report.pdf,true,jôhn döe,-report.pdf,report.pdf
+jöhn123-d03456-report.pdf,true,jöhn d03,-report.pdf,report.pdf
 
-# Multiple matches with numbers
-john_doe_123_20230101.pdf,John Doe,true,"john,doe",_123_20230101.pdf,123_20230101.pdf
-john_doe_123_456_20230101.pdf,John Doe,true,"john,doe",_123_456_20230101.pdf,123_456_20230101.pdf
-john_doe_123_456_789_20230101.pdf,John Doe,true,"john,doe",_123_456_789_20230101.pdf,123_456_789_20230101.pdf
-john_doe_123_456_789_012_20230101.pdf,John Doe,true,"john,doe",_123_456_789_012_20230101.pdf,123_456_789_012_20230101.pdf 
+# Management flag cases
+management/john-doe-report.pdf,true,john doe,management/-report.pdf,management-report.pdf
+management/john_doe_report.pdf,true,john doe,management/_report.pdf,management-report.pdf
+management/john doe report.pdf,true,john doe,management/report.pdf,management-report.pdf
+management/john.doe.report.pdf,true,john doe,management/.report.pdf,management-report.pdf
+
+# Document category cases
+hazard_reports/john-doe-report.pdf,true,john doe,hazard_reports/-report.pdf,hazard_reports-report.pdf
+risk_assessments/john_doe_report.pdf,true,john doe,risk_assessments/_report.pdf,risk_assessments-report.pdf
+support_plans/john doe report.pdf,true,john doe,support_plans/report.pdf,support_plans-report.pdf
+incident_reports/john.doe.report.pdf,true,john doe,incident_reports/.report.pdf,incident_reports-report.pdf
+
+# Nested folder cases
+client/john_doe/hazard_reports/report.pdf,true,john doe,client/hazard_reports/report.pdf,client-hazard_reports-report.pdf
+client/john_doe/management/report.pdf,true,john doe,client/management/report.pdf,client-management-report.pdf
+client/john_doe/risk_assessments/management/report.pdf,true,john doe,client/risk_assessments/management/report.pdf,client-risk_assessments-management-report.pdf
+
+# Additional date format variations
+john_doe_23.6.23.pdf,true,john doe,_23.6.23.pdf,23.6.23.pdf
+john_doe_23rd_June_2023.pdf,true,john doe,_23rd_June_2023.pdf,23rd_June_2023.pdf
+john_doe_June_23rd_2023.pdf,true,john doe,_June_23rd_2023.pdf,June_23rd_2023.pdf
+john_doe_23_June_2023.pdf,true,john doe,_23_June_2023.pdf,23_June_2023.pdf
+john_doe_June_23_2023.pdf,true,john doe,_June_23_2023.pdf,June_23_2023.pdf
+
+# Additional special character cases
+john-doe-report-v1.0.pdf,true,john doe,-report-v1.0.pdf,report-v1.0.pdf
+john-doe-report-v2.1.pdf,true,john doe,-report-v2.1.pdf,report-v2.1.pdf
+john-doe-report-v3.2.1.pdf,true,john doe,-report-v3.2.1.pdf,report-v3.2.1.pdf
+john-doe-report-v1.0.0.pdf,true,john doe,-report-v1.0.0.pdf,report-v1.0.0.pdf
+
+# Multiple names with categories
+john_doe_sarah_smith_report.pdf,true,"john doe,sarah smith",_report.pdf,report.pdf
+john_doe_sarah_smith_management_report.pdf,true,"john doe,sarah smith",_management_report.pdf,management-report.pdf
+john_doe_sarah_smith_hazard_report.pdf,true,"john doe,sarah smith",_hazard_report.pdf,hazard-report.pdf
+
+# Edge cases with multiple flags
+management/hazard_reports/john-doe-report.pdf,true,john doe,management/hazard_reports/-report.pdf,management-hazard_reports-report.pdf
+hazard_reports/management/john_doe_report.pdf,true,john doe,hazard_reports/management/_report.pdf,hazard_reports-management-report.pdf
+management/risk_assessments/john.doe.report.pdf,true,john doe,management/risk_assessments/.report.pdf,management-risk_assessments-report.pdf
+
+# Complex nested paths
+client/john_doe/management/hazard_reports/risk_assessments/report.pdf,true,john doe,client/management/hazard_reports/risk_assessments/report.pdf,client-management-hazard_reports-risk_assessments-report.pdf
+client/john_doe/hazard_reports/management/risk_assessments/report.pdf,true,john doe,client/hazard_reports/management/risk_assessments/report.pdf,client-hazard_reports-management-risk_assessments-report.pdf
+
+# Multiple names with complex paths
+client/john_doe_sarah_smith/management/hazard_reports/report.pdf,true,"john doe,sarah smith",client/management/hazard_reports/report.pdf,client-management-hazard_reports-report.pdf
+client/john_doe/sarah_smith/management/hazard_reports/report.pdf,true,"john doe,sarah smith",client/management/hazard_reports/report.pdf,client-management-hazard_reports-report.pdf
+
+# Version numbers with dates
+john-doe-report-v1.0-20230416.pdf,true,john doe,-report-v1.0-20230416.pdf,report-v1.0-20230416.pdf
+john-doe-report-v2.1-20230416.pdf,true,john doe,-report-v2.1-20230416.pdf,report-v2.1-20230416.pdf
+john-doe-report-v3.2.1-20230416.pdf,true,john doe,-report-v3.2.1-20230416.pdf,report-v3.2.1-20230416.pdf
+
+# Multiple dates
+john-doe-report-20230416-20230417.pdf,true,john doe,-report-20230416-20230417.pdf,report-20230416-20230417.pdf
+john-doe-report-20230416_20230417.pdf,true,john doe,-report-20230416_20230417.pdf,report-20230416_20230417.pdf
+john-doe-report-20230416.20230417.pdf,true,john doe,-report-20230416.20230417.pdf,report-20230416.20230417.pdf
+
+# Complex separators with categories
+john___doe___hazard___report.pdf,true,john doe,___hazard___report.pdf,hazard-report.pdf
+john---doe---risk---report.pdf,true,john doe,---risk---report.pdf,risk-report.pdf
+john...doe...support...report.pdf,true,john doe,...support...report.pdf,support-report.pdf
+
+# Mixed content with categories
+john123-doe456-hazard-report.pdf,true,john doe,-hazard-report.pdf,hazard-report.pdf
+123john-456doe-risk-report.pdf,true,john doe,-risk-report.pdf,risk-report.pdf
+john@123-doe#456-support-report.pdf,true,john doe,-support-report.pdf,support-report.pdf 

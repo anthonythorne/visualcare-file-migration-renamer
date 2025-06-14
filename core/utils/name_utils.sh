@@ -3,7 +3,7 @@
 # Name utility functions for handling various name permutations and matching
 
 # Generate all possible name permutations for matching
-# Input: "John Doe" -> ["John Doe", "John", "Doe", "J Doe", "J"]
+# Input: "John Doe" -> ["John Doe", "John", "Doe", "J Doe", "J", "JD", "jdoe", "johnD"]
 generate_name_permutations() {
     local full_name="$1"
     local first_name last_name initial
@@ -14,11 +14,14 @@ generate_name_permutations() {
     initial="${first_name:0:1}"
     
     # Generate permutations
-    echo "$full_name"
-    echo "$first_name"
-    echo "$last_name"
-    echo "$initial $last_name"
-    echo "$initial"
+    echo "$full_name"                    # Full name
+    echo "$first_name"                   # First name
+    echo "$last_name"                    # Last name
+    echo "$initial $last_name"           # Initial + last name
+    echo "$initial"                      # First initial
+    echo "${initial}${last_name:0:1}"    # Both initials (JD)
+    echo "${initial}${last_name}"        # First initial + last name (jdoe)
+    echo "${first_name}${last_name:0:1}" # First name + last initial (johnD)
 }
 
 # Check if a filename contains any permutation of a name
@@ -35,9 +38,15 @@ filename_contains_name() {
             if [[ "$filename" =~ [^A-Za-z]${name_perm}[^A-Za-z] ]]; then
                 return 0
             fi
-        # For initials, must be followed by separator and last name
-        elif [[ "$name_perm" =~ ^[A-Za-z][^A-Za-z]+[A-Za-z]+$ ]]; then
+        # For both initials (JD), must have separators around them
+        elif [[ "$name_perm" =~ ^[A-Za-z]{2}$ ]]; then
             if [[ "$filename" =~ [^A-Za-z]${name_perm}[^A-Za-z] ]]; then
+                return 0
+            fi
+        # For first initial + last name (jdoe) or first name + last initial (johnD),
+        # no separators needed
+        elif [[ "$name_perm" =~ ^[A-Za-z][A-Za-z]+$ ]]; then
+            if [[ "$filename" =~ ${name_perm} ]]; then
                 return 0
             fi
         # For single names, must be whole words
@@ -75,8 +84,8 @@ extract_name_and_remainder() {
                 # Remove the matched name and its surrounding separators
                 remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
             fi
-        # For initials, must be followed by separator and last name
-        elif [[ "$name_perm" =~ ^[A-Za-z][^A-Za-z]+[A-Za-z]+$ ]]; then
+        # For both initials (JD), must have separators around them
+        elif [[ "$name_perm" =~ ^[A-Za-z]{2}$ ]]; then
             if [[ "$filename" =~ ([^A-Za-z])(${name_perm})([^A-Za-z]) ]]; then
                 # Extract the matched name with its original case
                 local match="${BASH_REMATCH[2]}"
@@ -87,6 +96,20 @@ extract_name_and_remainder() {
                 fi
                 # Remove the matched name and its surrounding separators
                 remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
+            fi
+        # For first initial + last name (jdoe) or first name + last initial (johnD),
+        # no separators needed
+        elif [[ "$name_perm" =~ ^[A-Za-z][A-Za-z]+$ ]]; then
+            if [[ "$filename" =~ (${name_perm}) ]]; then
+                # Extract the matched name with its original case
+                local match="${BASH_REMATCH[1]}"
+                if [ -z "$matched_name" ]; then
+                    matched_name="$match"
+                else
+                    matched_name="$matched_name,$match"
+                fi
+                # Remove the matched name
+                remainder="${filename/${match}/}"
             fi
         # For single names, must be whole words
         else
