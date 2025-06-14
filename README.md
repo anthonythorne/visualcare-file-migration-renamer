@@ -6,31 +6,35 @@ This project automates the renaming and preparation of bulk client, staff, and p
 ## Name Matching Rules
 
 ### Full Name Matching
-- **Allowed:** Any non-letter characters (numbers, underscores, dashes, spaces, periods) between the *full* first and last name.
-  - Examples:
-    - `john_doe`, `john-2023-doe`, `john.doe`, `john 2023 doe` → **Match** for "John Doe"
-- **Not Allowed:** Additional letters after the last name.
-  - Examples:
-    - `john_doe-smith` → **No match** for "John Doe" (has additional last name)
-    - `john_doe_report` → **No match** for "John Doe" (has additional text)
+- Matches full names with any non-letter characters (numbers, underscores, dashes, etc.) between name parts
+- Examples:
+  - `john_doe` matches "John Doe"
+  - `john-ads-doe` matches "John Doe" (extracts "john,doe" with remainder "ads")
+  - `john*doe` matches "John Doe" (extracts "john,doe" with remainder "")
+  - `abcdj ads doe` does NOT match "John Doe" (only matches "doe")
+  - `johndoe` does NOT match "John Doe" (no separator between names)
 
 ### Initials Matching
-- **Allowed:** Initials can be anywhere in the word (start, middle, end) and must be followed by a separator and the last name.
-  - Examples:
-    - `j_doe`, `j-doe`, `j.2023.doe`, `j_doe_report.pdf` → **Match** for "J Doe"
-    - `abcdj ads doe` → **Match** for "Doe" (filename becomes "abcdj ads")
-    - `abcdjdoe` → **Match** for "jdoe" (filename becomes "abcd")
-- **Not Allowed:** Last name followed by additional letters.
-  - Examples:
-    - `j_doe-smith` → **No match** for "J Doe" (has additional last name)
-    - `j_doe_report` → **No match** for "J Doe" (has additional text)
+- Matches initials that are followed by a separator and the last name
+- Initials can be anywhere in the word
+- Examples:
+  - `j_doe` matches "John Doe"
+  - `abcdjdoe` matches "John Doe" (extracts "jdoe")
+  - `jdoe` does NOT match "John Doe" (no separator)
 
 ### Case Insensitivity
-- All matching is case-insensitive.
+- All matching is case-insensitive
+- Original case is preserved in the extracted name and remainder
 
-### Extraction
-- Remove the matched name (full or initial + last) and any leading/trailing separators.
-- Preserve original case and internal separators in the remainder.
+### Extraction Logic
+- Removes the matched name permutation from the filename
+- Trims leading/trailing separators from the remainder
+- Preserves original case and internal separators in the remainder
+- For multiple matches (e.g., "john,doe"), returns comma-separated list
+- Examples:
+  - `john-ads-doe_report.pdf` → "john,doe" with remainder "ads-report.pdf"
+  - `john*doe-2023.pdf` → "john,doe" with remainder "2023.pdf"
+  - `abcdjdoe_report.pdf` → "jdoe" with remainder "abcd_report.pdf"
 
 ## Usage
 [Usage instructions and examples will be added here.]
@@ -39,6 +43,7 @@ This project automates the renaming and preparation of bulk client, staff, and p
 Run the test suite using BATS:
 ```bash
 bats tests/unit/name_utils_test.bats
+bats tests/unit/name_utils_table_test.bats
 ```
 
 ## Contributing
