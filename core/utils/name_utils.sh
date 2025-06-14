@@ -97,11 +97,12 @@ filename_contains_name() {
     return $found
 }
 
-# Extract the name permutation from a filename
-extract_name_from_filename() {
+# Extract the name permutation from a filename and return the remainder
+extract_name_and_remainder() {
     local filename="$1"
     local full_name="$2"
     local extracted=""
+    local remainder=""
     
     # Convert filename to lowercase for case-insensitive matching
     local filename_lower=$(echo "$filename" | tr '[:upper:]' '[:lower:]')
@@ -134,7 +135,11 @@ extract_name_from_filename() {
     done <<< "$permutations"
     
     if [ -n "$best_match" ]; then
-        echo "$best_match"
+        # Extract the matched permutation and the remainder
+        extracted="$best_match"
+        remainder=$(echo "$filename" | sed "s/$best_match//g")
+        echo "$extracted"
+        echo "$remainder"
         return 0
     else
         return 1

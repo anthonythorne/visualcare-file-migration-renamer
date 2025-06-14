@@ -64,30 +64,33 @@ load '../../core/utils/name_utils.sh'
     assert_failure "$status"
 }
 
-@test "extract_name_from_filename returns correct permutation" {
-    run extract_name_from_filename "john_doe_20230101.pdf" "John Doe"
+@test "extract_name_and_remainder removes exact permutation" {
+    run extract_name_and_remainder "report_john_doe_20230101.pdf" "John Doe"
     assert_success "$status"
-    assert_output "john_doe"
+    assert_output --partial "john_doe"
+    assert_output --partial "report__20230101.pdf"
 }
 
-@test "extract_name_from_filename handles mixed case" {
-    run extract_name_from_filename "JoHn_DoE_20230101.pdf" "John Doe"
+@test "extract_name_and_remainder handles mixed case" {
+    run extract_name_and_remainder "Report_JoHn_DoE_20230101.pdf" "John Doe"
     assert_success "$status"
-    assert_output "JoHn_DoE"
+    assert_output --partial "JoHn_DoE"
+    assert_output --partial "Report__20230101.pdf"
 }
 
-@test "extract_name_from_filename handles non-adjacent names" {
-    run extract_name_from_filename "john_smith_doe_20230101.pdf" "John Doe"
+@test "extract_name_and_remainder handles non-adjacent names" {
+    run extract_name_and_remainder "report_john_smith_doe_20230101.pdf" "John Doe"
     assert_success "$status"
-    assert_output "john_*_doe"
+    assert_output --partial "john_*_doe"
+    assert_output --partial "report__20230101.pdf"
 }
 
-@test "extract_name_from_filename does not match with middle names" {
-    run extract_name_from_filename "john-james_doe_20230101.pdf" "John Doe"
+@test "extract_name_and_remainder does not match with middle names" {
+    run extract_name_and_remainder "report_john-james_doe_20230101.pdf" "John Doe"
     assert_failure "$status"
 }
 
-@test "extract_name_from_filename does not match with additional last names" {
-    run extract_name_from_filename "john_doe-smith_20230101.pdf" "John Doe"
+@test "extract_name_and_remainder does not match with additional last names" {
+    run extract_name_and_remainder "report_john_doe-smith_20230101.pdf" "John Doe"
     assert_failure "$status"
 } 
