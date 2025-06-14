@@ -1,0 +1,115 @@
+# Visualcare File Migration Renamer Configuration
+
+# Input and output directories
+input_dir: "./input"
+output_dir: "./output"
+
+# Mapping file for user IDs (clients/staff)
+mapping_file: "./config/mappings/users.csv"
+
+# Date formats to recognize in filenames
+date_formats:
+  # Australian formats (DD/MM/YY or DD/MM/YYYY)
+  - "%d/%m/%y"    # 23/6/23
+  - "%d/%m/%Y"    # 23/06/2023
+  - "%d-%m-%y"    # 23-6-23
+  - "%d-%m-%Y"    # 23-06-2023
+  - "%d.%m.%y"    # 23.6.23
+  - "%d.%m.%Y"    # 23.06.2023
+  
+  # American formats (MM/DD/YY or MM/DD/YYYY)
+  - "%m/%d/%y"    # 6/23/23
+  - "%m/%d/%Y"    # 06/23/2023
+  - "%m-%d-%y"    # 6-23-23
+  - "%m-%d-%Y"    # 06-23-2023
+  - "%m.%d.%y"    # 6.23.23
+  - "%m.%d.%Y"    # 06.23.2023
+  
+  # Full month names
+  - "%d %B %Y"    # 23 June 2023
+  - "%d %b %Y"    # 23 Jun 2023
+  - "%B %d %Y"    # June 23 2023
+  - "%b %d %Y"    # Jun 23 2023
+  
+  # Ordinal dates
+  - "%dth %B %Y"  # 23rd June 2023
+  - "%dst %B %Y"  # 1st June 2023
+  - "%dnd %B %Y"  # 2nd June 2023
+  - "%drd %B %Y"  # 3rd June 2023
+  
+  # ISO-like formats
+  - "%Y-%m-%d"    # 2023-06-23
+  - "%Y/%m/%d"    # 2023/06/23
+  - "%Y.%m.%d"    # 2023.06.23
+  
+  # Short formats without separators
+  - "%d%m%y"      # 230623
+  - "%d%m%Y"      # 23062023
+  - "%y%m%d"      # 230623
+  - "%Y%m%d"      # 20230623
+  
+  # Written formats
+  - "%A %d %B %Y" # Monday 23 June 2023
+  - "%d %B %Y %A" # 23 June 2023 Monday
+  
+  # Common variations
+  - "%d-%b-%Y"    # 23-Jun-2023
+  - "%d/%b/%Y"    # 23/Jun/2023
+  - "%b-%d-%Y"    # Jun-23-2023
+  - "%b/%d/%Y"    # Jun/23/2023
+
+# Allowed special characters in filenames
+allowed_special_chars: "_-"
+
+# File naming convention
+naming:
+  # Format: {user_id}_{user_full_name}_{document_name}_{date}.{extension}
+  format: "{user_id}_{user_full_name}_{document_name}_{date}"
+  # Separator for multiple words in document name
+  word_separator: "_"
+  # Whether to convert to lowercase
+  lowercase: true
+
+# Management flag settings
+management:
+  # Folders that indicate management documents
+  folders:
+    - "management"
+    - "admin"
+  # Flag to append to management documents
+  flag: "_MGT"
+
+# Supported file types
+file_types:
+  - "pdf"
+  - "doc"
+  - "docx"
+  - "xls"
+  - "xlsx"
+  - "eml"
+  - "jpg"
+  - "jpeg"
+  - "png"
+  - "mp4"
+
+# Plugin settings
+plugins:
+  # Pre-processing hooks
+  pre_process:
+    enabled: true
+    directory: "./plugins/pre-process"
+  # Post-processing hooks
+  post_process:
+    enabled: true
+    directory: "./plugins/post-process"
+  # Custom business rules
+  custom:
+    enabled: true
+    directory: "./plugins/custom"
+
+# Logging settings
+logging:
+  level: "info"  # debug, info, warn, error
+  file: "./logs/migration.log"
+  max_size: "10M"
+  backups: 5 
