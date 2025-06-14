@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
 # Load test helper functions
-load 'test_helper'
+load '../test_helper.bash'
 
 # Load the script to test
-load '../core/utils/logging_utils.sh'
+source '../../core/utils/logging.sh'
 
 setup() {
     # Setup runs before each test

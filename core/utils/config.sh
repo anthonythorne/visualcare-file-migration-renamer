@@ -12,39 +12,23 @@ check_dependencies() {
 
 # Load configuration from YAML file
 load_config() {
-    local config_file=$1
-    
-    # Check if config file exists
+    local config_file="$1"
     if [[ ! -f "$config_file" ]]; then
-        log_error "Configuration file not found: $config_file"
+        echo "Error: Configuration file not found: $config_file" >&2
         return 1
     fi
-    
-    # Check dependencies
-    check_dependencies
-    
-    # Load configuration
-    log_debug "Loading configuration from $config_file"
-    
-    # Read configuration values
-    INPUT_DIR=$(yq e '.input_dir' "$config_file")
-    OUTPUT_DIR=$(yq e '.output_dir' "$config_file")
-    MAPPING_FILE=$(yq e '.mapping_file' "$config_file")
-    DATE_FORMATS=$(yq e '.date_formats[]' "$config_file")
-    ALLOWED_SPECIAL_CHARS=$(yq e '.allowed_special_chars' "$config_file")
-    
-    # Validate required fields
-    if [[ -z "$INPUT_DIR" ]] || [[ -z "$OUTPUT_DIR" ]]; then
-        log_error "Required configuration fields missing"
+    # For now, we'll just echo the file content as a stub
+    cat "$config_file"
+    return 0
+}
+
+# Function to validate the loaded configuration
+validate_config() {
+    # Stub validation logic
+    if [[ -z "$SOURCE_DIR" || -z "$TARGET_DIR" || -z "$LOG_LEVEL" ]]; then
+        echo "Error: Missing required configuration fields." >&2
         return 1
     fi
-    
-    # Create output directory if it doesn't exist
-    if [[ ! -d "$OUTPUT_DIR" ]]; then
-        mkdir -p "$OUTPUT_DIR"
-    fi
-    
-    log_info "Configuration loaded successfully"
     return 0
 }
 
