@@ -12,8 +12,8 @@ setup() {
   local line_num=0
   while read -r filename name_to_match expected_match extracted_name raw_remainder cleaned_remainder; do
     ((line_num++))
-    # Skip header
-    if [[ $line_num -eq 1 ]]; then continue; fi
+    # Skip header, comments, and blank lines
+    if [[ $line_num -eq 1 ]] || [[ "$filename" =~ ^[[:space:]]*# ]] || [[ -z "$filename" ]]; then continue; fi
     # Remove possible carriage returns
     filename="${filename//$'\r'/}"
     name_to_match="${name_to_match//$'\r'/}"
@@ -23,7 +23,7 @@ setup() {
     cleaned_remainder="${cleaned_remainder//$'\r'/}"
 
     run extract_name_and_remainder "$filename" "$name_to_match"
-    if [[ "$expected_match" == "✅" ]]; then
+    if [[ "$expected_match" == "true" ]]; then
       assert_success
       # Output should be three lines: extracted_name, raw_remainder, cleaned_remainder
       IFS=$'\n' read -r out_name out_raw out_clean <<< "$output"
