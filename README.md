@@ -10,6 +10,7 @@ A flexible, extensible command-line utility for migrating and renaming files to 
 - Robust filename sanitization
 - Plugin system for custom business rules and processing
 - Comprehensive reporting and logging
+- Automated testing with BATS (Bash Automated Testing System)
 
 ## Project Structure
 
@@ -29,6 +30,9 @@ visualcare-file-migration-renamer/
 │   ├── post-process/     # Post-processing hooks
 │   └── custom/           # Custom business rules
 ├── tests/                # Test suite
+│   ├── unit/            # Unit tests
+│   ├── integration/     # Integration tests
+│   └── fixtures/        # Test data and fixtures
 └── docs/                 # Documentation
 ```
 
@@ -40,6 +44,22 @@ visualcare-file-migration-renamer/
 4. Run the migration:
    ```bash
    ./bin/vcmigrate --config config/config.yaml
+   ```
+
+## Development Setup
+
+1. Install BATS (Bash Automated Testing System):
+   ```bash
+   # Using npm
+   npm install -g bats
+   
+   # Or using Homebrew
+   brew install bats-core
+   ```
+
+2. Run the test suite:
+   ```bash
+   ./tests/run_tests.sh
    ```
 
 ## Configuration
@@ -64,6 +84,19 @@ The tool supports plugins in several ways:
 4. **Business Rules**: Add organization-specific rules and validations
 
 See `docs/plugins.md` for detailed plugin development guide.
+
+## Testing
+
+The project uses BATS (Bash Automated Testing System) for automated testing. The test suite includes:
+
+- Unit tests for core utilities
+- Integration tests for end-to-end functionality
+- Test fixtures for reproducible test cases
+
+To run the tests:
+```bash
+./tests/run_tests.sh
+```
 
 ## Contributing
 

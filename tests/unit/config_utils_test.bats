@@ -22,10 +22,10 @@ teardown() {
     echo "$config" > "$CONFIG_FILE"
     
     run load_config "$CONFIG_FILE"
-    [ "$status" -eq 0 ]
-    [ "$SOURCE_DIR" = "/test" ]
-    [ "$TARGET_DIR" = "/target" ]
-    [ "$LOG_LEVEL" = "INFO" ]
+    [ "$status" -eq 0 ]                # Should succeed
+    [ "$SOURCE_DIR" = "/test" ]        # Should set source directory
+    [ "$TARGET_DIR" = "/target" ]      # Should set target directory
+    [ "$LOG_LEVEL" = "INFO" ]          # Should set log level
 }
 
 @test "load_config fails with invalid JSON" {
@@ -33,7 +33,7 @@ teardown() {
     echo "$config" > "$CONFIG_FILE"
     
     run load_config "$CONFIG_FILE"
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with invalid JSON
 }
 
 @test "load_config fails with missing required fields" {
@@ -41,19 +41,19 @@ teardown() {
     echo "$config" > "$CONFIG_FILE"
     
     run load_config "$CONFIG_FILE"
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with missing fields
 }
 
 @test "load_config handles empty config file" {
     touch "$CONFIG_FILE"
     
     run load_config "$CONFIG_FILE"
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with empty file
 }
 
 @test "load_config handles non-existent config file" {
     run load_config "/nonexistent/config.json"
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with non-existent file
 }
 
 @test "validate_config validates correct config" {
@@ -62,7 +62,7 @@ teardown() {
     export LOG_LEVEL="INFO"
     
     run validate_config
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 0 ]  # Should succeed with valid config
 }
 
 @test "validate_config fails with missing source directory" {
@@ -70,7 +70,7 @@ teardown() {
     export LOG_LEVEL="INFO"
     
     run validate_config
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with missing source directory
 }
 
 @test "validate_config fails with missing target directory" {
@@ -78,7 +78,7 @@ teardown() {
     export LOG_LEVEL="INFO"
     
     run validate_config
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with missing target directory
 }
 
 @test "validate_config fails with invalid log level" {
@@ -87,7 +87,7 @@ teardown() {
     export LOG_LEVEL="INVALID"
     
     run validate_config
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with invalid log level
 }
 
 @test "validate_config handles empty directories" {
@@ -96,7 +96,7 @@ teardown() {
     export LOG_LEVEL="INFO"
     
     run validate_config
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 1 ]  # Should fail with empty directories
 }
 
 @test "validate_config handles relative paths" {
@@ -105,5 +105,5 @@ teardown() {
     export LOG_LEVEL="INFO"
     
     run validate_config
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 0 ]  # Should succeed with relative paths
 } 

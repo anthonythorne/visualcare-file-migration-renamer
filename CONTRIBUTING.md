@@ -18,6 +18,11 @@ Thank you for your interest in contributing to this project! This document provi
    
    # Install csvlint for CSV validation (optional)
    gem install csvlint
+
+   # Install BATS for testing
+   npm install -g bats
+   # or
+   brew install bats-core
    ```
 
 ## Development Guidelines
@@ -31,12 +36,56 @@ Thank you for your interest in contributing to this project! This document provi
 
 ### Testing
 
-1. Create test cases in the `tests/` directory
-2. Run tests:
+The project uses BATS (Bash Automated Testing System) for automated testing. Follow these guidelines:
+
+1. Test Structure:
+   - Place unit tests in `tests/unit/`
+   - Place integration tests in `tests/integration/`
+   - Place test fixtures in `tests/fixtures/`
+   - Use `test_helper.bash` for common test functions
+
+2. Writing Tests:
    ```bash
-   ./tests/run_tests.sh
+   #!/usr/bin/env bats
+   
+   # Load test helper functions
+   load 'test_helper'
+   
+   # Load the script to test
+   load '../path/to/script.sh'
+   
+   setup() {
+       # Setup runs before each test
+       export TEST_TEMP_DIR=$(mktemp -d)
+   }
+   
+   teardown() {
+       # Cleanup runs after each test
+       rm -rf "$TEST_TEMP_DIR"
+   }
+   
+   @test "test description" {
+       # Test implementation
+       run your_function "arg1" "arg2"
+       [ "$status" -eq 0 ]
+       [ "$output" = "expected output" ]
+   }
    ```
-3. Ensure all tests pass before submitting a pull request
+
+3. Running Tests:
+   ```bash
+   # Run all tests
+   ./tests/run_tests.sh
+   
+   # Run specific test file
+   bats tests/unit/your_test.bats
+   ```
+
+4. Test Coverage:
+   - Write tests for all new functionality
+   - Include edge cases and error conditions
+   - Test both success and failure scenarios
+   - Ensure tests are isolated and don't depend on external state
 
 ### Plugin Development
 
@@ -67,6 +116,11 @@ Thank you for your interest in contributing to this project! This document provi
    chmod +x your_plugin.sh
    ```
 
+4. Write tests for your plugin:
+   - Create a test file in `tests/unit/plugins/`
+   - Test all plugin functionality
+   - Include error cases and edge conditions
+
 ### Pull Request Process
 
 1. Create a new branch for your feature/fix
@@ -80,6 +134,7 @@ Thank you for your interest in contributing to this project! This document provi
 - Update README.md if adding new features
 - Add comments to your code
 - Update relevant documentation in the `docs/` directory
+- Document any new test cases or testing patterns
 
 ## Project Structure
 
@@ -90,6 +145,9 @@ visualcare-file-migration-renamer/
 ├── core/                   # Core functionality
 ├── plugins/               # Plugin directory
 ├── tests/                # Test suite
+│   ├── unit/            # Unit tests
+│   ├── integration/     # Integration tests
+│   └── fixtures/        # Test data and fixtures
 └── docs/                 # Documentation
 ```
 
