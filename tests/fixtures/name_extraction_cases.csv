@@ -114,16 +114,16 @@ john-doe-report-v1.0.pdf,John Doe,true,john doe,-report-v1.0.pdf,report-v1.0.pdf
 john-doe-report-v2.1.pdf,John Doe,true,john doe,-report-v2.1.pdf,report-v2.1.pdf,Additional special character cases
 john-doe-report-v3.2.1.pdf,John Doe,true,john doe,-report-v3.2.1.pdf,report-v3.2.1.pdf,Additional special character cases
 john-doe-report-v1.0.0.pdf,John Doe,true,john doe,-report-v1.0.0.pdf,report-v1.0.0.pdf,Additional special character cases
-john_doe_sarah_smith_report.pdf,John Doe,true,"john doe,sarah smith",_report.pdf,report.pdf,Multiple names with categories
-john_doe_sarah_smith_management_report.pdf,John Doe,true,"john doe,sarah smith",_management_report.pdf,management-report.pdf,Multiple names with categories
-john_doe_sarah_smith_hazard_report.pdf,John Doe,true,"john doe,sarah smith",_hazard_report.pdf,hazard-report.pdf,Multiple names with categories
+john_doe_sarah_smith_report.pdf,John Doe,true,john doe,_sarah_smith__report.pdf,sarah_smith_report.pdf,Multiple names with categories
+john_doe_sarah_smith_management_report.pdf,John Doe,true,john doe,_sarah_smith__management_report.pdf,sarah_smith_management-report.pdf,Multiple names with categories
+john_doe_sarah_smith_hazard_report.pdf,John Doe,true,john doe,_sarah_smith__hazard_report.pdf,sarah_smith_hazard-report.pdf,Multiple names with categories
 management/hazard_reports/john-doe-report.pdf,John Doe,true,john doe,management/hazard_reports/-report.pdf,management-hazard_reports-report.pdf,Edge cases with multiple flags
 hazard_reports/management/john_doe_report.pdf,John Doe,true,john doe,hazard_reports/management/_report.pdf,hazard_reports-management-report.pdf,Edge cases with multiple flags
 management/risk_assessments/john.doe.report.pdf,John Doe,true,john doe,management/risk_assessments/.report.pdf,management-risk_assessments-report.pdf,Edge cases with multiple flags
 client/john_doe/management/hazard_reports/risk_assessments/report.pdf,John Doe,true,john doe,client/management/hazard_reports/risk_assessments/report.pdf,client-management-hazard_reports-risk_assessments-report.pdf,Complex nested paths
 client/john_doe/hazard_reports/management/risk_assessments/report.pdf,John Doe,true,john doe,client/hazard_reports/management/risk_assessments/report.pdf,client-hazard_reports-management-risk_assessments-report.pdf,Complex nested paths
-client/john_doe_sarah_smith/management/hazard_reports/report.pdf,John Doe,true,"john doe,sarah smith",client/management/hazard_reports/report.pdf,client-management-hazard_reports-report.pdf,Multiple names with complex paths
-client/john_doe/sarah_smith/management/hazard_reports/report.pdf,John Doe,true,"john doe,sarah smith",client/management/hazard_reports/report.pdf,client-management-hazard_reports-report.pdf,Multiple names with complex paths
+client/john_doe_sarah_smith/management/hazard_reports/report.pdf,John Doe,true,john doe,client/_sarah_smith/management/hazard_reports/report.pdf,client-sarah_smith-management-hazard_reports-report.pdf,Multiple names with complex paths
+client/john_doe/sarah_smith/management/hazard_reports/report.pdf,John Doe,true,john doe,client//sarah_smith/management/hazard_reports/report.pdf,client-sarah_smith-management-hazard_reports-report.pdf,Multiple names with complex paths
 john-doe-report-v1.0-20230416.pdf,John Doe,true,john doe,-report-v1.0-20230416.pdf,report-v1.0-20230416.pdf,Version numbers with dates
 john-doe-report-v2.1-20230416.pdf,John Doe,true,john doe,-report-v2.1-20230416.pdf,report-v2.1-20230416.pdf,Version numbers with dates
 john-doe-report-v3.2.1-20230416.pdf,John Doe,true,john doe,-report-v3.2.1-20230416.pdf,report-v3.2.1-20230416.pdf,Version numbers with dates

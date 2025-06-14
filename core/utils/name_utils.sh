@@ -33,25 +33,25 @@ filename_contains_name() {
     
     # Generate and check each permutation
     while IFS= read -r name_perm; do
-        # For full names, allow any non-letter characters between parts
-        if [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ]+[^A-Za-zÀ-ÿ]+[A-Za-zÀ-ÿ]+$ ]]; then
-            if [[ "$filename" =~ [^A-Za-zÀ-ÿ]${name_perm}[^A-Za-zÀ-ÿ] ]]; then
+        # For full names, allow any non-alphanumeric characters between parts
+        if [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]+[^A-Za-zÀ-ÿ0-9]+[A-Za-zÀ-ÿ0-9]+$ ]]; then
+            if [[ "$filename" =~ [^A-Za-zÀ-ÿ0-9]${name_perm}[^A-Za-zÀ-ÿ0-9] ]]; then
                 return 0
             fi
         # For both initials (JD), must have separators around them
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ]{2}$ ]]; then
-            if [[ "$filename" =~ [^A-Za-zÀ-ÿ]${name_perm}[^A-Za-zÀ-ÿ] ]]; then
+        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]{2}$ ]]; then
+            if [[ "$filename" =~ [^A-Za-zÀ-ÿ0-9]${name_perm}[^A-Za-zÀ-ÿ0-9] ]]; then
                 return 0
             fi
         # For first initial + last name (jdoe) or first name + last initial (johnD),
         # no separators needed
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ]+$ ]]; then
+        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9]+$ ]]; then
             if [[ "$filename" =~ ${name_perm} ]]; then
                 return 0
             fi
         # For single names, must be whole words
         else
-            if [[ "$filename" =~ [^A-Za-zÀ-ÿ]${name_perm}[^A-Za-zÀ-ÿ] ]]; then
+            if [[ "$filename" =~ [^A-Za-zÀ-ÿ0-9]${name_perm}[^A-Za-zÀ-ÿ0-9] ]]; then
                 return 0
             fi
         fi
@@ -69,54 +69,63 @@ extract_name_and_remainder() {
     local matched_names=()
     local remainder="$filename"
     local raw_remainder="$filename"
+    local positions=()
     
     # Generate and check each permutation
     while IFS= read -r name_perm; do
-        # For full names, allow any non-letter characters between parts
-        if [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ]+[^A-Za-zÀ-ÿ]+[A-Za-zÀ-ÿ]+$ ]]; then
-            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ])(${name_perm})([^A-Za-zÀ-ÿ]) ]]; then
+        # For full names, allow any non-alphanumeric characters between parts
+        if [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]+[^A-Za-zÀ-ÿ0-9]+[A-Za-zÀ-ÿ0-9]+$ ]]; then
+            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ0-9])(${name_perm})([^A-Za-zÀ-ÿ0-9]) ]]; then
                 # Extract the matched name with its original case
                 local match="${BASH_REMATCH[2]}"
+                local pos="${BASH_REMATCH[1]}"
                 # Only add if not already in matched_names
                 if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
                     matched_names+=("$match")
+                    positions+=("$pos")
                 fi
                 # Remove the matched name and its surrounding separators
                 remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
             fi
         # For both initials (JD), must have separators around them
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ]{2}$ ]]; then
-            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ])(${name_perm})([^A-Za-zÀ-ÿ]) ]]; then
+        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]{2}$ ]]; then
+            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ0-9])(${name_perm})([^A-Za-zÀ-ÿ0-9]) ]]; then
                 # Extract the matched name with its original case
                 local match="${BASH_REMATCH[2]}"
+                local pos="${BASH_REMATCH[1]}"
                 # Only add if not already in matched_names
                 if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
                     matched_names+=("$match")
+                    positions+=("$pos")
                 fi
                 # Remove the matched name and its surrounding separators
                 remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
             fi
         # For first initial + last name (jdoe) or first name + last initial (johnD),
         # no separators needed
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ]+$ ]]; then
+        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9]+$ ]]; then
             if [[ "$filename" =~ (${name_perm}) ]]; then
                 # Extract the matched name with its original case
                 local match="${BASH_REMATCH[1]}"
+                local pos="${BASH_REMATCH[0]}"
                 # Only add if not already in matched_names
                 if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
                     matched_names+=("$match")
+                    positions+=("$pos")
                 fi
                 # Remove the matched name
                 remainder="${filename/${match}/}"
             fi
         # For single names, must be whole words
         else
-            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ])(${name_perm})([^A-Za-zÀ-ÿ]) ]]; then
+            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ0-9])(${name_perm})([^A-Za-zÀ-ÿ0-9]) ]]; then
                 # Extract the matched name with its original case
                 local match="${BASH_REMATCH[2]}"
+                local pos="${BASH_REMATCH[1]}"
                 # Only add if not already in matched_names
                 if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
                     matched_names+=("$match")
+                    positions+=("$pos")
                 fi
                 # Remove the matched name and its surrounding separators
                 remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
@@ -124,14 +133,27 @@ extract_name_and_remainder() {
         fi
     done < <(generate_name_permutations "$name_to_match")
     
+    # Sort matched names by their position in the original filename
+    local sorted_names=()
+    local sorted_positions=()
+    for i in "${!positions[@]}"; do
+        sorted_positions+=("$i")
+    done
+    # Sort positions
+    IFS=$'\n' sorted_positions=($(sort -n <<<"${sorted_positions[*]}"))
+    # Reorder names based on sorted positions
+    for i in "${sorted_positions[@]}"; do
+        sorted_names+=("${matched_names[$i]}")
+    done
+    
     # Join matched names with commas
     local matched_name=""
-    if [ ${#matched_names[@]} -gt 0 ]; then
-        matched_name=$(IFS=,; echo "${matched_names[*]}")
+    if [ ${#sorted_names[@]} -gt 0 ]; then
+        matched_name=$(IFS=,; echo "${sorted_names[*]}")
     fi
     
     # Clean up the remainder
-    local cleaned_remainder=$(echo "$remainder" | sed -E 's/^[^A-Za-zÀ-ÿ]+//;s/[^A-Za-zÀ-ÿ]+$//')
+    local cleaned_remainder=$(echo "$remainder" | sed -E 's/^[^A-Za-zÀ-ÿ0-9]+//;s/[^A-Za-zÀ-ÿ0-9]+$//;s/[^A-Za-zÀ-ÿ0-9]+/-/g')
     
     # Handle folder and category information
     if [[ "$filename" =~ ^([^/]+/)+ ]]; then
