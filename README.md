@@ -4,116 +4,136 @@
 This project automates the renaming and preparation of bulk client, staff, and policy documents for upload into VisualCare. The script standardises file naming conventions, extracts or assigns dates, maps client/staff names to IDs, handles management flagging, and supports iterative testing and refinement.
 
 ## Name Matching Rules
+For detailed information about name matching rules and conventions, please see [NAMING_CONVENTIONS.md](docs/NAMING_CONVENTIONS.md).
 
-### Full Name Matching
-- Matches full names with any non-letter characters (numbers, underscores, dashes, etc.) between name parts
-- Examples:
-  - `john_doe` matches "John Doe"
-  - `john-ads-doe` matches "John Doe" (extracts "john,doe" with remainder "ads")
-  - `john*doe` matches "John Doe" (extracts "john,doe" with remainder "")
-  - `abcdj ads doe` does NOT match "John Doe" (only matches "doe")
-  - `johndoe` does NOT match "John Doe" (no separator between names)
+## Extending and Customizing
 
-### Initials Matching
-There are three distinct rules for handling initials:
+### Separator Configuration
+The system uses a flexible separator configuration system that can be extended for company-specific needs.
 
-1. Both Initials (e.g., "JD", "jd", "Jd", "jD"):
-   - Must have known separators around them
-   - Examples:
-     - `abcd-jd-home.pdf` matches "jd" (has `-` separators)
-     - `abcd_jd_home.pdf` matches "jd" (has `_` separators)
-     - `abcdjdhome.pdf` does NOT match (no separators)
+#### Location
+- Main config: `config/separators.yaml`
+- Company-specific: Create your own `config/separators.yaml` in your project
 
-2. First Initial + Last Name (e.g., "jdoe", "Jdoe", "jDoe", "JDoe"):
-   - Does NOT need separators around it
-   - Examples:
-     - `abcdjdoe_report.pdf` matches "jdoe"
-     - `abcdjdoehome.pdf` matches "jdoe"
-     - `abcdJdoe_report.pdf` matches "Jdoe"
-     - `abcdjDoe_report.pdf` matches "jDoe"
+#### Configuration Structure
+```yaml
+default_separators:
+  # Standard separators (always enabled)
+  standard:
+    - "-"  # hyphen
+    - "_"  # underscore
+    - "."  # period
+    - " "  # space
 
-3. First Name + Last Initial (e.g., "johnD", "JohnD", "johnD", "JohnD"):
-   - Does NOT need separators around it
-   - Examples:
-     - `abcdjohnD_report.pdf` matches "johnD"
-     - `abcdjohnDhome.pdf` matches "johnD"
-     - `abcdJohnD_report.pdf` matches "JohnD"
+  # Non-standard separators (configurable)
+  non_standard:
+    - "*"  # asterisk
+    - "@"  # at sign
+    - "#"  # hash
+    # ... more separators
 
-### Case Insensitivity
-- All matching is case-insensitive
-- Original case is preserved in the extracted name and remainder
+# Custom separators (company-specific)
+custom_separators:
+  - ":"  # colon
+  - ";"  # semicolon
+  # Add your company-specific separators here
 
-### Numbers and Special Characters
-- Names containing numbers are matched if they contain valid name parts
-- Examples:
-  - `john123-doe` matches "john doe"
-  - `123john-doe` matches "john doe"
-  - `john-doe123` matches "john doe"
-  - `123john-doe123` matches "john doe"
-- Special characters in names are treated similarly
-- Examples:
-  - `john@-doe` matches "john doe"
-  - `john-doe@` matches "john doe"
-  - `@john-doe` matches "john doe"
+# Separator rules
+rules:
+  allow_multiple: true        # Allow multiple consecutive separators
+  normalize_output: true      # Normalize separators in output
+  default_output_separator: "-"  # Default separator for normalization
+  preserve_remainder_separators: true  # Keep original separators in remainder
+```
 
-### Unicode and Accented Characters
-- Names with accented characters are matched if they contain valid name parts
-- Examples:
-  - `jón-doe` matches "jón doe"
-  - `jóhn-doe` matches "jóhn doe"
-  - `jôhn-doe` matches "jôhn doe"
-  - `jöhn-doe` matches "jöhn doe"
-- Common variations and typos are handled
-- Examples:
-  - `jón-doe` and `jon-doe` both match
-  - `jóhn-doe` and `jôhn-doe` both match
+#### Adding Custom Separators
+1. Create your own `config/separators.yaml`
+2. Add your custom separators under `custom_separators`
+3. Adjust rules as needed
+4. Reference your config in `config/config.yaml`:
+   ```yaml
+   separator_config: "./config/separators.yaml"
+   ```
 
-### Multiple Match Handling
-- All valid name matches in a filename are extracted
-- Duplicate matches are removed (e.g., "john-doe-john-doe" → "john,doe")
-- Different variations of the same name are treated as unique:
-  - "john-doe-jdoe" → "john,doe,jdoe"
-  - "john-doe-johnD" → "john,doe,johnD"
-  - "jdoe-johnD" → "jdoe,johnD"
-- Matches are preserved in their original case
-- The remainder is cleaned of any matched names and their surrounding separators
+### Test Cases
+The system includes a comprehensive test matrix that can be extended for company-specific cases.
 
-### Folder and Category Handling
-- Names are extracted from files in various folder structures:
-  - Management folders: `management/john-doe-report.pdf`
-  - Category folders: `hazard_reports/john-doe-report.pdf`
-  - Nested folders: `client/john_doe/hazard_reports/report.pdf`
-- Category information is preserved in the remainder
-- Examples:
-  - `management/john-doe-report.pdf` → "john,doe" with remainder "management-report.pdf"
-  - `hazard_reports/john_doe_report.pdf` → "john,doe" with remainder "hazard_reports-report.pdf"
-  - `client/john_doe/management/report.pdf` → "john,doe" with remainder "client-management-report.pdf"
+#### Location
+- Main test cases: `tests/fixtures/name_extraction_cases.csv`
+- Company-specific: Create your own CSV file
 
-### Version Numbers and Dates
-- Version numbers are preserved in the remainder
-- Examples:
-  - `john-doe-report-v1.0.pdf` → "john,doe" with remainder "report-v1.0.pdf"
-  - `john-doe-report-v2.1.pdf` → "john,doe" with remainder "report-v2.1.pdf"
-- Dates in various formats are preserved
-- Examples:
-  - `john_doe_2023-01-01.pdf` → "john,doe" with remainder "2023-01-01.pdf"
-  - `john_doe_23rd_June_2023.pdf` → "john,doe" with remainder "23rd_June_2023.pdf"
+#### Test Case Structure
+```csv
+filename,name_to_match,expected_match,extracted_name,raw_remainder,cleaned_remainder,use_case
+john-doe-report.pdf,John Doe,true,john-doe,-report.pdf,report.pdf,Basic name format with standard separator
+```
 
-### Extraction Logic
-- Removes the matched name permutation from the filename
-- Trims leading/trailing separators from the remainder
-- Preserves original case and internal separators in the remainder
-- For multiple matches:
-  - Returns comma-separated list of unique matches (duplicates are removed)
-  - Matches are returned in order of appearance
-  - Examples:
-    - `john-doe-john-doe-report.pdf` → "john,doe" (duplicate removed)
-    - `john-ads-doe_report.pdf` → "john,doe" with remainder "ads-report.pdf"
-    - `john*doe-2023.pdf` → "john,doe" with remainder "2023.pdf"
-    - `abcdjdoe_report.pdf` → "jdoe" with remainder "abcd_report.pdf"
-    - `john-doe-sarah-smith-report.pdf` → "john,doe,sarah,smith" with remainder "report.pdf"
-    - `john-doe-jdoe-report.pdf` → "john,doe,jdoe" with remainder "report.pdf"
-    - `jdoe-john-doe-report.pdf` → "jdoe,john,doe" with remainder "report.pdf"
+#### Adding Custom Test Cases
+1. Create your own CSV file
+2. Follow the same structure as the main test file
+3. Add your company-specific cases
+4. Run tests with your custom file:
+   ```bash
+   bats tests/unit/name_utils_table_test.bats --test-file your_cases.csv
+   ```
+
+### Plugin System
+The system includes a plugin architecture for custom business rules and processing.
+
+#### Location
+- Pre-processing: `plugins/pre-process/`
+- Post-processing: `plugins/post-process/`
+- Custom rules: `plugins/custom/`
+
+#### Creating a Plugin
+1. Create a new script in the appropriate plugin directory
+2. Implement the required interface
+3. Enable the plugin in `config/config.yaml`:
+   ```yaml
+   plugins:
+     pre_process:
+       enabled: true
+       directory: "./plugins/pre-process"
+   ```
+
+### Configuration
+The main configuration file can be customized for company-specific needs.
+
+#### Location
+- Main config: `config/config.yaml`
+- Company-specific: Create your own config file
+
+#### Key Configuration Areas
+```yaml
+# Input and output directories
+input_dir: "./input"
+output_dir: "./output"
+
+# Mapping file for user IDs
+mapping_file: "./config/mappings/users.csv"
+
+# Separator configuration
+separator_config: "./config/separators.yaml"
+
+# Date formats
+date_formats:
+  - "%d/%m/%y"
+  - "%d-%m-%Y"
+  # Add your company-specific date formats
+
+# File naming convention
+naming:
+  format: "{user_id}_{user_full_name}_{document_name}_{date}"
+  word_separator: "_"
+  lowercase: true
+
+# Management flag settings
+management:
+  folders:
+    - "management"
+    - "admin"
+  flag: "_MGT"
+```
 
 ## Testing
 The project includes a comprehensive test matrix covering all name matching scenarios. Run the test suite using BATS:
@@ -122,31 +142,7 @@ bats tests/unit/name_utils_test.bats
 bats tests/unit/name_utils_table_test.bats
 ```
 
-For a complete list of test cases and examples, see [tests/fixtures/name_extraction_cases.csv](tests/fixtures/name_extraction_cases.csv). This file contains all the test cases used to verify the name extraction functionality, including examples of:
-- Basic name formats with standard separators
-- Multiple separators
-- Mixed separators
-- Non-standard separators
-- Extra content between names
-- Initials variations
-- Case variations
-- Names with numbers and special characters
-- Multiple matches in same filename
-- Initials with extra content
-- No match cases
-- Edge cases
-- Date variations
-- Common name variations and typos
-- Mixed variations
-- Management flag cases
-- Document category cases
-- Nested folder cases
-- Complex nested paths
-- Multiple names with complex paths
-- Version numbers with dates
-- Multiple dates
-- Complex separators with categories
-- Mixed content with categories
+For a complete list of test cases and examples, see [tests/fixtures/name_extraction_cases.csv](tests/fixtures/name_extraction_cases.csv).
 
 ## Usage
 [Usage instructions and examples will be added here.]

@@ -7,6 +7,9 @@ output_dir: "./output"
 # Mapping file for user IDs (clients/staff)
 mapping_file: "./config/mappings/users.csv"
 
+# Separator configuration
+separator_config: "./config/separators.yaml"
+
 # Date formats to recognize in filenames
 date_formats:
   # Australian formats (DD/MM/YY or DD/MM/YYYY)

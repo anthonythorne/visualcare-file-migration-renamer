@@ -60,117 +60,6 @@ filename_contains_name() {
     return 1
 }
 
-# Extract the matched name and remainder from a filename
-# Returns: "matched_name" "raw_remainder" "cleaned_remainder"
-extract_name_and_remainder() {
-    local filename="$1"
-    local name_to_match="$2"
-    local name_perm
-    local matched_names=()
-    local remainder="$filename"
-    local raw_remainder="$filename"
-    local positions=()
-    
-    # Generate and check each permutation
-    while IFS= read -r name_perm; do
-        # For full names, allow any non-alphanumeric characters between parts
-        if [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]+[^A-Za-zÀ-ÿ0-9]+[A-Za-zÀ-ÿ0-9]+$ ]]; then
-            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ0-9])(${name_perm})([^A-Za-zÀ-ÿ0-9]) ]]; then
-                # Extract the matched name with its original case
-                local match="${BASH_REMATCH[2]}"
-                local pos="${BASH_REMATCH[1]}"
-                # Only add if not already in matched_names
-                if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
-                    matched_names+=("$match")
-                    positions+=("$pos")
-                fi
-                # Remove the matched name and its surrounding separators
-                remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
-            fi
-        # For both initials (JD), must have separators around them
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]{2}$ ]]; then
-            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ0-9])(${name_perm})([^A-Za-zÀ-ÿ0-9]) ]]; then
-                # Extract the matched name with its original case
-                local match="${BASH_REMATCH[2]}"
-                local pos="${BASH_REMATCH[1]}"
-                # Only add if not already in matched_names
-                if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
-                    matched_names+=("$match")
-                    positions+=("$pos")
-                fi
-                # Remove the matched name and its surrounding separators
-                remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
-            fi
-        # For first initial + last name (jdoe) or first name + last initial (johnD),
-        # no separators needed
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9]+$ ]]; then
-            if [[ "$filename" =~ (${name_perm}) ]]; then
-                # Extract the matched name with its original case
-                local match="${BASH_REMATCH[1]}"
-                local pos="${BASH_REMATCH[0]}"
-                # Only add if not already in matched_names
-                if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
-                    matched_names+=("$match")
-                    positions+=("$pos")
-                fi
-                # Remove the matched name
-                remainder="${filename/${match}/}"
-            fi
-        # For single names, must be whole words
-        else
-            if [[ "$filename" =~ ([^A-Za-zÀ-ÿ0-9])(${name_perm})([^A-Za-zÀ-ÿ0-9]) ]]; then
-                # Extract the matched name with its original case
-                local match="${BASH_REMATCH[2]}"
-                local pos="${BASH_REMATCH[1]}"
-                # Only add if not already in matched_names
-                if ! [[ " ${matched_names[*]} " =~ " ${match} " ]]; then
-                    matched_names+=("$match")
-                    positions+=("$pos")
-                fi
-                # Remove the matched name and its surrounding separators
-                remainder="${filename/${BASH_REMATCH[1]}${match}${BASH_REMATCH[3]}/}"
-            fi
-        fi
-    done < <(generate_name_permutations "$name_to_match")
-    
-    # Sort matched names by their position in the original filename
-    local sorted_names=()
-    local sorted_positions=()
-    for i in "${!positions[@]}"; do
-        sorted_positions+=("$i")
-    done
-    # Sort positions
-    IFS=$'\n' sorted_positions=($(sort -n <<<"${sorted_positions[*]}"))
-    # Reorder names based on sorted positions
-    for i in "${sorted_positions[@]}"; do
-        sorted_names+=("${matched_names[$i]}")
-    done
-    
-    # Join matched names with commas
-    local matched_name=""
-    if [ ${#sorted_names[@]} -gt 0 ]; then
-        matched_name=$(IFS=,; echo "${sorted_names[*]}")
-    fi
-    
-    # Clean up the remainder
-    local cleaned_remainder=$(echo "$remainder" | sed -E 's/^[^A-Za-zÀ-ÿ0-9]+//;s/[^A-Za-zÀ-ÿ0-9]+$//;s/[^A-Za-zÀ-ÿ0-9]+/-/g')
-    
-    # Handle folder and category information
-    if [[ "$filename" =~ ^([^/]+/)+ ]]; then
-        local folder_path="${BASH_REMATCH[0]}"
-        # Remove trailing slash
-        folder_path="${folder_path%/}"
-        # Replace slashes with hyphens
-        folder_path="${folder_path//\//-}"
-        # Add folder path to cleaned remainder
-        cleaned_remainder="${folder_path}-${cleaned_remainder}"
-    fi
-    
-    echo "$matched_name"
-    echo "$raw_remainder"
-    echo "$cleaned_remainder"
-}
-
 # Test function to visualize name permutations
 test_name_permutations() {
     local test_name="$1"
@@ -178,4 +67,120 @@ test_name_permutations() {
     echo "----------------------------------------"
     generate_name_permutations "$test_name"
     echo "----------------------------------------"
-} 
+}
+
+# Function to clean a filename remainder
+# Removes leading/trailing separators and standardizes internal separators
+clean_filename_remainder() {
+    local remainder="$1"
+    
+    # First, split into base and extension
+    local base="${remainder%.*}"
+    local ext="${remainder##*.}"
+    
+    # If base is empty, preserve it
+    if [[ -z "$base" ]]; then
+        echo ".${ext}"
+        return 0
+    fi
+    
+    # If base contains only separators, preserve it
+    if ! echo "$base" | grep -q '[^-_. ]'; then
+        echo ".${ext}"
+        return 0
+    fi
+    
+    # Remove leading/trailing separators from base
+    base="${base#"${base%%[!-_. ]*}"}"
+    base="${base%"${base##*[!-_. ]}"}"
+    
+    # Preserve version numbers and date patterns
+    # Use perl for non-greedy match and substitution
+    # Pattern explanation:
+    # - (v[0-9]+(?:\.[0-9]+)+) - version numbers (v1.0, v1.0.0, etc.)
+    # - ([0-9]{4}\.[0-9]{2}\.[0-9]{2}(?:\.[0-9]+)?) - date patterns with optional microseconds (YYYY.MM.DD.microseconds)
+    # - ([0-9]{2}\.[0-9]{2}\.[0-9]{2}) - time patterns (HH.MM.SS)
+    base=$(echo "$base" | perl -pe 's/(v[0-9]+(?:\.[0-9]+)+)|([0-9]{4}\.[0-9]{2}\.[0-9]{2}(?:\.[0-9]+)?)|([0-9]{2}\.[0-9]{2}\.[0-9]{2})|[-_. ]+/$1 ? $1 : ($2 ? $2 : ($3 ? $3 : "-"))/ge')
+    
+    # If we have an extension, add it back
+    if [[ "$remainder" == *.* ]]; then
+        echo "${base}.${ext}"
+    else
+        echo "$base"
+    fi
+}
+
+# Function to extract name from filename using Python script
+extract_name_from_filename() {
+    local filename="$1"
+    local name_to_match="$2"
+    
+    # Call Python script and capture output
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local python_output
+    python_output=$(python3 "$script_dir/name_matcher.py" "$filename" "$name_to_match")
+    
+    # Check if Python script returned an error
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Failed to run name_matcher.py" >&2
+        return 1
+    fi
+    
+    # Parse JSON output
+    local matched
+    local matched_name
+    local raw_remainder
+    
+    matched=$(echo "$python_output" | jq -r '.matched')
+    matched_name=$(echo "$python_output" | jq -r '.matched_name')
+    raw_remainder=$(echo "$python_output" | jq -r '.raw_remainder')
+    
+    # Clean the remainder
+    local cleaned_remainder
+    cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+    
+    # Output results separated by pipe
+    echo "${matched_name}|${cleaned_remainder}|${matched}"
+    
+    # Return success/failure
+    [[ "$matched" == "true" ]]
+}
+
+# Function to clean a filename
+clean_filename() {
+    local filename="$1"
+    
+    # Remove leading/trailing separators
+    filename="${filename#"${filename%%[!-_. ]*}"}"
+    filename="${filename%"${filename##*[!-_. ]}"}"
+    
+    # Replace multiple separators with a single underscore
+    filename=$(echo "$filename" | sed -E 's/[-_. ]+/_/g')
+    
+    echo "$filename"
+}
+
+# Main script
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # If script is run directly, process command line arguments
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: $0 <filename> [name_to_match]"
+        exit 1
+    fi
+    
+    filename="$1"
+    name_to_match="${2:-}"
+    
+    if [[ -n "$name_to_match" ]]; then
+        # Extract name and clean remainder
+        if extract_name_from_filename "$filename" "$name_to_match"; then
+            exit 0
+        else
+            exit 1
+        fi
+    else
+        # Just clean the filename
+        clean_filename "$filename"
+    fi
+fi 

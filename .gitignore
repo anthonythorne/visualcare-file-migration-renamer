@@ -1,2 +1,3 @@
 # Ignore all project information files.
 project-*.*
+logs/

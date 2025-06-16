@@ -1,0 +1,44 @@
+# Default separators for name matching
+default_separators:
+  # Standard separators (always enabled)
+  standard:
+    - "-"  # hyphen
+    - "_"  # underscore
+    - "."  # period
+    - " "  # space
+
+  # Non-standard separators (configurable)
+  non_standard:
+    - "*"  # asterisk
+    - "@"  # at sign
+    - "#"  # hash
+    - "$"  # dollar
+    - "%"  # percent
+    - "&"  # ampersand
+    - "+"  # plus
+    - "="  # equals
+    - "~"  # tilde
+    - "|"  # pipe
+
+# Custom separators (company-specific)
+custom_separators:
+  # Add your company-specific separators here
+  # Example:
+  # - ":"  # colon
+  # - ";"  # semicolon
+  # - "/"  # forward slash
+  # - "\\" # backslash
+
+# Separator rules
+rules:
+  # Whether to allow multiple consecutive separators
+  allow_multiple: true
+  
+  # Whether to normalize separators in the output
+  normalize_output: true
+  
+  # Default separator to use when normalizing
+  default_output_separator: "-"
+  
+  # Whether to preserve original separators in the remainder
+  preserve_remainder_separators: true 

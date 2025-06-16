@@ -9,13 +9,16 @@ load '../test_helper/bats-file/load.bash'
 setup() {
     # Create temporary directory for test files
     TEST_TEMP_DIR=$(mktemp -d)
+    # Save current directory
+    TEST_ORIGINAL_DIR="$PWD"
     cd "$TEST_TEMP_DIR"
 }
 
 # Teardown function to run after each test
 teardown() {
+    # Return to original directory
+    cd "$TEST_ORIGINAL_DIR"
     # Clean up temporary directory
-    cd - >/dev/null
     rm -rf "$TEST_TEMP_DIR"
 }
 
