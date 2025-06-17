@@ -74,77 +74,29 @@ test_name_permutations() {
 clean_filename_remainder() {
     local remainder="$1"
     
-    # First, split into base and extension
-    local base="${remainder%.*}"
-    local ext="${remainder##*.}"
+    # Remove leading and trailing separators
+    remainder="${remainder#[-_\s\.]}"
+    remainder="${remainder%[-_\s\.]}"
     
-    # If base is empty, preserve it
-    if [[ -z "$base" ]]; then
-        echo ".${ext}"
-        return 0
-    fi
+    # Remove multiple consecutive separators
+    remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]{2,}/ /g')
     
-    # If base contains only separators, preserve it
-    if ! echo "$base" | grep -q '[^-_. ]'; then
-        echo ".${ext}"
-        return 0
-    fi
-    
-    # Remove leading/trailing separators from base
-    base="${base#"${base%%[!-_. ]*}"}"
-    base="${base%"${base##*[!-_. ]}"}"
-    
-    # Preserve version numbers and date patterns
-    # Use perl for non-greedy match and substitution
-    # Pattern explanation:
-    # - (v[0-9]+(?:\.[0-9]+)+) - version numbers (v1.0, v1.0.0, etc.)
-    # - ([0-9]{4}\.[0-9]{2}\.[0-9]{2}(?:\.[0-9]+)?) - date patterns with optional microseconds (YYYY.MM.DD.microseconds)
-    # - ([0-9]{2}\.[0-9]{2}\.[0-9]{2}) - time patterns (HH.MM.SS)
-    base=$(echo "$base" | perl -pe 's/(v[0-9]+(?:\.[0-9]+)+)|([0-9]{4}\.[0-9]{2}\.[0-9]{2}(?:\.[0-9]+)?)|([0-9]{2}\.[0-9]{2}\.[0-9]{2})|[-_. ]+/$1 ? $1 : ($2 ? $2 : ($3 ? $3 : "-"))/ge')
-    
-    # If we have an extension, add it back
-    if [[ "$remainder" == *.* ]]; then
-        echo "${base}.${ext}"
-    else
-        echo "$base"
-    fi
+    echo "$remainder"
 }
 
-# Function to extract name from filename using Python script
+# Function to extract name from filename
 extract_name_from_filename() {
     local filename="$1"
     local name_to_match="$2"
     
-    # Call Python script and capture output
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local python_output
-    python_output=$(python3 "$script_dir/name_matcher.py" "$filename" "$name_to_match")
-    
-    # Check if Python script returned an error
-    if [[ $? -ne 0 ]]; then
-        echo "Error: Failed to run name_matcher.py" >&2
-        return 1
-    fi
-    
-    # Parse JSON output
-    local matched
-    local matched_name
-    local raw_remainder
-    
-    matched=$(echo "$python_output" | jq -r '.matched')
-    matched_name=$(echo "$python_output" | jq -r '.matched_name')
-    raw_remainder=$(echo "$python_output" | jq -r '.raw_remainder')
-    
-    # Clean the remainder
-    local cleaned_remainder
-    cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
-    
-    # Output results separated by pipe
-    echo "${matched_name}|${cleaned_remainder}|${matched}"
-    
-    # Return success/failure
-    [[ "$matched" == "true" ]]
+    # Call the Python matcher
+    python3 -c "
+import sys
+sys.path.append('core/utils')
+from name_matcher import match_full_name
+result = match_full_name('$filename', '$name_to_match')
+print(result)
+"
 }
 
 # Function to clean a filename

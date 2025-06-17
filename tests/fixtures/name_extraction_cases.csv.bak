@@ -1,0 +1,162 @@
+filename,name_to_match,expected_match,extracted_name,raw_remainder,cleaned_remainder,use_case
+john-doe-report.pdf,John Doe,true,john-doe,-report.pdf,report.pdf,Basic Format - Standard / Hyphen separator
+john_doe_report.pdf,John Doe,true,john_doe,_report.pdf,report.pdf,Basic Format - Standard / Underscore separator
+john doe report.pdf,John Doe,true,john doe, report.pdf,report.pdf,Basic Format - Standard / Space separator
+john.doe.report.pdf,John Doe,true,john.doe,.report.pdf,report.pdf,Basic Format - Standard / Period separator
+john--doe--report.pdf,John Doe,true,john--doe,--report.pdf,report.pdf,Separator - Multiple / Consecutive hyphens
+john__doe__report.pdf,John Doe,true,john__doe,__report.pdf,report.pdf,Separator - Multiple / Consecutive underscores
+john  doe  report.pdf,John Doe,true,john  doe,report.pdf,report.pdf,Separator - Multiple / Consecutive spaces
+john-doe_report.pdf,John Doe,true,john-doe,_report.pdf,report.pdf,Separator - Mixed / Hyphen and underscore
+john_doe-report.pdf,John Doe,true,john_doe,-report.pdf,report.pdf,Separator - Mixed / Underscore and hyphen
+john.doe-report.pdf,John Doe,true,john.doe,-report.pdf,report.pdf,Separator - Mixed / Period and hyphen
+john*doe-report.pdf,John Doe,true,john*doe,-report.pdf,report.pdf,Separator - Non-standard / Asterisk
+john@doe-report.pdf,John Doe,true,john@doe,-report.pdf,report.pdf,Separator - Non-standard / At sign
+john#doe-report.pdf,John Doe,true,john#doe,-report.pdf,report.pdf,Separator - Non-standard / Hash
+john-ads-doe_report.pdf,John Doe,true,john-doe,-ads-_report.pdf,ads-report.pdf,Name Variation - Extra content / Between names
+john_ads_doe-report.pdf,John Doe,true,john_doe,_ads_-report.pdf,ads-report.pdf,Name Variation - Extra content / Between names
+john ads doe report.pdf,John Doe,true,john doe,ads report.pdf,ads-report.pdf,Name Variation - Extra content / Between names
+jd-report.pdf,John Doe,true,jd,-report.pdf,report.pdf,Initials - Both / Simple
+j-doe-report.pdf,John Doe,true,j-doe,-report.pdf,report.pdf,Initials - First / With last name
+john-d-report.pdf,John Doe,true,john-d,-report.pdf,report.pdf,Initials - Last / With first name
+jdoe-report.pdf,John Doe,true,jdoe,-report.pdf,report.pdf,Initials - First / At start of file
+johnD-report.pdf,John Doe,true,johnD,-report.pdf,report.pdf,Initials - Last / At end of name
+j-d-report.pdf,John Doe,true,j-d,-report.pdf,report.pdf,Initials - Both / With separators
+j_d_report.pdf,John Doe,true,j_d,_report.pdf,report.pdf,Initials - Both / With underscore
+j.d.report.pdf,John Doe,true,j.d,.report.pdf,report.pdf,Initials - Both / With period
+JOHN-DOE-report.pdf,John Doe,true,JOHN-DOE,-report.pdf,report.pdf,Case Variation - All uppercase / With hyphen
+John-Doe-report.pdf,John Doe,true,John-Doe,-report.pdf,report.pdf,Case Variation - Proper case / With hyphen
+john-DOE-report.pdf,John Doe,true,john-DOE,-report.pdf,report.pdf,Case Variation - Mixed case / With hyphen
+JOHN-doe-report.pdf,John Doe,true,JOHN-doe,-report.pdf,report.pdf,Case Variation - Mixed case / With hyphen
+john-doe-report.pdf,John Doe,true,john-doe,-report.pdf,report.pdf,Case Variation - All lowercase / With hyphen
+JOHN_DOE_report.pdf,John Doe,true,JOHN_DOE,_report.pdf,report.pdf,Case Variation - All uppercase / With underscore
+John_Doe_report.pdf,John Doe,true,John_Doe,_report.pdf,report.pdf,Case Variation - Proper case / With underscore
+john_DOE_report.pdf,John Doe,true,john_DOE,_report.pdf,report.pdf,Case Variation - Mixed case / With underscore
+JOHN_doe_report.pdf,John Doe,true,JOHN_doe,_report.pdf,report.pdf,Case Variation - Mixed case / With underscore
+john_doe_report.pdf,John Doe,true,john_doe,_report.pdf,report.pdf,Case Variation - All lowercase / With underscore
+.pdf,John Doe,false,,.pdf,.pdf,Edge Case - Empty / Filename only
+-.pdf,John Doe,false,,-.pdf,.pdf,Edge Case - Empty / Single separator
+_-.pdf,John Doe,false,,_-.pdf,.pdf,Edge Case - Empty / Multiple separators
+123456.pdf,John Doe,false,,123456.pdf,123456.pdf,Edge Case - Empty / Numbers only
+a-very-long-filename-that-exceeds-normal-length-and-should-still-work-correctly.pdf,John Doe,false,,a-very-long-filename-that-exceeds-normal-length-and-should-still-work-correctly.pdf,a-very-long-filename-that-exceeds-normal-length-and-should-still-work-correctly.pdf,Edge Case - Empty / Very long filename
+!@#$%^&*().pdf,John Doe,false,,!@#$%^&*().pdf,!@#$%^&*().pdf,Edge Case - Empty / Special characters only
+---.pdf,John Doe,false,,---.pdf,.pdf,Edge Case - Empty / Multiple hyphens
+___.pdf,John Doe,false,,___.pdf,.pdf,Edge Case - Empty / Multiple underscores
+...pdf,John Doe,false,,...pdf,.pdf,Edge Case - Empty / Multiple periods
+   .pdf,John Doe,false,,   .pdf,.pdf,Edge Case - Empty / Multiple spaces
+john-doe-report-v1.0-v2.0-v3.0.pdf,John Doe,true,john-doe,-report-v1.0-v2.0-v3.0.pdf,report-v1.0-v2.0-v3.0.pdf,Complex Version - Multiple / Consecutive versions
+john-doe-report-2023-2024-2025.pdf,John Doe,true,john-doe,-report-2023-2024-2025.pdf,report-2023-2024-2025.pdf,Complex Date - Multiple / Consecutive dates
+john-doe-report-v1.0-2023-v2.0-2024.pdf,John Doe,true,john-doe,-report-v1.0-2023-v2.0-2024.pdf,report-v1.0-2023-v2.0-2024.pdf,Complex Version and Date - Mixed / Versions and dates
+john-doe-report-v1.0.0.0.pdf,John Doe,true,john-doe,-report-v1.0.0.0.pdf,report-v1.0.0.0.pdf,Complex Version - Four part / Major.minor.patch.build
+john-doe-report-2023.01.01.123456.pdf,John Doe,true,john-doe,-report-2023.01.01.123456.pdf,report-2023.01.01.123456.pdf,Complex Date - Microseconds / ISO format
+john-doe-report-v1.0-2023.01.01.pdf,John Doe,true,john-doe,-report-v1.0-2023.01.01.pdf,report-v1.0-2023.01.01.pdf,Complex Version and Date - Mixed / Version and ISO date
+john-doe-report-v1.0.0-2023.01.01.123456.pdf,John Doe,true,john-doe,-report-v1.0.0-2023.01.01.123456.pdf,report-v1.0.0-2023.01.01.123456.pdf,Complex Version and Date - Three part / Version and microseconds
+john-doe-report-v1.0.0.0-2023.01.01.123456.789.pdf,John Doe,true,john-doe,-report-v1.0.0.0-2023.01.01.123456.789.pdf,report-v1.0.0.0-2023.01.01.123456.789.pdf,Complex Version and Date - Four part / Version and milliseconds
+john123-doe-report.pdf,John Doe,true,john123-doe,-report.pdf,report.pdf,Name Variation - Numbers / In first name
+123john-doe-report.pdf,John Doe,true,123john-doe,-report.pdf,report.pdf,Name Variation - Numbers / Before first name
+john-doe123-report.pdf,John Doe,true,john-doe123,-report.pdf,report.pdf,Name Variation - Numbers / In last name
+123john-doe123-report.pdf,John Doe,true,123john-doe123,-report.pdf,report.pdf,Name Variation - Numbers / Before and after
+john@-doe-report.pdf,John Doe,true,john@-doe,-report.pdf,report.pdf,Name Variation - Special chars / In first name
+john-doe@-report.pdf,John Doe,true,john-doe@,-report.pdf,report.pdf,Name Variation - Special chars / In last name
+@john-doe-report.pdf,John Doe,true,@john-doe,-report.pdf,report.pdf,Name Variation - Special chars / Before first name
+john-doe@report.pdf,John Doe,true,john-doe,@report.pdf,report.pdf,Name Variation - Special chars / After last name
+john-doe-john-doe-report.pdf,John Doe,true,"john-doe,john-doe",--report.pdf,report.pdf,Multiple Match - Duplicate / Same name twice
+john-doe-jdoe-report.pdf,John Doe,true,"john-doe,jdoe",-report.pdf,report.pdf,Multiple Match - Mixed / Full and initials
+jdoe-john-doe-report.pdf,John Doe,true,"jdoe,john-doe",-report.pdf,report.pdf,Multiple Match - Mixed / Initials and full
+john_doe_smith_20230101.pdf,John Doe,true,"john_doe",_smith_20230101.pdf,smith_20230101.pdf,Full name match / With additional words
+john_doe_smith_jones_20230101.pdf,John Doe,true,"john_doe",_smith_jones_20230101.pdf,smith_jones_20230101.pdf,Full name match / With additional words
+abc-j-def-doe-text.pdf,John Doe,true,"j,doe",abc--def--text.pdf,abc-def-text.pdf,Initials - Mixed / First initial and last name
+abc-john-d-text.pdf,John Doe,true,"john-d",abc--text.pdf,abc-text.pdf,Initials - Mixed / First name and last initial
+abc-jdoe-def-text.pdf,John Doe,true,"jdoe",abc--def--text.pdf,abc-def-text.pdf,Initials - First / With separators on both sides
+abc-johnD-def-text.pdf,John Doe,true,"johnD",abc--def--text.pdf,abc-def-text.pdf,Initials - Last / With separators on both sides
+random-report.pdf,John Doe,false,,-report.pdf,report.pdf,No Match - Random / No name parts
+unknown-report.pdf,John Doe,false,,-report.pdf,report.pdf,No Match - Unknown / No name parts
+report.pdf,John Doe,false,,report.pdf,report.pdf,No Match - Empty / No name parts
+jane-smith.pdf,John Doe,false,,jane-smith.pdf,jane-smith.pdf,No Match - Different / Wrong name
+john-doe-2023.pdf,John Doe,true,john doe,-2023.pdf,2023.pdf,Edge Case - Date / Year only
+john-doe-v2.pdf,John Doe,true,john doe,-v2.pdf,v2.pdf,Edge Case - Version / Simple version
+john-doe-final.pdf,John Doe,true,john doe,-final.pdf,final.pdf,Edge Case - Status / Final
+john-doe-draft.pdf,John Doe,true,john doe,-draft.pdf,draft.pdf,Edge Case - Status / Draft
+john_doe_2023-01-01.pdf,John Doe,true,john doe,_2023-01-01.pdf,2023-01-01.pdf,Complex Date - ISO / YYYY-MM-DD
+john_doe_01-01-2023.pdf,John Doe,true,john doe,_01-01-2023.pdf,01-01-2023.pdf,Complex Date - US / MM-DD-YYYY
+john_doe_01012023.pdf,John Doe,true,john doe,_01012023.pdf,01012023.pdf,Complex Date - Compact / MMDDYYYY
+john_doe_2023.01.01.pdf,John Doe,true,john doe,_2023.01.01.pdf,2023.01.01.pdf,Complex Date - ISO / With periods
+john_doe_2023_01_01.pdf,John Doe,true,john doe,_2023_01_01.pdf,2023_01_01.pdf,Complex Date - ISO / With underscores
+john_doe_01_01_2023.pdf,John Doe,true,john doe,_01_01_2023.pdf,01_01_2023.pdf,Complex Date - US / With underscores
+john_doe_20230101_123456.pdf,John Doe,true,john doe,_20230101_123456.pdf,20230101_123456.pdf,Complex Date - Compact / With time
+john_doe_2023.01.01_123456.pdf,John Doe,true,john doe,_2023.01.01_123456.pdf,2023.01.01_123456.pdf,Complex Date - ISO / With time
+jón-doe-report.pdf,John Doe,true,jón doe,-report.pdf,report.pdf,Name Variation - Accents / First name
+jon-doe-report.pdf,John Doe,true,jon doe,-report.pdf,report.pdf,Name Variation - Accents / Alternative spelling
+jóhn-doe-report.pdf,John Doe,true,jóhn doe,-report.pdf,report.pdf,Name Variation - Accents / Alternative spelling
+jôhn-doe-report.pdf,John Doe,true,jôhn doe,-report.pdf,report.pdf,Name Variation - Accents / Alternative spelling
+jöhn-doe-report.pdf,John Doe,true,jöhn doe,-report.pdf,report.pdf,Name Variation - Accents / Alternative spelling
+j0hn-doe-report.pdf,John Doe,true,j0hn doe,-report.pdf,report.pdf,Name Variation - Numbers / Letter substitution
+j0hn-d03-report.pdf,John Doe,true,j0hn d03,-report.pdf,report.pdf,Name Variation - Numbers / Multiple substitutions
+jón-d03-report.pdf,John Doe,true,jón d03,-report.pdf,report.pdf,Name Variation - Mixed / Accent and number
+j0hn-döe-report.pdf,John Doe,true,j0hn döe,-report.pdf,report.pdf,Name Variation - Mixed / Number and accent
+jôhn-d03_report.pdf,John Doe,true,jôhn d03,_report.pdf,report.pdf,Name Variation - Mixed / Accent and number
+jöhn_d03-report.pdf,John Doe,true,jöhn d03,-report.pdf,report.pdf,Name Variation - Mixed / Accent and number
+jón-d-report.pdf,John Doe,true,jón d,-report.pdf,report.pdf,Initials - Accents / First name with last initial
+j-döe-report.pdf,John Doe,true,j döe,-report.pdf,report.pdf,Initials - Accents / First initial with last name
+jôhn-d-report.pdf,John Doe,true,jôhn d,-report.pdf,report.pdf,Initials - Accents / First name with last initial
+j-d03-report.pdf,John Doe,true,j d03,-report.pdf,report.pdf,Initials - Numbers / First initial with last number
+jón-döe-j0hn-d03-report.pdf,John Doe,true,"jón döe,j0hn d03",-report.pdf,report.pdf,Multiple Match - Mixed / Accents and numbers
+jôhn_d03_jöhn_doe-report.pdf,John Doe,true,"jôhn d03,jöhn doe",-report.pdf,report.pdf,Multiple Match - Mixed / Accents and numbers
+j0hn-döe-jón-d03_report.pdf,John Doe,true,"j0hn döe,jón d03",_report.pdf,report.pdf,Multiple Match - Mixed / Numbers and accents
+jón-döe-2023.pdf,John Doe,true,jón döe,-2023.pdf,2023.pdf,Edge Case - Accents / With year
+j0hn-d03-v2.pdf,John Doe,true,j0hn d03,-v2.pdf,v2.pdf,Edge Case - Numbers / With version
+jôhn-döe-final.pdf,John Doe,true,jôhn döe,-final.pdf,final.pdf,Edge Case - Accents / With status
+jöhn-d03-draft.pdf,John Doe,true,jöhn d03,-draft.pdf,draft.pdf,Edge Case - Numbers / With status
+jón@döe-report.pdf,John Doe,true,jón döe,-report.pdf,report.pdf,Name Variation - Special chars / With accents
+j0hn#d03-report.pdf,John Doe,true,j0hn d03,-report.pdf,report.pdf,Name Variation - Special chars / With numbers
+jôhn$döe-report.pdf,John Doe,true,jôhn döe,-report.pdf,report.pdf,Name Variation - Special chars / With accents
+jöhn%d03-report.pdf,John Doe,true,jöhn d03,-report.pdf,report.pdf,Name Variation - Special chars / With numbers
+jón___döe___report.pdf,John Doe,true,jón döe,___report.pdf,report.pdf,Separator - Complex / With accents
+j0hn---d03---report.pdf,John Doe,true,j0hn d03,---report.pdf,report.pdf,Separator - Complex / With numbers
+jôhn...döe...report.pdf,John Doe,true,jôhn döe,...report.pdf,report.pdf,Separator - Complex / With accents
+jöhn   d03   report.pdf,John Doe,true,jöhn d03,report.pdf,report.pdf,Separator - Complex / With numbers
+jón123-döe456-report.pdf,John Doe,true,jón döe,-report.pdf,report.pdf,Name Variation - Mixed / Accents and numbers
+123j0hn-456d03-report.pdf,John Doe,true,j0hn d03,-report.pdf,report.pdf,Name Variation - Mixed / Numbers and letters
+jôhn@123-döe#456-report.pdf,John Doe,true,jôhn döe,-report.pdf,report.pdf,Name Variation - Mixed / Accents and special chars
+jöhn123-d03456-report.pdf,John Doe,true,jöhn d03,-report.pdf,report.pdf,Name Variation - Mixed / Accents and numbers
+management/john-doe-report.pdf,John Doe,true,john doe,management/-report.pdf,management-report.pdf,Management - Basic / Single folder
+management/john_doe_report.pdf,John Doe,true,john doe,management/_report.pdf,management-report.pdf,Management - Basic / With underscore
+management/john doe report.pdf,John Doe,true,john doe,management/report.pdf,management-report.pdf,Management - Basic / With space
+management/john.doe.report.pdf,John Doe,true,john doe,management/.report.pdf,management-report.pdf,Management - Basic / With period
+hazard_reports/john-doe-report.pdf,John Doe,true,john doe,hazard_reports/-report.pdf,hazard_reports-report.pdf,Document Category - Basic / Single folder
+risk_assessments/john_doe_report.pdf,John Doe,true,john doe,risk_assessments/_report.pdf,risk_assessments-report.pdf,Document Category - Basic / With underscore
+support_plans/john doe report.pdf,John Doe,true,john doe,support_plans/report.pdf,support_plans-report.pdf,Document Category - Basic / With space
+incident_reports/john.doe.report.pdf,John Doe,true,john doe,incident_reports/.report.pdf,incident_reports-report.pdf,Document Category - Basic / With period
+client/john_doe/hazard_reports/report.pdf,John Doe,true,john doe,client/hazard_reports/report.pdf,client-hazard_reports-report.pdf,Nested Path - Basic / Two levels
+client/john_doe/management/report.pdf,John Doe,true,john doe,client/management/report.pdf,client-management-report.pdf,Nested Path - Basic / Two levels
+client/john_doe/risk_assessments/management/report.pdf,John Doe,true,john doe,client/risk_assessments/management/report.pdf,client-risk_assessments-management-report.pdf,Nested Path - Complex / Three levels
+john_doe_23.6.23.pdf,John Doe,true,john doe,_23.6.23.pdf,23.6.23.pdf,Complex Date - Short / DD.MM.YY
+john_doe_23rd_June_2023.pdf,John Doe,true,john doe,_23rd_June_2023.pdf,23rd_June_2023.pdf,Complex Date - Written / Ordinal day
+john_doe_June_23rd_2023.pdf,John Doe,true,john doe,_June_23rd_2023.pdf,June_23rd_2023.pdf,Complex Date - Written / Month first
+john_doe_23_June_2023.pdf,John Doe,true,john doe,_23_June_2023.pdf,23_June_2023.pdf,Complex Date - Written / Day first
+john_doe_June_23_2023.pdf,John Doe,true,john doe,_June_23_2023.pdf,June_23_2023.pdf,Complex Date - Written / Month first
+john-doe-report-v1.0.pdf,John Doe,true,john doe,-report-v1.0.pdf,report-v1.0.pdf,Complex Version - Basic / Major.minor
+john-doe-report-v2.1.pdf,John Doe,true,john doe,-report-v2.1.pdf,report-v2.1.pdf,Complex Version - Basic / Major.minor
+john-doe-report-v3.2.1.pdf,John Doe,true,john doe,-report-v3.2.1.pdf,report-v3.2.1.pdf,Complex Version - Basic / Major.minor.patch
+john-doe-report-v1.0.0.pdf,John Doe,true,john doe,-report-v1.0.0.pdf,report-v1.0.0.pdf,Complex Version - Basic / Major.minor.patch
+john_doe_sarah_smith_report.pdf,John Doe,true,john doe,_sarah_smith__report.pdf,sarah_smith_report.pdf,Multiple Match - Names / Two different names
+john_doe_sarah_smith_management_report.pdf,John Doe,true,john doe,_sarah_smith__management_report.pdf,sarah_smith_management-report.pdf,Multiple Match - Names / With management
+john_doe_sarah_smith_hazard_report.pdf,John Doe,true,john doe,_sarah_smith__hazard_report.pdf,sarah_smith_hazard-report.pdf,Multiple Match - Names / With category
+management/hazard_reports/john-doe-report.pdf,John Doe,true,john doe,management/hazard_reports/-report.pdf,management-hazard_reports-report.pdf,Nested Path - Mixed / Management and category
+hazard_reports/management/john_doe_report.pdf,John Doe,true,john doe,hazard_reports/management/_report.pdf,hazard_reports-management-report.pdf,Nested Path - Mixed / Category and management
+management/risk_assessments/john.doe.report.pdf,John Doe,true,john doe,management/risk_assessments/.report.pdf,management-risk_assessments-report.pdf,Nested Path - Mixed / Management and category
+client/john_doe/management/hazard_reports/risk_assessments/report.pdf,John Doe,true,john doe,client/management/hazard_reports/risk_assessments/report.pdf,client-management-hazard_reports-risk_assessments-report.pdf,Nested Path - Complex / Multiple levels
+client/john_doe/hazard_reports/management/risk_assessments/report.pdf,John Doe,true,john doe,client/hazard_reports/management/risk_assessments/report.pdf,client-hazard_reports-management-risk_assessments-report.pdf,Nested Path - Complex / Multiple levels
+client/john_doe_sarah_smith/management/hazard_reports/report.pdf,John Doe,true,john doe,client/_sarah_smith/management/hazard_reports/report.pdf,client-sarah_smith-management-hazard_reports-report.pdf,Nested Path - Complex / With multiple names
+client/john_doe/sarah_smith/management/hazard_reports/report.pdf,John Doe,true,john doe,client//sarah_smith/management/hazard_reports/report.pdf,client-sarah_smith-management-hazard_reports-report.pdf,Nested Path - Complex / With multiple names
+john-doe-report-v1.0-20230416.pdf,John Doe,true,john doe,-report-v1.0-20230416.pdf,report-v1.0-20230416.pdf,Complex Version and Date - Basic / Version and date
+john-doe-report-v2.1-20230416.pdf,John Doe,true,john doe,-report-v2.1-20230416.pdf,report-v2.1-20230416.pdf,Complex Version and Date - Basic / Version and date
+john-doe-report-v3.2.1-20230416.pdf,John Doe,true,john doe,-report-v3.2.1-20230416.pdf,report-v3.2.1-20230416.pdf,Complex Version and Date - Basic / Version and date
+john-doe-report-20230416-20230417.pdf,John Doe,true,john doe,-report-20230416-20230417.pdf,report-20230416-20230417.pdf,Complex Date - Multiple / Consecutive dates
+john-doe-report-20230416_20230417.pdf,John Doe,true,john doe,-report-20230416_20230417.pdf,report-20230416_20230417.pdf,Complex Date - Multiple / With underscore
+john-doe-report-20230416.20230417.pdf,John Doe,true,john doe,-report-20230416.20230417.pdf,report-20230416.20230417.pdf,Complex Date - Multiple / With period
+john___doe___hazard___report.pdf,John Doe,true,john___doe,___hazard___report.pdf,hazard-report.pdf,Separator - Multiple / Between name parts
+john---doe---risk---report.pdf,John Doe,true,john---doe,---risk---report.pdf,risk-report.pdf,Separator - Multiple / Between name parts
+john...doe...support...report.pdf,John Doe,true,john doe,...support...report.pdf,support-report.pdf,Separator - Multiple / Between name parts
+john123-doe456-hazard-report.pdf,John Doe,true,john doe,-hazard-report.pdf,hazard-report.pdf,Name Variation - Mixed / With category
+123john-456doe-risk-report.pdf,John Doe,true,john doe,-risk-report.pdf,risk-report.pdf,Name Variation - Mixed / With category
+john@123-doe#456-support-report.pdf,John Doe,true,john doe,-support-report.pdf,support-report.pdf,Name Variation - Mixed / With category 

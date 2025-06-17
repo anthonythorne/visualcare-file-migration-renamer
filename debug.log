@@ -1,0 +1,274 @@
+1..2
+not ok 1 name extraction from filename
+# (in test file tests/unit/name_utils_table_test.bats, line 16)
+#   `tail -n +2 "$csv" | while IFS=, read -r filename name_to_match expected_match extracted_name raw_remainder cleaned_remainder use_case; do' failed
+# [DEBUG] Testing: john-doe-report.pdf
+# [DEBUG] Expected match: true
+# [DEBUG] Expected extracted name: john-doe
+# [DEBUG] Expected raw remainder: -report.pdf
+# [DEBUG] Use case: Basic Format - Standard / Hyphen separator
+# [DEBUG] Actual output: [DEBUG] filename='john-doe-report.pdf'
+# [DEBUG] match: start=0, end=8, full_match='john-doe'
+# [DEBUG] remainder before sep logic: '-report.pdf'
+# [DEBUG] remainder after sep logic: '-report.pdf'
+# john-doe|report.pdf|true
+# [DEBUG] actual_extracted_name='[DEBUG] filename='john-doe-report.pdf'' actual_raw_remainder='' actual_matched=''
+#
+# -- values do not equal --
+# expected : true
+# actual   :
+# --
+#
+not ok 2 clean filename remainder
+# (in test file tests/unit/name_utils_table_test.bats, line 52)
+#   `tail -n +2 "$csv" | while IFS=, read -r filename name_to_match expected_match extracted_name raw_remainder cleaned_remainder use_case; do' failed
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Basic Format - Standard / Hyphen separator
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Basic Format - Standard / Underscore separator
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Basic Format - Standard / Space separator
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: .report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Basic Format - Standard / Period separator
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: --report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Multiple / Consecutive hyphens
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: __report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Multiple / Consecutive underscores
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Multiple / Consecutive spaces
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Mixed / Hyphen and underscore
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Mixed / Underscore and hyphen
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Mixed / Period and hyphen
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Non-standard / Asterisk
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Non-standard / At sign
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Separator - Non-standard / Hash
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -ads-_report.pdf
+# [DEBUG] Expected cleaned: ads-report.pdf
+# [DEBUG] Use case: Name Variation - Extra content / Between names
+# [DEBUG] Actual output: ads-report.pdf
+# [DEBUG] Testing remainder: _ads_-report.pdf
+# [DEBUG] Expected cleaned: ads-report.pdf
+# [DEBUG] Use case: Name Variation - Extra content / Between names
+# [DEBUG] Actual output: ads-report.pdf
+# [DEBUG] Testing remainder: ads report.pdf
+# [DEBUG] Expected cleaned: ads-report.pdf
+# [DEBUG] Use case: Name Variation - Extra content / Between names
+# [DEBUG] Actual output: ads-report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - Both / Simple
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - First / With last name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - Last / With first name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - First / At start of file
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - Last / At end of name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - Both / With separators
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - Both / With underscore
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: .report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Initials - Both / With period
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - All uppercase / With hyphen
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - Proper case / With hyphen
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - Mixed case / With hyphen
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - Mixed case / With hyphen
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - All lowercase / With hyphen
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - All uppercase / With underscore
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - Proper case / With underscore
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - Mixed case / With underscore
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - Mixed case / With underscore
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: _report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Case Variation - All lowercase / With underscore
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: .pdf
+# [DEBUG] Expected cleaned: .pdf
+# [DEBUG] Use case: Edge Case - Empty / Filename only
+# [DEBUG] Actual output: .pdf
+# [DEBUG] Testing remainder: -.pdf
+# [DEBUG] Expected cleaned: .pdf
+# [DEBUG] Use case: Edge Case - Empty / Single separator
+# [DEBUG] Actual output: .pdf
+# [DEBUG] Testing remainder: _-.pdf
+# [DEBUG] Expected cleaned: .pdf
+# [DEBUG] Use case: Edge Case - Empty / Multiple separators
+# [DEBUG] Actual output: .pdf
+# [DEBUG] Testing remainder: 123456.pdf
+# [DEBUG] Expected cleaned: 123456.pdf
+# [DEBUG] Use case: Edge Case - Empty / Numbers only
+# [DEBUG] Actual output: 123456.pdf
+# [DEBUG] Testing remainder: a-very-long-filename-that-exceeds-normal-length-and-should-still-work-correctly.pdf
+# [DEBUG] Expected cleaned: a-very-long-filename-that-exceeds-normal-length-and-should-still-work-correctly.pdf
+# [DEBUG] Use case: Edge Case - Empty / Very long filename
+# [DEBUG] Actual output: a-very-long-filename-that-exceeds-normal-length-and-should-still-work-correctly.pdf
+# [DEBUG] Testing remainder: !@#$%^&*().pdf
+# [DEBUG] Expected cleaned: !@#$%^&*().pdf
+# [DEBUG] Use case: Edge Case - Empty / Special characters only
+# [DEBUG] Actual output: !@#$%^&*().pdf
+# [DEBUG] Testing remainder: ---.pdf
+# [DEBUG] Expected cleaned: .pdf
+# [DEBUG] Use case: Edge Case - Empty / Multiple hyphens
+# [DEBUG] Actual output: .pdf
+# [DEBUG] Testing remainder: ___.pdf
+# [DEBUG] Expected cleaned: .pdf
+# [DEBUG] Use case: Edge Case - Empty / Multiple underscores
+# [DEBUG] Actual output: .pdf
+# [DEBUG] Testing remainder: ...pdf
+# [DEBUG] Expected cleaned: .pdf
+# [DEBUG] Use case: Edge Case - Empty / Multiple periods
+# [DEBUG] Actual output: .pdf
+# [DEBUG] Testing remainder:    .pdf
+# [DEBUG] Expected cleaned: .pdf
+# [DEBUG] Use case: Edge Case - Empty / Multiple spaces
+# [DEBUG] Actual output: .pdf
+# [DEBUG] Testing remainder: -report-v1.0-v2.0-v3.0.pdf
+# [DEBUG] Expected cleaned: report-v1.0-v2.0-v3.0.pdf
+# [DEBUG] Use case: Complex Version - Multiple / Consecutive versions
+# [DEBUG] Actual output: report-v1.0-v2.0-v3.0.pdf
+# [DEBUG] Testing remainder: -report-2023-2024-2025.pdf
+# [DEBUG] Expected cleaned: report-2023-2024-2025.pdf
+# [DEBUG] Use case: Complex Date - Multiple / Consecutive dates
+# [DEBUG] Actual output: report-2023-2024-2025.pdf
+# [DEBUG] Testing remainder: -report-v1.0-2023-v2.0-2024.pdf
+# [DEBUG] Expected cleaned: report-v1.0-2023-v2.0-2024.pdf
+# [DEBUG] Use case: Complex Version and Date - Mixed / Versions and dates
+# [DEBUG] Actual output: report-v1.0-2023-v2.0-2024.pdf
+# [DEBUG] Testing remainder: -report-v1.0.0.0.pdf
+# [DEBUG] Expected cleaned: report-v1.0.0.0.pdf
+# [DEBUG] Use case: Complex Version - Four part / Major.minor.patch.build
+# [DEBUG] Actual output: report-v1.0.0.0.pdf
+# [DEBUG] Testing remainder: -report-2023.01.01.123456.pdf
+# [DEBUG] Expected cleaned: report-2023.01.01.123456.pdf
+# [DEBUG] Use case: Complex Date - Microseconds / ISO format
+# [DEBUG] Actual output: report-2023.01.01.123456.pdf
+# [DEBUG] Testing remainder: -report-v1.0-2023.01.01.pdf
+# [DEBUG] Expected cleaned: report-v1.0-2023.01.01.pdf
+# [DEBUG] Use case: Complex Version and Date - Mixed / Version and ISO date
+# [DEBUG] Actual output: report-v1.0-2023.01.01.pdf
+# [DEBUG] Testing remainder: -report-v1.0.0-2023.01.01.123456.pdf
+# [DEBUG] Expected cleaned: report-v1.0.0-2023.01.01.123456.pdf
+# [DEBUG] Use case: Complex Version and Date - Three part / Version and microseconds
+# [DEBUG] Actual output: report-v1.0.0-2023.01.01.123456.pdf
+# [DEBUG] Testing remainder: -report-v1.0.0.0-2023.01.01.123456.789.pdf
+# [DEBUG] Expected cleaned: report-v1.0.0.0-2023.01.01.123456.789.pdf
+# [DEBUG] Use case: Complex Version and Date - Four part / Version and milliseconds
+# [DEBUG] Actual output: report-v1.0.0.0-2023.01.01.123456.789.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Numbers / In first name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Numbers / Before first name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Numbers / In last name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Numbers / Before and after
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Special chars / In first name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Special chars / In last name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: -report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Special chars / Before first name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: @report.pdf
+# [DEBUG] Expected cleaned: report.pdf
+# [DEBUG] Use case: Name Variation - Special chars / After last name
+# [DEBUG] Actual output: report.pdf
+# [DEBUG] Testing remainder: john-doe"
+# [DEBUG] Expected cleaned: --report.pdf
+# [DEBUG] Use case: report.pdf,Multiple Match - Duplicate / Same name twice
+# [DEBUG] Actual output: john-doe"
+#
+# -- values do not equal --
+# expected : --report.pdf
+# actual   : john-doe"
+# --
+#
