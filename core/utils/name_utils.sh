@@ -75,11 +75,13 @@ clean_filename_remainder() {
     local remainder="$1"
     
     # Remove leading and trailing separators
-    remainder="${remainder#[-_\s\.]}"
-    remainder="${remainder%[-_\s\.]}"
+    remainder=$(echo "$remainder" | sed -E 's/^[-_\s\.]+//')
+    remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]+$//')
     
-    # Remove multiple consecutive separators
+    # Remove multiple consecutive separators and spaces
     remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]{2,}/ /g')
+    remainder=$(echo "$remainder" | sed -E 's/^ +//')
+    remainder=$(echo "$remainder" | sed -E 's/ +$//')
     
     echo "$remainder"
 }
@@ -89,14 +91,36 @@ extract_name_from_filename() {
     local filename="$1"
     local name_to_match="$2"
     
-    # Call the Python matcher
-    python3 -c "
+    # Call the Python matcher and capture the output
+    local result
+    result=$(python3 -c "
 import sys
 sys.path.append('core/utils')
 from name_matcher import match_full_name
 result = match_full_name('$filename', '$name_to_match')
 print(result)
-"
+")
+    
+    # Split the result into components
+    IFS='|' read -r matched_name remainder matched <<< "$result"
+    
+    # If we have a match, ensure we preserve the full matched name including separators
+    if [ "$matched" = "true" ]; then
+        # For First Name + Last Initial cases, ensure we include the separator and initial
+        if [[ "$matched_name" =~ ^[a-zA-Z]+$ ]] && [[ "$remainder" =~ ^([-_\s\.])[a-zA-Z] ]]; then
+            # Extract the separator and initial from the remainder (including space)
+            local separator_initial
+            separator_initial=$(echo "$remainder" | grep -oE '^( |-_|\.|_)[a-zA-Z]')
+            if [ -z "$separator_initial" ]; then
+                separator_initial=$(echo "$remainder" | grep -oE '^.[a-zA-Z]')
+            fi
+            matched_name="${matched_name}${separator_initial}"
+            remainder="${remainder#${separator_initial}}"
+        fi
+    fi
+    
+    # Return the result in the expected format
+    echo "${matched_name}|${remainder}|${matched}"
 }
 
 # Function to clean a filename

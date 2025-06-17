@@ -3,6 +3,8 @@
 import re
 import sys
 import json
+import yaml
+import os
 from typing import Tuple, List, Optional
 
 def normalize_name(name):
@@ -32,129 +34,87 @@ def debug_print(*args, **kwargs):
     """Print debug messages to stderr."""
     print(*args, file=sys.stderr, **kwargs)
 
-def match_full_name(filename: str, name_to_match: str) -> str:
-    """
-    Match name patterns in a filename with strict separator boundaries.
-    Matches occur only when the name part is surrounded by separators or at filename boundaries.
+def load_separators():
+    """Load separators from the YAML configuration file."""
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'separators.yaml')
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
     
-    Args:
-        filename: The filename to search in
-        name_to_match: The full name to match (e.g. "john doe")
-        
-    Returns:
-        A string in the format "matched_names|remaining_filename|success_flag"
-        - matched_names: Comma-separated list of matched names
-        - remaining_filename: The filename with matched parts removed but separators preserved
-        - success_flag: "true" if any matches were found, "false" otherwise
-    """
-    # Split the name to match into parts
-    name_parts = name_to_match.lower().split()
-    if not name_parts:
+    # Get standard separators
+    separators = config['default_separators']['standard']
+    
+    # Add non-standard separators if enabled
+    if config.get('default_separators', {}).get('non_standard'):
+        separators.extend(config['default_separators']['non_standard'])
+    
+    # Add custom separators if defined
+    if config.get('custom_separators'):
+        separators.extend(config['custom_separators'])
+    
+    # Escape special regex characters in separators
+    escaped_separators = [re.escape(sep) for sep in separators]
+    
+    # Join separators for regex pattern
+    return '|'.join(escaped_separators)
+
+def match_full_name(filename: str, full_name: str) -> str:
+    """Match a full name in a filename and return the matched name and remainder."""
+    # Load separators from config
+    separators = load_separators()
+    valid_separators = '|'.join(separators)
+    
+    # Split full name into parts
+    name_parts = full_name.lower().split()
+    if len(name_parts) != 2:
         return f"|{filename}|false"
-        
-    # Define valid separators
-    separators = r'[-_\s\.]'
     
-    # Build patterns for each part
+    first_name, last_name = name_parts
+    
+    # Build regex patterns
     patterns = []
     
-    # First name patterns (at start, end, or between separators)
-    patterns.extend([
-        rf'^{name_parts[0]}(?={separators}|$)',  # First name at start
-        rf'(?<={separators}){name_parts[0]}(?={separators}|$)',  # First name between separators
-        rf'(?<={separators}){name_parts[0]}$'  # First name at end
-    ])
+    # Full name patterns (comma-separated in output)
+    patterns.append(f"({first_name})[{valid_separators}]+({last_name})")  # First Last
+    patterns.append(f"({last_name})[{valid_separators}]+({first_name})")  # Last First
     
-    # Last name patterns (at start, end, or between separators)
-    if len(name_parts) > 1:
-        patterns.extend([
-            rf'^{name_parts[-1]}(?={separators}|$)',  # Last name at start
-            rf'(?<={separators}){name_parts[-1]}(?={separators}|$)',  # Last name between separators
-            rf'(?<={separators}){name_parts[-1]}$'  # Last name at end
-        ])
+    # First name + last initial patterns (space-separated in output)
+    patterns.append(f"({first_name})[{valid_separators}]+({last_name[0]})")  # First L
+    patterns.append(f"({last_name[0]})[{valid_separators}]+({first_name})")  # L First
     
-    # First initial + last name patterns
-    if len(name_parts) > 1:
-        patterns.extend([
-            rf'^{name_parts[0][0]}{separators}{name_parts[-1]}(?={separators}|$)',  # At start
-            rf'(?<={separators}){name_parts[0][0]}{separators}{name_parts[-1]}(?={separators}|$)',  # Between
-            rf'(?<={separators}){name_parts[0][0]}{separators}{name_parts[-1]}$'  # At end
-        ])
+    # First initial + last name patterns (preserve original separator)
+    patterns.append(f"({first_name[0]})[{valid_separators}]+({last_name})")  # F Last
+    patterns.append(f"({last_name})[{valid_separators}]+({first_name[0]})")  # Last F
     
-    # First name + last initial patterns
-    if len(name_parts) > 1:
-        patterns.extend([
-            rf'^{name_parts[0]}{separators}{name_parts[-1][0]}(?={separators}|$)',  # At start
-            rf'(?<={separators}){name_parts[0]}{separators}{name_parts[-1][0]}(?={separators}|$)',  # Between
-            rf'(?<={separators}){name_parts[0]}{separators}{name_parts[-1][0]}$'  # At end
-        ])
-    
-    # Both initials patterns
-    if len(name_parts) > 1:
-        patterns.extend([
-            rf'^{name_parts[0][0]}{separators}{name_parts[-1][0]}(?={separators}|$)',  # At start
-            rf'(?<={separators}){name_parts[0][0]}{separators}{name_parts[-1][0]}(?={separators}|$)',  # Between
-            rf'(?<={separators}){name_parts[0][0]}{separators}{name_parts[-1][0]}$'  # At end
-        ])
+    # Both initials patterns (preserve original separator)
+    patterns.append(f"({first_name[0]})[{valid_separators}]+({last_name[0]})")  # F L
+    patterns.append(f"({last_name[0]})[{valid_separators}]+({first_name[0]})")  # L F
     
     # Try each pattern
-    remaining = filename
-    matches = []
+    for pattern in patterns:
+        match = re.search(pattern, filename.lower())
+        if match:
+            groups = match.groups()
+            matched_text = match.group(0)
+            remainder = filename[len(matched_text):]
+            
+            # Format the output based on the pattern type
+            if len(groups[0]) > 1 and len(groups[1]) > 1:  # Full name
+                output = f"{groups[0]},{groups[1]}"
+            elif len(groups[0]) > 1 and len(groups[1]) == 1:  # First name + last initial
+                output = f"{groups[0]} {groups[1]}"
+            elif len(groups[0]) == 1 and len(groups[1]) > 1:  # First initial + last name
+                # Find the separator used in the match
+                sep_match = re.search(f"[{valid_separators}]+", matched_text)
+                sep = sep_match.group(0) if sep_match else " "
+                output = f"{groups[0]}{sep}{groups[1]}"
+            else:  # Both initials
+                # Find the separator used in the match
+                sep_match = re.search(f"[{valid_separators}]+", matched_text)
+                sep = sep_match.group(0) if sep_match else " "
+                output = f"{groups[0]}{sep}{groups[1]}"
+            
+            return f"{output}|{remainder}|true"
     
-    while True:
-        match_found = False
-        best_match = None
-        best_match_pos = -1
-        best_match_pattern = None
-        
-        # Find the leftmost match
-        for pattern in patterns:
-            match = re.search(pattern, remaining, re.IGNORECASE)
-            if match and (best_match is None or match.start() < best_match_pos):
-                best_match = match
-                best_match_pos = match.start()
-                best_match_pattern = pattern
-        
-        if best_match:
-            # Get the matched text and its position
-            matched_text = best_match.group()
-            start_pos = best_match.start()
-            end_pos = best_match.end()
-            
-            # For patterns with initials, keep the separator
-            if best_match_pattern and len(name_parts) > 1:
-                # Check if this is an initial pattern
-                if (f"{name_parts[0][0]}{separators}" in best_match_pattern or 
-                    f"{separators}{name_parts[-1][0]}" in best_match_pattern):
-                    matches.append(matched_text)
-                else:
-                    # Find the actual name part (without separators)
-                    name_match = re.search(r'[a-z]+', matched_text, re.IGNORECASE)
-                    if name_match:
-                        matches.append(name_match.group())
-            else:
-                # Find the actual name part (without separators)
-                name_match = re.search(r'[a-z]+', matched_text, re.IGNORECASE)
-                if name_match:
-                    matches.append(name_match.group())
-            
-            # Replace the matched name with the same number of separators
-            # or just remove the name while keeping separators
-            if start_pos == 0:  # Match at start
-                remaining = remaining[end_pos:]
-            elif end_pos == len(remaining):  # Match at end
-                remaining = remaining[:start_pos]
-            else:  # Match in middle
-                # Keep the separator before and after
-                remaining = remaining[:start_pos] + remaining[end_pos:]
-            
-            match_found = True
-        
-        if not match_found:
-            break
-    
-    if matches:
-        return f"{','.join(matches)}|{remaining}|true"
     return f"|{filename}|false"
 
 def match_initials_surname(filename, name_parts):

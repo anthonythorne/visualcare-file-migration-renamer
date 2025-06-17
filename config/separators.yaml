@@ -38,7 +38,7 @@ rules:
   normalize_output: true
   
   # Default separator to use when normalizing
-  default_output_separator: "-"
+  default_output_separator: "_"
   
   # Whether to preserve original separators in the remainder
   preserve_remainder_separators: true 
