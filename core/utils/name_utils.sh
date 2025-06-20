@@ -78,8 +78,8 @@ clean_filename_remainder() {
     remainder=$(echo "$remainder" | sed -E 's/^[-_\s\.]+//')
     remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]+$//')
     
-    # Remove multiple consecutive separators and spaces
-    remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]{2,}/ /g')
+    # Replace multiple consecutive separators with a single hyphen
+    remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]{2,}/-/g')
     remainder=$(echo "$remainder" | sed -E 's/^ +//')
     remainder=$(echo "$remainder" | sed -E 's/ +$//')
     
@@ -90,17 +90,21 @@ clean_filename_remainder() {
 extract_name_from_filename() {
     local filename="$1"
     local name_to_match="$2"
-    
+
+    # Compute absolute path to core/utils
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
     # Call the Python matcher and capture the output
     local result
     result=$(python3 -c "
-import sys
-sys.path.append('core/utils')
-from name_matcher import match_full_name
-result = match_full_name('$filename', '$name_to_match')
+import sys, os
+sys.path.append('$utils_dir')
+from name_matcher import extract_all_name_matches
+result = extract_all_name_matches('$filename', '$name_to_match')
 print(result)
-")
-    
+" 2>/dev/null)
+
     # Split the result into components
     IFS='|' read -r matched_name remainder matched <<< "$result"
     
@@ -118,6 +122,84 @@ print(result)
             remainder="${remainder#${separator_initial}}"
         fi
     fi
+    
+    # Return the result in the expected format
+    echo "${matched_name}|${remainder}|${matched}"
+}
+
+# Function to extract first name only
+extract_first_name() {
+    local filename="$1"
+    local name_to_match="$2"
+
+    # Compute absolute path to core/utils
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # Call the Python matcher for first name only
+    local result
+    result=$(python3 -c "
+import sys, os
+sys.path.append('$utils_dir')
+from name_matcher import extract_first_name_only
+result = extract_first_name_only('$filename', '$name_to_match')
+print(result)
+" 2>/dev/null)
+
+    # Split the result into components
+    IFS='|' read -r matched_name remainder matched <<< "$result"
+    
+    # Return the result in the expected format
+    echo "${matched_name}|${remainder}|${matched}"
+}
+
+# Function to extract last name only
+extract_last_name() {
+    local filename="$1"
+    local name_to_match="$2"
+
+    # Compute absolute path to core/utils
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # Call the Python matcher for last name only
+    local result
+    result=$(python3 -c "
+import sys, os
+sys.path.append('$utils_dir')
+from name_matcher import extract_last_name_only
+result = extract_last_name_only('$filename', '$name_to_match')
+print(result)
+" 2>/dev/null)
+
+    # Split the result into components
+    IFS='|' read -r matched_name remainder matched <<< "$result"
+    
+    # Return the result in the expected format
+    echo "${matched_name}|${remainder}|${matched}"
+}
+
+# Function to extract initials
+extract_initials() {
+    local filename="$1"
+    local name_to_match="$2"
+
+    # Compute absolute path to core/utils
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # Call the Python matcher for initials
+    local result
+    result=$(python3 -c "
+import sys, os
+sys.path.append('$utils_dir')
+from name_matcher import extract_initials_only
+result = extract_initials_only('$filename', '$name_to_match')
+print(result)
+" 2>/dev/null)
+
+    # Split the result into components
+    IFS='|' read -r matched_name remainder matched <<< "$result"
     
     # Return the result in the expected format
     echo "${matched_name}|${remainder}|${matched}"

@@ -18,49 +18,45 @@ TEMP_FILE=$(mktemp)
 cat > "$TEMP_FILE" << 'EOF'
 #!/usr/bin/env bats
 
-# Load test helper functions
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-assert/load.bash"
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-file/load.bash"
+# Load main test helper (loads all BATS helpers)
+load "${BATS_TEST_DIRNAME}/../test_helper.bash"
 
 # Source the function to test
 source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
+EOF
 
-# Table-driven tests for name extraction
-@test "name extraction from filename" {
-  local csv="${BATS_TEST_DIRNAME}/../fixtures/name_extraction_cases.csv"
-  
-  # Skip header row
-  tail -n +2 "$csv" | while IFS=, read -r filename name_to_match expected_match extracted_name raw_remainder cleaned_remainder use_case; do
-    # Run the function
-    run extract_name_from_filename "$filename" "$name_to_match"
-    
-    # Debug output
-    echo "[DEBUG] Testing: $filename" >&2
-    echo "[DEBUG] Expected match: $expected_match" >&2
-    echo "[DEBUG] Expected extracted name: $extracted_name" >&2
-    echo "[DEBUG] Expected raw remainder: $raw_remainder" >&2
-    echo "[DEBUG] Expected cleaned remainder: $cleaned_remainder" >&2
-    echo "[DEBUG] Use case: $use_case" >&2
-    echo "[DEBUG] Actual output: $output" >&2
-    
-    # Split the output into components
-    IFS='|' read -r actual_extracted_name actual_raw_remainder actual_cleaned_remainder actual_matched <<< "$output"
-    
-    # Assertions
-    if [ "$expected_match" = "true" ]; then
-      assert_equal "$actual_matched" "true"
-      assert_equal "$actual_extracted_name" "$extracted_name"
-      assert_equal "$actual_raw_remainder" "$raw_remainder"
-      assert_equal "$actual_cleaned_remainder" "$cleaned_remainder"
-    else
-      assert_equal "$actual_matched" "false"
-      assert_equal "$actual_extracted_name" ""
-      assert_equal "$actual_raw_remainder" "$raw_remainder"
-      assert_equal "$actual_cleaned_remainder" "$cleaned_remainder"
-    fi
-  done
+i=0
+# Read the CSV, skip the header
+while IFS='|' read -r filename name_to_match expected_match extracted_name raw_remainder cleaned_remainder use_case; do
+  # Skip header
+  if [ $i -eq 0 ]; then i=1; continue; fi
+  # Sanitize test name (remove spaces and special chars)
+  safe_test_name=$(echo "$use_case" | tr -cd '[:alnum:]_-' | tr ' ' '_')
+  cat >> "$TEMP_FILE" << EOF
+
+@test "$safe_test_name" {
+  run extract_name_from_filename "$filename" "$name_to_match"
+  IFS='|' read -r actual_extracted_name actual_raw_remainder actual_matched <<< "\$output"
+  # Debug output
+  echo "[DEBUG] Testing: $filename" >&2
+  echo "[DEBUG] Expected match: $expected_match" >&2
+  echo "[DEBUG] Expected extracted name: $extracted_name" >&2
+  echo "[DEBUG] Expected raw remainder: $raw_remainder" >&2
+  echo "[DEBUG] Expected cleaned remainder: $cleaned_remainder" >&2
+  echo "[DEBUG] Use case: $use_case" >&2
+  echo "[DEBUG] Actual output: \$output" >&2
+  if [ "$expected_match" = "true" ]; then
+    assert_equal "\$actual_matched" "true"
+    assert_equal "\$actual_extracted_name" "$extracted_name"
+    assert_equal "\$actual_raw_remainder" "$raw_remainder"
+  else
+    assert_equal "\$actual_matched" "false"
+    assert_equal "\$actual_extracted_name" ""
+    assert_equal "\$actual_raw_remainder" "$raw_remainder"
+  fi
 }
 EOF
+done < "$CSV_FILE"
 
 # Replace the test file with the new content
 mv "$TEMP_FILE" "$TEST_FILE"

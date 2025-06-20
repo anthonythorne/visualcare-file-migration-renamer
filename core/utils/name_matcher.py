@@ -54,67 +54,139 @@ def load_separators():
     # Escape special regex characters in separators
     escaped_separators = [re.escape(sep) for sep in separators]
     
-    # Join separators for regex pattern
-    return '|'.join(escaped_separators)
+    # Join separators for regex non-capturing group
+    return '(?:' + '|'.join(escaped_separators) + ')'
 
-def match_full_name(filename: str, full_name: str) -> str:
-    """Match a full name in a filename and return the matched name and remainder."""
-    # Load separators from config
-    separators = load_separators()
-    valid_separators = '|'.join(separators)
-    
-    # Split full name into parts
-    name_parts = full_name.lower().split()
-    if len(name_parts) != 2:
+def match_both_initials(filename, first_initial, last_initial):
+    """
+    Match both initials (grouped or separated by known separators from config) at start or after separator, no words between.
+    Returns (matched, new_remainder) or None.
+    """
+    sep_regex = load_separators()  # dynamically loaded separator regex
+    # Grouped: jd at start or after separator
+    grouped_pattern = rf'(^|{sep_regex}){first_initial}{last_initial}($|{sep_regex})'
+    match = re.search(grouped_pattern, filename, re.IGNORECASE)
+    if match:
+        start, end = match.start(0), match.end(0)
+        return filename[start:end], filename[:start] + filename[end:]
+    # Separated: j<sep>+d, no other words between
+    sep_pattern = rf'(^|{sep_regex}){first_initial}{sep_regex}+{last_initial}($|{sep_regex})'
+    match = re.search(sep_pattern, filename, re.IGNORECASE)
+    if match:
+        start, end = match.start(0), match.end(0)
+        return filename[start:end], filename[:start] + filename[end:]
+    return None
+
+def extract_all_name_matches(filename: str, name_to_match: str) -> str:
+    """
+    Extract all name matches from filename using an ordered, iterative approach.
+    """
+    debug_print(f"Processing filename: '{filename}' with name: '{name_to_match}'")
+    name_parts = name_to_match.lower().split()
+    if not name_parts:
         return f"|{filename}|false"
-    
-    first_name, last_name = name_parts
-    
-    # Build regex patterns
-    patterns = []
-    
-    # Full name patterns (comma-separated in output)
-    patterns.append(f"({first_name})[{valid_separators}]+({last_name})")  # First Last
-    patterns.append(f"({last_name})[{valid_separators}]+({first_name})")  # Last First
-    
-    # First name + last initial patterns (space-separated in output)
-    patterns.append(f"({first_name})[{valid_separators}]+({last_name[0]})")  # First L
-    patterns.append(f"({last_name[0]})[{valid_separators}]+({first_name})")  # L First
-    
-    # First initial + last name patterns (preserve original separator)
-    patterns.append(f"({first_name[0]})[{valid_separators}]+({last_name})")  # F Last
-    patterns.append(f"({last_name})[{valid_separators}]+({first_name[0]})")  # Last F
-    
-    # Both initials patterns (preserve original separator)
-    patterns.append(f"({first_name[0]})[{valid_separators}]+({last_name[0]})")  # F L
-    patterns.append(f"({last_name[0]})[{valid_separators}]+({first_name[0]})")  # L F
-    
-    # Try each pattern
-    for pattern in patterns:
-        match = re.search(pattern, filename.lower())
+
+    first_name, last_name = (name_parts[0], name_parts[-1]) if len(name_parts) > 1 else (name_parts[0], '')
+    first_initial, last_initial = first_name[0], last_name[0] if last_name else ''
+
+    sep = load_separators()
+
+    # Try compound patterns first (for patterns involving initials)
+    if first_name and last_name:
+        # First initial + Last name
+        pattern = rf"(^|{sep})({re.escape(first_initial)})({sep}+)({re.escape(last_name)})($|{sep})"
+        match = re.search(pattern, filename, re.IGNORECASE)
         if match:
-            groups = match.groups()
-            matched_text = match.group(0)
-            remainder = filename[len(matched_text):]
-            
-            # Format the output based on the pattern type
-            if len(groups[0]) > 1 and len(groups[1]) > 1:  # Full name
-                output = f"{groups[0]},{groups[1]}"
-            elif len(groups[0]) > 1 and len(groups[1]) == 1:  # First name + last initial
-                output = f"{groups[0]} {groups[1]}"
-            elif len(groups[0]) == 1 and len(groups[1]) > 1:  # First initial + last name
-                # Find the separator used in the match
-                sep_match = re.search(f"[{valid_separators}]+", matched_text)
-                sep = sep_match.group(0) if sep_match else " "
-                output = f"{groups[0]}{sep}{groups[1]}"
-            else:  # Both initials
-                # Find the separator used in the match
-                sep_match = re.search(f"[{valid_separators}]+", matched_text)
-                sep = sep_match.group(0) if sep_match else " "
-                output = f"{groups[0]}{sep}{groups[1]}"
-            
-            return f"{output}|{remainder}|true"
+            extracted = f"{match.group(2)}{match.group(3)}{match.group(4)}"
+            start, end = match.span(0)
+            # If there's a trailing separator, preserve it in the remainder
+            if match.group(5):  # group(5) is the trailing separator
+                remainder = filename[:start] + match.group(5) + filename[end:]
+            else:
+                remainder = filename[:start] + filename[end:]
+            return f"{extracted}|{remainder}|true"
+        
+        # First name + Last initial
+        pattern = rf"(^|{sep})({re.escape(first_name)})({sep}+)({re.escape(last_initial)})($|{sep})"
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            extracted = f"{match.group(2)}{match.group(3)}{match.group(4)}"
+            start, end = match.span(0)
+            # If there's a trailing separator, preserve it in the remainder
+            if match.group(5):  # group(5) is the trailing separator
+                remainder = filename[:start] + match.group(5) + filename[end:]
+            else:
+                remainder = filename[:start] + filename[end:]
+            return f"{extracted}|{remainder}|true"
     
+    if first_initial and last_initial:
+        # Both initials separated
+        pattern = rf"(^|{sep})({re.escape(first_initial)})({sep}+)({re.escape(last_initial)})($|{sep})"
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            extracted = f"{match.group(2)}{match.group(3)}{match.group(4)}"
+            start, end = match.span(0)
+            # If there's a trailing separator, preserve it in the remainder
+            if match.group(5):  # group(5) is the trailing separator
+                remainder = filename[:start] + match.group(5) + filename[end:]
+            else:
+                remainder = filename[:start] + filename[end:]
+            return f"{extracted}|{remainder}|true"
+        
+        # Both initials grouped
+        pattern = rf"(^|{sep})({re.escape(first_initial)})({re.escape(last_initial)})($|{sep})"
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            extracted = f"{match.group(2)}{match.group(3)}"
+            start, end = match.span(0)
+            # If there's a trailing separator, preserve it in the remainder
+            if match.group(4):  # group(4) is the trailing separator
+                remainder = filename[:start] + match.group(4) + filename[end:]
+            else:
+                remainder = filename[:start] + filename[end:]
+            return f"{extracted}|{remainder}|true"
+    
+    # Full name patterns - extract individual parts
+    if first_name and last_name:
+        # First name + Last name (both orders)
+        pattern = rf"(^|{sep})({re.escape(first_name)})({sep}+)({re.escape(last_name)})($|{sep})"
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            extracted = f"{match.group(2)},{match.group(4)}"
+            # Remove both name parts, preserving separators
+            start1, end1 = match.span(2)  # first name
+            start2, end2 = match.span(4)  # last name
+            remainder = filename[:start1] + filename[end1:start2] + filename[end2:]
+            return f"{extracted}|{remainder}|true"
+        
+        pattern = rf"(^|{sep})({re.escape(last_name)})({sep}+)({re.escape(first_name)})($|{sep})"
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            extracted = f"{match.group(2)},{match.group(4)}"
+            # Remove both name parts, preserving separators
+            start1, end1 = match.span(2)  # last name
+            start2, end2 = match.span(4)  # first name
+            remainder = filename[:start1] + filename[end1:start2] + filename[end2:]
+            return f"{extracted}|{remainder}|true"
+    
+    # Individual patterns (fallback)
+    pattern = rf"(^|{sep})({re.escape(first_name)})($|{sep})"
+    match = re.search(pattern, filename, re.IGNORECASE)
+    if match:
+        extracted = match.group(2)
+        start, end = match.span(2)
+        remainder = filename[:start] + filename[end:]
+        return f"{extracted}|{remainder}|true"
+    
+    if last_name:
+        pattern = rf"(^|{sep})({re.escape(last_name)})($|{sep})"
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            extracted = match.group(2)
+            start, end = match.span(2)
+            remainder = filename[:start] + filename[end:]
+            return f"{extracted}|{remainder}|true"
+
     return f"|{filename}|false"
 
 def match_initials_surname(filename, name_parts):
@@ -177,7 +249,86 @@ def extract_name_from_filename(filename: str, name_to_match: str) -> str:
     Extract a name from a filename and return the matched name, remainder, and match status.
     Returns: matched_name|remainder|matched
     """
-    return match_full_name(filename, name_to_match)
+    return extract_all_name_matches(filename, name_to_match)
+
+def extract_first_name_only(filename: str, name_to_match: str) -> str:
+    """
+    Extract only the first name from a filename.
+    Returns: matched_name|remainder|matched
+    """
+    debug_print(f"Processing filename: '{filename}' for first name: '{name_to_match}'")
+    
+    # Find first name matches
+    first_matches = find_first_name(filename, name_to_match.lower())
+    if not first_matches:
+        debug_print(f"First name '{name_to_match}' not found")
+        return f"|{filename}|false"
+    
+    # Use the first match found
+    first_match = first_matches[0]
+    debug_print(f"Found first name '{name_to_match}' at position {first_match.start()}-{first_match.end()}")
+    
+    # Extract the matched name and remainder
+    matched_name = filename[first_match.start():first_match.end()]
+    before_match = filename[:first_match.start()]
+    after_match = filename[first_match.end():]
+    remainder = before_match + after_match
+    
+    debug_print(f"Matched name: '{matched_name}', remainder: '{remainder}'")
+    
+    return f"{matched_name}|{remainder}|true"
+
+def extract_last_name_only(filename: str, name_to_match: str) -> str:
+    """
+    Extract only the last name from a filename.
+    Returns: matched_name|remainder|matched
+    """
+    debug_print(f"Processing filename: '{filename}' for last name: '{name_to_match}'")
+    
+    # Find last name matches
+    last_matches = find_last_name(filename, name_to_match.lower())
+    if not last_matches:
+        debug_print(f"Last name '{name_to_match}' not found")
+        return f"|{filename}|false"
+    
+    # Use the first match found
+    last_match = last_matches[0]
+    debug_print(f"Found last name '{name_to_match}' at position {last_match.start()}-{last_match.end()}")
+    
+    # Extract the matched name and remainder
+    matched_name = filename[last_match.start():last_match.end()]
+    before_match = filename[:last_match.start()]
+    after_match = filename[last_match.end():]
+    remainder = before_match + after_match
+    
+    debug_print(f"Matched name: '{matched_name}', remainder: '{remainder}'")
+    
+    return f"{matched_name}|{remainder}|true"
+
+def extract_initials_only(filename: str, name_to_match: str) -> str:
+    """
+    Extract only initials from a filename.
+    """
+    first_initial = name_to_match[0].lower()
+    last_initial = name_to_match[1].lower() if len(name_to_match) > 1 else ''
+    if not last_initial:
+        return f"|{filename}|false"
+
+    sep = load_separators()
+    patterns = [
+        rf'\b{first_initial}{sep}+{last_initial}\b',
+        rf'\b{first_initial}{last_initial}\b',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            matched_text = match.group(0)
+            start, end = match.span()
+            remainder = filename[:start] + filename[end:]
+            return f"{matched_text}|{remainder}|true"
+            
+    return f"|{filename}|false"
 
 def main():
     """Main function to process command line arguments."""
