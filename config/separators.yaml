@@ -2,10 +2,10 @@
 default_separators:
   # Standard separators (always enabled)
   standard:
+    - " "  # space
     - "-"  # hyphen
     - "_"  # underscore
     - "."  # period
-    - " "  # space
 
   # Non-standard separators (configurable)
   non_standard:

@@ -92,6 +92,15 @@ Mixed Formats: 2023-01-15_and_2024-02-20 (multiple dates)
 - **Both Extraction and Cleaning Tests:** Validates both date extraction and remainder cleaning
 - **Edge Case Coverage:** Handles no-date files, multiple dates, and various separators
 
+## Naming and Separator Conventions
+
+See [FILENAME_CONVENTIONS.md](FILENAME_CONVENTIONS.md) for the full, up-to-date documentation on all name extraction, matching, and cleaning logic, including matcher types, YAML-driven separator configuration, and case handling.
+
+### Separator Order and Cleaning
+- The order of separators in `config/separators.yaml` determines their cleaning preference.
+- When cleaning, for any run of consecutive separators, the most preferred (earliest in the YAML list) is kept and all others are removed.
+- This ensures consistent, extensible, and predictable filename normalization.
+
 ## Installation
 
 1. Clone the repository:
@@ -152,7 +161,7 @@ extract_first_name_only "john-doe-report.pdf" "john"
 # Clean the remainder
 clean_filename_remainder "--report.pdf"
 # Output: report.pdf
-```
+   ```
 
 ### Date Extraction Examples
 

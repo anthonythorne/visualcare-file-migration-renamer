@@ -47,18 +47,47 @@ load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-file/load.bash"
 # Source the function to test
 source "${{BATS_TEST_DIRNAME}}/../../core/utils/{source_script}"
 
+# Override the main python script call to allow specifying the function
+extract_name_from_filename() {{
+    local filename="$1"
+    local target_name="$2"
+    local function_name="${{3:-extract_name_from_filename}}"  # Default to extract_name_from_filename
+    
+    # Call the python script, passing the function name as an argument
+    # The python script will need to be adapted to handle this
+    python3 "${{BATS_TEST_DIRNAME}}/../../core/utils/name_matcher.py" "$filename" "$target_name" "$function_name"
+}}
+
 """
 
     # Generate extraction tests
     for i, case in enumerate(test_cases, 1):
         test_name = case['use_case']
         
+        final_test_name = f"{test_type}-extraction-{i}: {test_name}"
         if test_type == 'name':
-            function_call = function_call_template.format(filename=case['filename'], id_val=case[id_col])
+            matcher_func = case.get('matcher_function', 'all_matches')
+            final_test_name = f"{test_type}-extraction-{i} [matcher_function={matcher_func}]: {test_name}"
+            
+            # Determine the correct python function to call based on the test case
+            if matcher_func == 'first_name':
+                py_function = 'extract_first_name_only'
+            elif matcher_func == 'last_name':
+                py_function = 'extract_last_name_only'
+            elif matcher_func == 'initials':
+                py_function = 'extract_initials_only'
+            elif matcher_func == 'shorthand':
+                py_function = 'extract_shorthand'
+            else: # all_matches and any other case
+                py_function = 'extract_name_from_filename'
+
+            # The vcmigrate script is the entry point that calls the python script
+            function_call = f'extract_name_from_filename "{case["filename"]}" "{case[id_col]}" "{py_function}"'
+
         else: # date
             function_call = function_call_template.format(filename=case['filename'])
 
-        bats_content += f"""@test "{test_type}-extraction-{i}: {test_name}" {{
+        bats_content += f"""@test "{final_test_name}" {{
     run {function_call}
 
     # Split the output into components
@@ -90,7 +119,13 @@ source "${{BATS_TEST_DIRNAME}}/../../core/utils/{source_script}"
     bats_content += f"# --- Filename Cleaning Tests --- #\n\n"
     for i, case in enumerate(test_cases, 1):
         test_name = case['use_case']
-        bats_content += f"""@test "{test_type}-clean_filename-{i}: {test_name}" {{
+        
+        final_test_name = f"{test_type}-clean_filename-{i}: {test_name}"
+        if test_type == 'name':
+            matcher_func = case.get('matcher_function', 'none')
+            final_test_name = f"{test_type}-clean_filename-{i} [matcher_function={matcher_func}]: {test_name}"
+
+        bats_content += f"""@test "{final_test_name}" {{
     run {clean_function} "{case['raw_remainder']}"
 
     # Debug output

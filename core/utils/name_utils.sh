@@ -70,20 +70,12 @@ test_name_permutations() {
 }
 
 # Function to clean a filename remainder
-# Removes leading/trailing separators and standardizes internal separators
+# Now delegates to Python for YAML-driven separator order
 clean_filename_remainder() {
     local remainder="$1"
     
-    # Remove leading and trailing separators
-    remainder=$(echo "$remainder" | sed -E 's/^[-_\s\.]+//')
-    remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]+$//')
-    
-    # Replace multiple consecutive separators with a single hyphen
-    remainder=$(echo "$remainder" | sed -E 's/[-_\s\.]{2,}/-/g')
-    remainder=$(echo "$remainder" | sed -E 's/^ +//')
-    remainder=$(echo "$remainder" | sed -E 's/ +$//')
-    
-    echo "$remainder"
+    # Call the Python cleaner, which uses YAML-driven separator order
+    python3 "${BATS_TEST_DIRNAME:-.}/../../core/utils/name_matcher.py" --clean-filename "$remainder"
 }
 
 # Function to extract name from filename
@@ -127,98 +119,6 @@ print(result)
     echo "${matched_name}|${remainder}|${matched}"
 }
 
-# Function to extract first name only
-extract_first_name() {
-    local filename="$1"
-    local name_to_match="$2"
-
-    # Compute absolute path to core/utils
-    local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-    # Call the Python matcher for first name only
-    local result
-    result=$(python3 -c "
-import sys, os
-sys.path.append('$utils_dir')
-from name_matcher import extract_first_name_only
-result = extract_first_name_only('$filename', '$name_to_match')
-print(result)
-" 2>/dev/null)
-
-    # Split the result into components
-    IFS='|' read -r matched_name remainder matched <<< "$result"
-    
-    # Return the result in the expected format
-    echo "${matched_name}|${remainder}|${matched}"
-}
-
-# Function to extract last name only
-extract_last_name() {
-    local filename="$1"
-    local name_to_match="$2"
-
-    # Compute absolute path to core/utils
-    local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-    # Call the Python matcher for last name only
-    local result
-    result=$(python3 -c "
-import sys, os
-sys.path.append('$utils_dir')
-from name_matcher import extract_last_name_only
-result = extract_last_name_only('$filename', '$name_to_match')
-print(result)
-" 2>/dev/null)
-
-    # Split the result into components
-    IFS='|' read -r matched_name remainder matched <<< "$result"
-    
-    # Return the result in the expected format
-    echo "${matched_name}|${remainder}|${matched}"
-}
-
-# Function to extract initials
-extract_initials() {
-    local filename="$1"
-    local name_to_match="$2"
-
-    # Compute absolute path to core/utils
-    local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-    # Call the Python matcher for initials
-    local result
-    result=$(python3 -c "
-import sys, os
-sys.path.append('$utils_dir')
-from name_matcher import extract_initials_only
-result = extract_initials_only('$filename', '$name_to_match')
-print(result)
-" 2>/dev/null)
-
-    # Split the result into components
-    IFS='|' read -r matched_name remainder matched <<< "$result"
-    
-    # Return the result in the expected format
-    echo "${matched_name}|${remainder}|${matched}"
-}
-
-# Function to clean a filename
-clean_filename() {
-    local filename="$1"
-    
-    # Remove leading/trailing separators
-    filename="${filename#"${filename%%[!-_. ]*}"}"
-    filename="${filename%"${filename##*[!-_. ]}"}"
-    
-    # Replace multiple separators with a single underscore
-    filename=$(echo "$filename" | sed -E 's/[-_. ]+/_/g')
-    
-    echo "$filename"
-}
-
 # Main script
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # If script is run directly, process command line arguments
@@ -239,6 +139,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         fi
     else
         # Just clean the filename
-        clean_filename "$filename"
+        clean_filename_remainder "$filename"
     fi
 fi 

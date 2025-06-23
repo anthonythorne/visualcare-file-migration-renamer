@@ -1,76 +1,79 @@
 # File Naming Conventions
 
-This document outlines the naming conventions used for matching files to client/staff names in the VisualCare file migration system.
+This document outlines the naming conventions and matching logic used for extracting client/staff names from filenames in the VisualCare file migration system.
 
-## Name Matching Rules
+## Name Matching Logic
 
-### Full Name Matching
-- Matches exact permutations of names from the config file
-- Additional words in the filename don't affect the match
-- Names can be found anywhere in the filename
+### Matcher Functions
+The system supports several matcher types, each with its own logic:
+- **first_name**: Extracts the first name from the filename.
+- **last_name**: Extracts the last name from the filename.
+- **initials**: Matches both initials (e.g., `j-d`, `j.d`, `j d`, `jd`, etc.) with one or more valid separators or grouped.
+- **shorthand**: Matches first initial + last name (e.g., `j-doe`, `jdoe`, `j.doe`) or first name + last initial (e.g., `john-d`, `john.d`).
+- **all_matches**: Extracts all possible matches (full names, initials, shorthands, etc.) in order of precedence.
+
+### Separator Handling
+- **Source of Truth**: All valid separators are defined in `config/separators.yaml`.
+- **Extensible**: To add or change separators, update the YAML file—no code changes needed.
+- **Supported Separators** (by default):
+  - Hyphen (`-`)
+  - Underscore (`_`)
+  - Period (`.`)
+  - Space (` `)
+  - (Others as defined in YAML)
+- **Multiple/Mixed Separators**: Any number or combination of valid separators between name parts or initials is supported (e.g., `j - _ d`, `john---doe`, `j._d`).
+
+### Case Sensitivity
+- **Matching**: Always case-insensitive.
+- **Extraction**: The extracted name part preserves the case as it appears in the filename.
+
+### Raw vs Cleaned Remainder
+- **Raw Remainder**: The literal filename with the matched part removed (may contain extra separators or spaces).
+- **Cleaned Remainder**: The raw remainder, normalized by collapsing multiple separators and trimming leading/trailing separators, as defined by the cleaning logic.
+
+## Examples
+
+### First Name Matching
+- Matches the first name anywhere in the filename, using all valid separators.
 - Examples for "John Doe":
-  - `john-doe-report.pdf` ✓
-  - `john_doe_smith_20230101.pdf` ✓
-  - `john_doe_sarah_smith_report.pdf` ✓
-  - `home-john_doe_sarah_smith_report.pdf` ✓
-  - `home John Doe sarah smith report.pdf` ✓
-  - `jane-smith-report.pdf` ✗ (different name)
+  - `john-doe-report.pdf` → Extracts `john`
+  - `John Doe 20240525 report.pdf` → Extracts `John`
 
-### Initial Matching
-- First name initial must have separators or beginning/end of file on both sides to be considered an initial
-- Last name must be complete
-- Initials at the start of filename don't need separators on both sides
+### Last Name Matching
+- Matches the last name anywhere in the filename, using all valid separators.
 - Examples for "John Doe":
-  - `j-doe-report.pdf` ✓ (j has separators)
-  - `jdoe-report.pdf` ✓ (j at start, no other words between)
-  - `j.doe-report.pdf` ✓ (j has separators)
-  - `john-d-report.pdf` ✓ (d has separators)
-  - `abcd-j-fer-doe-adasd.pdf` ✓ (j has separators, matches "j,doe")
-  - `abc-jdoe-def-text.pdf` ✓ (j has separators on both sides)
-  - `abc-johnD-def-text.pdf` ✓ (D has separators on both sides)
+  - `john-doe-report.pdf` → Extracts `doe`
+  - `John Doe 20240525 report.pdf` → Extracts `Doe`
 
-### Combined Initial Matching
-- Must be grouped together OR have known separators between them
-- No other words allowed between initials
+### Initials Matching
+- Matches both initials, grouped or separated by any valid separator(s).
 - Examples for "John Doe":
-  - `jd-report.pdf` ✓ (grouped)
-  - `j-d-report.pdf` ✓ (separated)
-  - `j.d.report.pdf` ✓ (separated)
-  - `home.j.d.report.pdf` ✓ (separated)
-  - `j---d-report.pdf` ✓ (separated)
-  - `abcdj---d-report.pdf` ✗ (j doesn't have separator on both sides)
+  - `jd-report.pdf`, `j-d-report.pdf`, `j.d.report.pdf`, `j d report.pdf`, `j---d-report.pdf`, `j - _ d report.pdf` → All valid
 
-## Separators
-Valid separators include:
-- Hyphen (`-`)
-- Underscore (`_`)
-- Period (`.`)
-- Space (` `)
-
-Multiple consecutive separators are treated as a single separator:
-- `john___doe___report.pdf` → `john_doe_report.pdf`
-- `john---doe---report.pdf` → `john-doe-report.pdf`
-- `john...doe...report.pdf` → `john.doe.report.pdf`
-
-## Case Sensitivity
-- Matching is case-insensitive
+### Shorthand Matching
+- Matches first initial + last name or first name + last initial, with any valid separator(s).
 - Examples for "John Doe":
-  - `JOHN-DOE-report.pdf` ✓
-  - `John-Doe-report.pdf` ✓
-  - `john-doe-report.pdf` ✓
+  - `j-doe-report.pdf`, `jdoe-report.pdf`, `j.doe-report.pdf`, `john-d-report.pdf`, `john.d.report.pdf`, `john_d_report.pdf`
 
-## Special Characters
-- Special characters in names are preserved
+### All Matches
+- Extracts all possible matches (full names, initials, shorthands, etc.) in order of precedence.
+- Examples for "John Doe":
+  - `john-doe-jdoe-report.pdf` → Extracts `john`, `doe`, `jdoe`
+  - `john-doe-john-doe-report.pdf` → Extracts `john`, `doe`, `john`, `doe`
+
+### Special Characters & Substitutions
+- Special characters and common substitutions (e.g., `0` for `o`) are supported in fuzzy matching.
 - Examples for "Jón Döe":
   - `jón-döe-report.pdf` ✓
-  - `j0hn-d03-report.pdf` ✓ (number substitutions)
-  - `jón-d03-report.pdf` ✓ (mixed accents and numbers)
+  - `j0hn-d03-report.pdf` ✓
 
-## Multiple Matches
-- Files can contain multiple name matches
-- All matches are extracted and reported
-- Examples for "John Doe":
-  - `john-doe-john-doe-report.pdf` ✓ (matches twice)
-  - `john-doe-jdoe-report.pdf` ✓ (full name and initials)
-  - `jdoe-john-doe-report.pdf` ✓ (initials and full name)
-  - `john_doe_smith_jones_20230101.pdf` ✓ (full name match with additional words) 
+### Multiple Matches
+- All valid matches are extracted and reported in order.
+- Example:
+  - `john-doe-john-doe-report.pdf` → Extracts `john`, `doe`, `john`, `doe`
+
+---
+
+**Note:**
+- To change or add valid separators, update `config/separators.yaml`.
+- All filename parsing and matching logic is driven by this config for consistency and extensibility. 
