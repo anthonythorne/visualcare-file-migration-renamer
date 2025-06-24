@@ -26,8 +26,12 @@ extract_date_from_filename() {
     local utils_dir
     utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-    # Call the Python matcher
-    python3 "${utils_dir}/date_matcher.py" "$filename"
+    # Call the Python matcher and extract just the date part
+    local result
+    result=$(python3 "${utils_dir}/date_matcher.py" "$filename")
+    
+    # Extract the date part (first field before the pipe)
+    echo "$result" | cut -d'|' -f1
 }
 
 clean_date_filename_remainder() {

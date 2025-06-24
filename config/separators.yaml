@@ -7,7 +7,7 @@ default_separators:
     - "_"  # underscore
     - "."  # period
 
-  # Non-standard separators (configurable)
+  # Non-standard separators
   non_standard:
     - "*"  # asterisk
     - "@"  # at sign

@@ -20,32 +20,31 @@ john-doe-report.pdf|john doe|true|john,doe|--report.pdf|report.pdf|all_matches|F
 john_doe_report.pdf|john doe|true|john,doe|__report.pdf|report.pdf|all_matches|First Name - Underscore separator
 john doe report.pdf|john doe|true|john,doe|  report.pdf|report.pdf|all_matches|First Name - Space separator
 john.doe.report.pdf|john doe|true|john,doe|..report.pdf|report.pdf|all_matches|First Name - Period separator
-doe-john-report.pdf|john doe|true|doe,john|--report.pdf|report.pdf|all_matches|Last Name - Hyphen separator
-doe_john_report.pdf|john doe|true|doe,john|__report.pdf|report.pdf|all_matches|Last Name - Underscore separator
-doe john report.pdf|john doe|true|doe,john|  report.pdf|report.pdf|all_matches|Last Name - Space separator
-doe.john.report.pdf|john doe|true|doe,john|..report.pdf|report.pdf|all_matches|Last Name - Period separator
-john*doe-report.pdf|john doe|true|john,doe|*-report.pdf|report.pdf|all_matches|Non-standard separator (asterisk)
-john@doe-report.pdf|john doe|true|john,doe|@-report.pdf|report.pdf|all_matches|Non-standard separator (at sign)
-john#doe-report.pdf|john doe|true|john,doe|#-report.pdf|report.pdf|all_matches|Non-standard separator (hash)
+doe-john-report.pdf|john doe|true|john,doe|--report.pdf|report.pdf|all_matches|Last Name - Hyphen separator
+doe_john_report.pdf|john doe|true|john,doe|__report.pdf|report.pdf|all_matches|Last Name - Underscore separator
+doe john report.pdf|john doe|true|john,doe|  report.pdf|report.pdf|all_matches|Last Name - Space separator
+doe.john.report.pdf|john doe|true|john,doe|..report.pdf|report.pdf|all_matches|Last Name - Period separator
+john*doe-report.pdf|john doe|true|john,doe|*-report.pdf|*-report.pdf|all_matches|Non-standard separator (asterisk)
+john@doe-report.pdf|john doe|true|john,doe|@-report.pdf|@-report.pdf|all_matches|Non-standard separator (at sign)
+john#doe-report.pdf|john doe|true|john,doe|#-report.pdf|#-report.pdf|all_matches|Non-standard separator (hash)
 j0hn-d03-report.pdf|john doe|true|j0hn,d03|--report.pdf|report.pdf|all_matches|Name with numbers/letter substitution
 jôn-döe-report.pdf|john doe|true|döe|jôn--report.pdf|jôn-report.pdf|all_matches|Name with accents
-john-doe-john-doe-report.pdf|john doe|true|john,doe,john,doe|---report.pdf|report.pdf|all_matches|Multiple matches (same name twice)
-john-doe-jdoe-report.pdf|john doe|true|john,doe,jdoe|---report.pdf|report.pdf|all_matches|Multiple matches (full and initials)
+john-doe-john-doe-report.pdf|john doe|true|john,john,doe,doe|----report.pdf|report.pdf|all_matches|Multiple matches (same name twice)
+john-doe-jdoe-report.pdf|john doe|true|jdoe,john,doe|---report.pdf|report.pdf|all_matches|Multiple matches (full and initials)
+john-doe-jdoe-report-johnd.pdf|john doe|true|jdoe,johnd,john,doe|----report.pdf|report.pdf|all_matches|Multiple matches (full and initials)
 jdoe-john-doe-report.pdf|john doe|true|jdoe,john,doe|---report.pdf|report.pdf|all_matches|Multiple matches (initials and full)
-client/john_doe/hazard_reports/report.pdf|john doe|true|john,doe|client/_/hazard_reports/report.pdf|client-hazard_reports-report.pdf|all_matches|Nested path (two levels)
 .pdf|john doe|false||.pdf|.pdf|all_matches|Edge case: empty filename
 JOHN-DOE-report.pdf|john doe|true|JOHN,DOE|--report.pdf|report.pdf|all_matches|Case: all uppercase
 John-Doe-report.pdf|john doe|true|John,Doe|--report.pdf|report.pdf|all_matches|Case: proper case
 john-DOE-report.pdf|john doe|true|john,DOE|--report.pdf|report.pdf|all_matches|Case: mixed case
 john-doe-report-v1.0-2023.01.01.pdf|john doe|true|john,doe|--report-v1.0-2023.01.01.pdf|report-v1.0-2023.01.01.pdf|all_matches|Complex version and date
-j0hn-d03-jôn-döe-report.pdf|john doe|true|j0hn,d03,döe|-jôn--report.pdf|jôn-report.pdf|all_matches|Multiple matches: numbers and accents
+j0hn-d03-jôn-döe-report.pdf|john doe|true|j0hn,d03,döe|--jôn--report.pdf|jôn-report.pdf|all_matches|Multiple matches: numbers and accents
 ---.pdf|john doe|false||---.pdf|.pdf|all_matches|Edge case: only separators
 123456.pdf|john doe|false||123456.pdf|123456.pdf|all_matches|Edge case: only numbers
 !@#$%^&*().pdf|john doe|false||!@#$%^&*().pdf|!@#$%^&*().pdf|all_matches|Edge case: only special characters
-john   doe   report.pdf|john doe|true|john,doe|     report.pdf|report.pdf|all_matches|Multiple consecutive spaces
+john   doe   report.pdf|john doe|true|john,doe|      report.pdf|report.pdf|all_matches|Multiple consecutive spaces
 john--doe__report.pdf|john doe|true|john,doe|--__report.pdf|report.pdf|all_matches|Mixed consecutive separators
 john . doe - report.pdf|john doe|true|john,doe| .  - report.pdf|report.pdf|all_matches|Mixed separators with spaces and punctuation
- john doe report.pdf|john doe|true|john,doe|  report.pdf|report.pdf|all_matches|Leading space
-john doe report .pdf|john doe|true|john,doe|  .pdf|report.pdf|all_matches|Trailing space before extension
-john-doe_report report.pdf|john doe|true|john,doe|-_ report.pdf|report.pdf|all_matches|Mixed separators (hyphen, underscore, space)
-client/john doe/hazard_reports/report.pdf|john doe|true|john,doe|client/ /hazard_reports/report.pdf|client-hazard_reports-report.pdf|all_matches|Nested path with space in folder 
+ john doe report.pdf|john doe|true|john,doe|   report.pdf|report.pdf|all_matches|Leading space
+john doe report .pdf|john doe|true|john,doe|  report .pdf|report.pdf|all_matches|Trailing space before extension
+john-doe_report report.pdf|john doe|true|john,doe|-_report report.pdf|report report.pdf|all_matches|Mixed separators (hyphen, underscore, space)

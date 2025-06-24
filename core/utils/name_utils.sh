@@ -82,6 +82,7 @@ clean_filename_remainder() {
 extract_name_from_filename() {
     local filename="$1"
     local name_to_match="$2"
+    local matcher_function="${3:-extract_all_name_matches}"
 
     # Compute absolute path to core/utils
     local utils_dir
@@ -89,13 +90,7 @@ extract_name_from_filename() {
 
     # Call the Python matcher and capture the output
     local result
-    result=$(python3 -c "
-import sys, os
-sys.path.append('$utils_dir')
-from name_matcher import extract_all_name_matches
-result = extract_all_name_matches('$filename', '$name_to_match')
-print(result)
-" 2>/dev/null)
+    result=$(python3 "$utils_dir/name_matcher.py" "$filename" "$name_to_match" "$matcher_function" 2>/dev/null)
 
     # Split the result into components
     IFS='|' read -r matched_name remainder matched <<< "$result"

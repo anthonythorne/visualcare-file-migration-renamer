@@ -91,7 +91,7 @@ extract_name_from_filename() {{
     run {function_call}
 
     # Split the output into components
-    IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$output"
+    IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo \"$output\" | tail -n1)"
 
     # Debug output
     echo "[DEBUG] Testing: {case['filename']}" >&2

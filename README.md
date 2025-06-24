@@ -10,9 +10,9 @@ The tool reads a CSV file containing mappings of old filenames to new filenames.
 
 - **CSV Mapping:** Use a CSV file to map old filenames to new filenames.
 - **Advanced Name Extraction:** Extract names from filenames using various patterns (first name, last name, initials, compound patterns).
-- **Sequential Part-by-Part Matching:** Extract names sequentially, preserving original separators and handling order-agnostic matching.
+- **Type-Based Processing:** Extract names by type (shorthand first, then first names, then last names) to prevent incorrect splitting.
 - **Date Extraction:** Extract dates from filenames using comprehensive date format support.
-- **Dynamic Separator Configuration:** Load separators from YAML configuration files.
+- **Dynamic Separator Configuration:** Load separators from YAML configuration files with precedence-based cleaning.
 - **File Renaming:** Rename files based on the extracted names/dates and the new filename format.
 - **Test Scaffolding:** Automatically generate BATS tests from CSV files, ensuring one test per line for easy debugging.
 - **Comprehensive Test Coverage:** 46 test cases covering all major name extraction scenarios.
@@ -21,27 +21,41 @@ The tool reads a CSV file containing mappings of old filenames to new filenames.
 
 The name extraction system follows a sophisticated, multi-layered approach:
 
-### 1. **Python-Based Name Matcher** (`core/utils/name_matcher.py`)
-- **Sequential Extraction:** Extracts name parts one by one, preserving original separators
+### 1. **Processing Algorithm**
+The system processes name matches in a specific order to ensure accurate extraction:
+
+1. **Shorthand Patterns First**: Find all shorthand patterns (e.g., `jdoe`, `j-doe`, `john-d`) before individual name parts
+2. **First Names**: Find all remaining first name matches
+3. **Last Names**: Find all remaining last name matches
+4. **Clean Remainder**: Remove duplicate separators using separator precedence from config
+
+**Why This Order Matters:**
+Processing shorthand patterns first prevents them from being incorrectly split into individual name parts. For example:
+- `jdoe` should be matched as shorthand, not as `j` + `doe`
+- `j-doe` should be matched as shorthand, not as `j` + `doe`
+
+### 2. **Python-Based Name Matcher** (`core/utils/name_matcher.py`)
+- **Type-Based Extraction:** Extracts name parts by type (shorthand → first names → last names)
 - **Compound Pattern Support:** Handles initial+last name, first name+initial, and both initials patterns
-- **Order-Agnostic Matching:** Finds names regardless of their order in the filename
+- **Order Preservation:** Finds names in the order they appear in the filename
 - **Case-Insensitive Matching:** Matches names regardless of case
 - **Dynamic Separator Loading:** Loads separators from `config/separators.yaml`
 - **Separator Preservation:** Maintains original separators in the remainder
 
-### 2. **Bash Integration** (`core/utils/name_utils.sh`)
+### 3. **Bash Integration** (`core/utils/name_utils.sh`)
 - **Shell Wrapper:** Provides a Bash interface to the Python name matcher
 - **Individual Matchers:** Separate functions for first name, last name, and initials extraction
 - **Consistent API:** Matches the existing date extraction interface
 - **Pipe-Delimited Output:** Returns results in format: `extracted_names|raw_remainder|match_status`
 
-### 3. **Smart Cleaning Function**
-- **Separator Collapsing:** Reduces multiple consecutive separators to single ones
+### 4. **Smart Cleaning Function**
+- **Separator Precedence:** Uses separator order from YAML config to determine cleaning preference
+- **Reverse Removal:** Removes duplicate separators in reverse order of YAML list
 - **Leading/Trailing Cleanup:** Removes unnecessary separators from start/end
 - **File Extension Awareness:** Preserves dots before file extensions
 - **Preservation Logic:** Maintains meaningful separators within filenames
 
-### 4. **Supported Name Patterns**
+### 5. **Supported Name Patterns**
 ```
 Full Names:        john-doe, doe-john → john,doe (comma-separated parts)
 Initial + Last:    j-doe, j_doe, j doe, j.doe → j-doe (compound with separator)
@@ -50,7 +64,24 @@ Both Initials:     j-d, j_d, j d, j.d → j-d (compound with separator)
 Individual:        john, doe → extracted separately
 ```
 
-### 5. **Test-Driven Development**
+### 6. **Processing Example**
+For filename: `"file jdoe medical jdoe 2025 John doe report.txt"` with name "John Doe":
+
+1. **Find all shorthand patterns**: `jdoe,jdoe`
+   - Remainder: `"file  medical  2025 John doe report.txt"`
+
+2. **Find all first names**: `John`
+   - Combined matches: `jdoe,jdoe,John`
+   - Remainder: `"file  medical  2025  doe report.txt"`
+
+3. **Find all last names**: `doe`
+   - Combined matches: `jdoe,jdoe,John,doe`
+   - Remainder: `"file  medical  2025   report.txt"`
+
+4. **Clean remainder**: Remove duplicate separators using separator precedence
+   - Final remainder: `"file medical 2025 report.txt"`
+
+### 7. **Test-Driven Development**
 - **Comprehensive Test Matrix:** 23 test cases covering all major scenarios
 - **Automated Test Generation:** Tests generated from CSV fixtures
 - **Both Extraction and Cleaning Tests:** Validates both name extraction and remainder cleaning
@@ -94,12 +125,25 @@ Mixed Formats: 2023-01-15_and_2024-02-20 (multiple dates)
 
 ## Naming and Separator Conventions
 
-See [FILENAME_CONVENTIONS.md](FILENAME_CONVENTIONS.md) for the full, up-to-date documentation on all name extraction, matching, and cleaning logic, including matcher types, YAML-driven separator configuration, and case handling.
+See [FILENAME_CONVENTIONS.md](docs/FILENAME_CONVENTIONS.md) for the full, up-to-date documentation on all name extraction, matching, and cleaning logic, including matcher types, YAML-driven separator configuration, and case handling.
 
 ### Separator Order and Cleaning
 - The order of separators in `config/separators.yaml` determines their cleaning preference.
 - When cleaning, for any run of consecutive separators, the most preferred (earliest in the YAML list) is kept and all others are removed.
 - This ensures consistent, extensible, and predictable filename normalization.
+
+**Example with separators.yaml:**
+```yaml
+standard:
+  - " "  # space (most preferred)
+  - "-"  # hyphen
+  - "_"  # underscore
+  - "."  # period (least preferred)
+```
+
+**Cleaning examples:**
+- `"file ---_. reprot.txt"` → `"file reprot.txt"` (space preferred)
+- `"file_---_._reprot.txt"` → `"file-reprot.txt"` (hyphen preferred, no spaces)
 
 ## Installation
 
@@ -138,30 +182,34 @@ See [FILENAME_CONVENTIONS.md](FILENAME_CONVENTIONS.md) for the full, up-to-date 
 # Extract names from filenames
 source core/utils/name_utils.sh
 
-# Full name extraction (comma-separated parts)
+# --- Individual Matcher Examples ---
+
+# 1. All Matches (default, comma-separated parts)
 extract_name_from_filename "john-doe-report.pdf" "john doe"
 # Output: john,doe|--report.pdf|true
 
-# Initial + last name (compound pattern)
-extract_name_from_filename "j-doe-report.pdf" "john doe"
-# Output: j-doe|-report.pdf|true
+# 2. First Name Only
+extract_name_from_filename "john-doe-report.pdf" "john doe" "extract_first_name_only"
+# Output: john|-doe-report.pdf|true
 
-# First name + initial (compound pattern)
-extract_name_from_filename "john-d-report.pdf" "john doe"
-# Output: john-d|-report.pdf|true
+# 3. Last Name Only
+extract_name_from_filename "john-doe-report.pdf" "john doe" "extract_last_name_only"
+# Output: doe|john--report.pdf|true
 
-# Both initials (compound pattern)
-extract_name_from_filename "j-d-report.pdf" "john doe"
+# 4. Initials (both initials, any separator)
+extract_name_from_filename "j-d-report.pdf" "john doe" "extract_initials_only"
 # Output: j-d|-report.pdf|true
 
-# Individual name extraction
-extract_first_name_only "john-doe-report.pdf" "john"
-# Output: john|-doe-report.pdf|true
+# 5. Shorthand (first initial + last name, or first name + last initial)
+extract_name_from_filename "j-doe-report.pdf" "john doe" "extract_shorthand"
+# Output: j-doe|-report.pdf|true
+extract_name_from_filename "john-d-report.pdf" "john doe" "extract_shorthand"
+# Output: john-d|-report.pdf|true
 
 # Clean the remainder
 clean_filename_remainder "--report.pdf"
 # Output: report.pdf
-   ```
+```
 
 ### Date Extraction Examples
 
@@ -193,153 +241,45 @@ The system uses dynamic separator configuration from `config/separators.yaml`:
 ```yaml
 default_separators:
   standard:
-    - "-"
-    - "_"
-    - " "
-    - "."
-  non_standard: false  # Set to true to include additional separators
-
-custom_separators:
-  - "#"
-  - "@"
+    - " "  # space (most preferred)
+    - "-"  # hyphen
+    - "_"  # underscore
+    - "."  # period (least preferred)
 ```
 
-### Testing
+### Processing Examples
 
-The project includes a test scaffolding process to generate BATS tests from CSV files. This ensures that each line in the CSV becomes an individual test, making debugging easier.
+```bash
+# Example 1: Shorthand first
+extract_name_from_filename "jdoe-john-doe-report.pdf" "john doe"
+# Output: jdoe,john,doe|---report.pdf|true
 
-#### Generating Tests
+# Example 2: Multiple shorthand patterns
+extract_name_from_filename "file jdoe medical jdoe 2025 John doe report.txt" "john doe"
+# Output: jdoe,jdoe,John,doe|file  medical  2025   report.txt|true
 
-1. Update your test cases:
-   - Name extraction: `tests/fixtures/name_extraction_cases.csv`
-   - Date extraction: `tests/fixtures/date_extraction_cases.csv`
-
-2. Generate the BATS tests:
-   ```bash
-   # Generate name tests
-   python scripts/generate_bats_tests.py name
-   
-   # Generate date tests
-   python scripts/generate_bats_tests.py date
-   ```
-
-3. Run the tests:
-   ```bash
-   # Run all tests
-   bats tests/unit/
-   
-   # Run name extraction tests
-   bats tests/unit/name_utils_table_test.bats
-   
-   # Run date extraction tests
-   bats tests/unit/date_utils_table_test.bats
-   
-   # Run with verbose output
-   bats tests/unit/ --show-output-of-passing-tests
-   ```
-
-## Project Structure
-
-```
-visualcare-file-migration-renamer/
-├── bin/
-│   ├── vcmigrate              # Main executable
-│   └── scaffold_tests.sh      # Test scaffolding script
-├── config/
-│   ├── default/               # Default configurations
-│   ├── examples/              # Example configurations
-│   └── separators.yaml        # Separator configuration
-├── core/
-│   ├── mappers/               # Mapping utilities
-│   ├── processors/            # File processing logic
-│   └── utils/
-│       ├── name_utils.sh      # Name extraction utilities
-│       ├── name_matcher.py    # Python name matcher
-│       ├── date_utils.sh      # Date extraction utilities
-│       ├── date_matcher.py    # Python date matcher
-│       ├── config.sh          # Configuration utilities
-│       ├── logging.sh         # Logging utilities
-│       └── validation.sh      # Validation utilities
-├── tests/
-│   ├── fixtures/
-│   │   ├── name_extraction_cases.csv  # Name test cases
-│   │   └── date_extraction_cases.csv  # Date test cases
-│   ├── integration/           # Integration tests
-│   └── unit/
-│       ├── name_utils_table_test.bats # Generated name tests
-│       └── date_utils_table_test.bats # Generated date tests
-├── scripts/
-│   └── generate_bats_tests.py # Test generation script
-└── docs/
-    └── NAMING_CONVENTIONS.md  # Naming convention documentation
+# Example 3: All individual names
+extract_name_from_filename "john-doe-john-doe-report.pdf" "john doe"
+# Output: john,doe,john,doe|----report.pdf|true
 ```
 
-## Architecture Principles
+## Testing
 
-### 1. **Separation of Concerns**
-- **Python for Complex Logic:** Name/date parsing, validation, and pattern matching
-- **Bash for Integration:** Shell scripting, file operations, and system integration
-- **CSV for Configuration:** Test cases and mappings stored in structured format
-- **YAML for Settings:** Dynamic configuration for separators and other settings
+Run the comprehensive test suite:
 
-### 2. **Consistent API Design**
-- **Unified Interface:** Both name and date extraction use the same pipe-delimited format
-- **Modular Functions:** Each utility function has a single, well-defined responsibility
-- **Error Handling:** Consistent error reporting and status codes
-- **Dynamic Loading:** Configuration loaded at runtime for flexibility
+```bash
+# Run all tests
+./tests/run_tests.sh
 
-### 3. **Test-Driven Development**
-- **Comprehensive Coverage:** 46 total tests covering both extraction and cleaning functions
-- **Automated Generation:** Tests generated from human-readable CSV fixtures
-- **Regression Prevention:** Automated test suite prevents breaking changes
-- **Isolated Testing:** Individual matchers can be tested separately
-
-### 4. **Extensibility**
-- **Plugin Architecture:** Easy to add new name patterns or date formats
-- **Configurable Separators:** Support for various filename separator characters
-- **Modular Design:** Components can be used independently or together
-- **Dynamic Configuration:** Settings can be changed without code modification
-
-### 5. **Robust Pattern Matching**
-- **Sequential Extraction:** Names extracted part-by-part, preserving separators
-- **Compound Patterns:** Support for complex name combinations with separators
-- **Order-Agnostic:** Matches names regardless of their position in filename
-- **Case-Insensitive:** Handles variations in name casing
-- **Separator Preservation:** Maintains original separators in remainders
-
-## Recent Improvements
-
-### Name Matching Enhancements
-- **Sequential Part-by-Part Extraction:** Names are now extracted sequentially, preserving original separators
-- **Compound Pattern Support:** Full support for initial+last name, first name+initial, and both initials patterns
-- **Dynamic Separator Loading:** Separators loaded from YAML configuration for easy customization
-- **Comprehensive Test Coverage:** 46 test cases covering all major scenarios
-- **Separator Preservation:** Original separators are preserved in remainders as expected by test matrix
-
-### Test Infrastructure
-- **Automated Test Generation:** Tests generated from CSV fixtures with one test per line
-- **Individual Matcher Testing:** Separate tests for first name, last name, initials, and main matcher
-- **Both Extraction and Cleaning:** Tests validate both extraction logic and remainder cleaning
-- **Verbose Output:** Detailed debug information for easy troubleshooting
+# Run specific test types
+bats --filter "\[matcher_function=shorthand\]" tests/unit/name_utils_table_test.bats
+bats --filter "\[matcher_function=all_matches\]" tests/unit/name_utils_table_test.bats
+```
 
 ## Contributing
 
-1. Fork the repository.
-2. Create a new branch for your feature.
-3. Add test cases to the appropriate CSV fixture file.
-4. Generate and run tests to ensure your changes work correctly.
-5. Update documentation if needed.
-6. Commit your changes.
-7. Push to the branch.
-8. Create a Pull Request.
-
-### Development Workflow
-1. **Add Test Cases:** Update `tests/fixtures/name_extraction_cases.csv` or `tests/fixtures/date_extraction_cases.csv`
-2. **Generate Tests:** Run `python scripts/generate_bats_tests.py name` or `python scripts/generate_bats_tests.py date`
-3. **Implement Changes:** Modify the appropriate Python or Bash files
-4. **Run Tests:** Execute `bats tests/unit/` to verify all tests pass
-5. **Update Documentation:** Modify README.md and other docs as needed
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and contribution instructions.
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
