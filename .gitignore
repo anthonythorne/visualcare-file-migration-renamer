@@ -1,3 +1,8 @@
 # Ignore all project information files.
 project-*.*
 logs/
+
+# Ignore log files and debug output
+*.log
+debug.log
+bats_output.log

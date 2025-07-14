@@ -6,8 +6,8 @@ import argparse
 from pathlib import Path
 
 def generate_bats_tests(test_type):
-    # Get the project root directory (2 levels up from this script)
-    project_root = Path(__file__).parent.parent.absolute()
+    # Get the project root directory (3 levels up from this script)
+    project_root = Path(__file__).parent.parent.parent.absolute()
     
     if test_type == 'name':
         csv_path = project_root / 'tests' / 'fixtures' / 'name_extraction_cases.csv'

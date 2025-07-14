@@ -270,20 +270,23 @@ extract_name_from_filename "john-doe-john-doe-report.pdf" "john doe"
 To regenerate BATS tests from your CSV test matrix (e.g., after fixing spelling errors):
 
 ```bash
-python3 scripts/generate_bats_tests.py
+python3 tests/scripts/generate_bats_tests.py name
+python3 tests/scripts/generate_bats_tests.py date
 ```
 
 ### Running Tests
 
-Run the comprehensive test suite:
+To run all unit and integration tests at once, use the provided test runner script:
 
 ```bash
-# Run all tests
 ./tests/run_tests.sh
+```
 
-# Run specific test types
-bats --filter "\[matcher_function=shorthand\]" tests/unit/name_utils_table_test.bats
-bats --filter "\[matcher_function=all_matches\]" tests/unit/name_utils_table_test.bats
+Or, to run specific test types manually:
+
+```bash
+bats --filter "[matcher_function=shorthand]" tests/unit/name_utils_table_test.bats
+bats --filter "[matcher_function=all_matches]" tests/unit/name_utils_table_test.bats
 ```
 
 ## Contributing
