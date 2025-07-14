@@ -18,7 +18,7 @@ Processing shorthand patterns first prevents them from being incorrectly split i
 - `j-doe` should be matched as shorthand, not as `j` + `doe`
 
 ## Separator Logic (YAML-Driven)
-- All valid separators and their order of preference are defined in `config/separators.yaml`.
+- All valid separators and their order of preference are defined in `config/components.yaml`.
 - The order in the YAML determines which separator is preferred when cleaning runs of consecutive separators.
 - To add or change separators, update the YAML—no code changes needed.
 
@@ -58,19 +58,27 @@ For filename: `"file jdoe medical jdoe 2025 John doe report.txt"` with name "Joh
    - Final remainder: `"file medical 2025 report.txt"`
 
 ### Separator Cleaning Logic
-When cleaning the remainder, the system uses separator precedence from `config/separators.yaml`:
+When cleaning the remainder, the system uses separator precedence from `config/components.yaml`:
 
 - **Order matters**: Separators listed first in the YAML are preferred
 - **Reverse removal**: When multiple separators are grouped together, remove them in reverse order of the YAML list
 - **Keep preferred**: Always keep one instance of the most preferred separator
 
-**Example with separators.yaml:**
+**Example with components.yaml:**
 ```yaml
-standard:
-  - " "  # space (most preferred)
-  - "-"  # hyphen
-  - "_"  # underscore
-  - "."  # period (least preferred)
+Name:
+  allowed_separators_when_searching:
+    - " "  # space (most preferred)
+    - "-"  # hyphen
+    - "_"  # underscore
+    - "."  # period (least preferred)
+  allowed_separators:
+    - " "  # space
+Remainder:
+  allowed_separators:
+    - " "  # space
+    - "-"  # hyphen
+    - "."  # period
 ```
 
 **Cleaning examples:**
@@ -117,4 +125,4 @@ Then for the filename: `File j_- d_report.pdf`
 
 ---
 
-**To change or add valid separators, update `config/separators.yaml`. All logic is YAML-driven for consistency and extensibility.** 
+- To change or add valid separators, update `config/components.yaml`. All logic is YAML-driven for consistency and extensibility.** 

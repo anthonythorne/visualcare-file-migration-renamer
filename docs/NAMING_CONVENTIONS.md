@@ -26,13 +26,13 @@ The system supports several matcher types, each with its own logic:
 - **all_matches**: Extracts all possible matches using the processing order described above.
 
 ### Separator Handling
-- **Source of Truth**: All valid separators are defined in `config/separators.yaml`.
-- **Extensible**: To add or change separators, update the YAML file—no code changes needed.
-- **Supported Separators** (by default):
+- **Source of Truth**: All valid separators are defined in `config/components.yaml`.
+- **Extensible**: To add or change separators, update the YAML file (`config/components.yaml`)—no code changes needed.
+- **Supported Separators** (by default, see `allowed_separators_when_searching` in `config/components.yaml`):
+  - Space (` `)
   - Hyphen (`-`)
   - Underscore (`_`)
   - Period (`.`)
-  - Space (` `)
   - (Others as defined in YAML)
 - **Multiple/Mixed Separators**: Any number or combination of valid separators between name parts or initials is supported (e.g., `j - _ d`, `john---doe`, `j._d`).
 
@@ -64,19 +64,27 @@ For filename: `"file jdoe medical jdoe 2025 John doe report.txt"` with name "Joh
    - Final remainder: `"file medical 2025 report.txt"`
 
 ### Separator Cleaning Logic
-When cleaning the remainder, the system uses separator precedence from `config/separators.yaml`:
+When cleaning the remainder, the system uses separator precedence from `config/components.yaml`:
 
 - **Order matters**: Separators listed first in the YAML are preferred
 - **Reverse removal**: When multiple separators are grouped together, remove them in reverse order of the YAML list
 - **Keep preferred**: Always keep one instance of the most preferred separator
 
-**Example with separators.yaml:**
+**Example with components.yaml:**
 ```yaml
-standard:
-  - " "  # space (most preferred)
-  - "-"  # hyphen
-  - "_"  # underscore
-  - "."  # period (least preferred)
+Name:
+  allowed_separators_when_searching:
+    - " "  # space (most preferred)
+    - "-"  # hyphen
+    - "_"  # underscore
+    - "."  # period (least preferred)
+  allowed_separators:
+    - " "  # space
+Remainder:
+  allowed_separators:
+    - " "  # space
+    - "-"  # hyphen
+    - "."  # period
 ```
 
 **Cleaning examples:**
@@ -144,7 +152,7 @@ standard:
 ---
 
 **Note:**
-- To change or add valid separators, update `config/separators.yaml`.
+- To change or add valid separators, update `config/components.yaml`.
 - All filename parsing and matching logic is driven by this config for consistency and extensibility.
 
 john*doe-report.pdf|john doe|true|john,doe|*-report.pdf|-report.pdf|all_matches|Non-standard separator (asterisk)

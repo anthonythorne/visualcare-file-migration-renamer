@@ -11,28 +11,30 @@ def debug_print(*args, **kwargs):
     """Print debug messages to stderr."""
     print(*args, file=sys.stderr, **kwargs)
 
-def load_separators(include_path_separator=True):
-    """Load separators from the YAML configuration file."""
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'separators.yaml')
+def load_config():
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'components.yaml')
     with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    
-    # Get standard separators
-    separators = config['default_separators']['standard']
-    
-    # Add non-standard separators if enabled
-    if config.get('default_separators', {}).get('non_standard'):
-        separators.extend(config['default_separators']['non_standard'])
-    
-    # Add custom separators if defined
-    if config.get('custom_separators'):
-        separators.extend(config['custom_separators'])
-    
-    # Escape special regex characters in separators
-    escaped_separators = [re.escape(sep) for sep in separators]
-    
-    # Join separators for regex non-capturing group
-    return '(?:' + '|'.join(escaped_separators) + ')'
+        return yaml.safe_load(f)
+
+def load_separators_for_searching():
+    config = load_config()
+    return config['Name']['allowed_separators_when_searching']
+
+def load_allowed_separators_for_name():
+    config = load_config()
+    return config['Name']['allowed_separators']
+
+def load_remainder_allowed_separators():
+    config = load_config()
+    return config['Remainder']['allowed_separators']
+
+def separator_regex_for_searching():
+    seps = load_separators_for_searching()
+    return '(?:' + '|'.join(re.escape(sep) for sep in seps) + ')'
+
+def separator_char_class_for_remainder():
+    seps = load_remainder_allowed_separators()
+    return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
 def _generate_fuzzy_regex(part):
     """Generates a regex for a name part that accounts for common character substitutions."""
@@ -54,7 +56,7 @@ def match_both_initials(filename, first_initial, last_initial):
     Match both initials (grouped or separated by known separators from config) at start or after separator, no words between.
     Returns (matched, new_remainder) or None.
     """
-    sep_regex = load_separators()  # dynamically loaded separator regex
+    sep_regex = separator_regex_for_searching()  # dynamically loaded separator regex
     # Grouped: jd at start or after separator
     grouped_pattern = rf'(^|{sep_regex}){first_initial}{last_initial}($|{sep_regex})'
     match = re.search(grouped_pattern, filename, re.IGNORECASE)
@@ -198,7 +200,7 @@ def extract_first_name_from_filename(filename: str, name_to_match: str, clean_fi
     Extract only the first name from a filename.
     Returns: matched_name|remainder|matched
     """
-    sep = load_separators()
+    sep = separator_regex_for_searching()
     first_name = name_to_match.split()[0]
     fuzzy_pattern = _generate_fuzzy_regex(first_name)
     # Capture the leading separator (or start) and the name
@@ -223,7 +225,7 @@ def extract_last_name_from_filename(filename: str, name_to_match: str, clean_fil
     Extract only the last name from a filename.
     Returns: matched_name|remainder|matched
     """
-    sep = load_separators()
+    sep = separator_regex_for_searching()
     name_parts = name_to_match.split()
     if not name_parts:
         return f"|{filename}|false"
@@ -247,7 +249,7 @@ def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clea
     """
     Extracts shorthand name patterns like 'j-doe' or 'john-d'.
     """
-    sep = load_separators()
+    sep = separator_regex_for_searching()
     name_parts = name_to_match.split()
     if len(name_parts) < 2:
         return f"|{filename}|false"
@@ -286,7 +288,7 @@ def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clea
 
 def separator_char_class():
     """Return a regex character class for all separators from YAML config."""
-    seps = load_separator_list()
+    seps = load_allowed_separators_for_name()
     return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
 def extract_initials_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
@@ -298,7 +300,7 @@ def extract_initials_from_filename(filename: str, name_to_match: str, clean_file
         return f"|{filename}|false"
     first_initial = parts[0][0].lower()
     last_initial = parts[1][0].lower()
-    sep = load_separators(include_path_separator=False)
+    sep = separator_regex_for_searching()
     sep_class = separator_char_class()
     # Capture the leading separator (or start) and the initials
     pattern_sep = re.compile(rf"(^|{sep})({re.escape(first_initial)}{sep_class}+{re.escape(last_initial)})(?=$|{sep})", re.IGNORECASE)
@@ -338,7 +340,7 @@ def load_separator_list():
 
 def clean_filename_remainder_py(remainder):
     """
-    Clean a filename remainder by collapsing runs of consecutive separators to the most preferred one (from YAML order).
+    Clean a filename remainder by collapsing runs of consecutive allowed separators to the most preferred one (from YAML order).
     
     The algorithm:
     1. Find areas where there are one or more separators grouped together
@@ -357,7 +359,7 @@ def clean_filename_remainder_py(remainder):
         base, ext = remainder, ''
     
     # Load separators in order (most preferred first)
-    seps = load_separator_list()
+    seps = load_remainder_allowed_separators()
     
     # Build regex to match any run of 2+ separators
     sep_class = ''.join(re.escape(s) for s in seps)

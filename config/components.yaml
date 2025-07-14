@@ -1,0 +1,29 @@
+# Configuration for filename normalization components
+# Each section defines rules for a specific component of the filename
+
+Name:
+  # Allowed separators to have in the name portion when searching for name parts.
+  allowed_separators_when_searching:
+    - " "  # space
+    - "-"  # hyphen
+    - "_"  # underscore
+    - "."  # period
+  # Allowed separators to keep in the plucked full name (from directory, e.g., 'John Doe')
+  allowed_separators:
+    - " "  # space
+  allow_multiple: true  # Allow multiple consecutive separators when searching
+  normalize_output: true  # Normalize separators in output
+  default_output_separator: "_"  # Default separator for normalized output
+
+Date:
+  # Date format used for the final filename (strftime compatible)
+  format: "%Y-%m-%d"  # Example: 2023-05-15
+
+Remainder:
+  # Allowed separators to keep in the remainder (duplicates will be collapsed)
+  allowed_separators:
+    - " "  # space
+    - "-"  # hyphen
+    - "."  # period
+    # Add more as needed
+  preserve_remainder_separators: true  # Whether to preserve original separators in the remainder (duplicates collapsed) 

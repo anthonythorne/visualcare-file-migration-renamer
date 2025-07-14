@@ -12,7 +12,7 @@ The tool reads a CSV file containing mappings of old filenames to new filenames.
 - **Advanced Name Extraction:** Extract names from filenames using various patterns (first name, last name, initials, compound patterns).
 - **Type-Based Processing:** Extract names by type (shorthand first, then first names, then last names) to prevent incorrect splitting.
 - **Date Extraction:** Extract dates from filenames using comprehensive date format support.
-- **Dynamic Separator Configuration:** Load separators from YAML configuration files with precedence-based cleaning.
+- **Dynamic Separator Configuration:** Load separators from component-based YAML configuration (`config/components.yaml`) with precedence-based cleaning.
 - **File Renaming:** Rename files based on the extracted names/dates and the new filename format.
 - **Test Scaffolding:** Automatically generate BATS tests from CSV files, ensuring one test per line for easy debugging.
 - **Comprehensive Test Coverage:** 46 test cases covering all major name extraction scenarios.
@@ -39,7 +39,7 @@ Processing shorthand patterns first prevents them from being incorrectly split i
 - **Compound Pattern Support:** Handles initial+last name, first name+initial, and both initials patterns
 - **Order Preservation:** Finds names in the order they appear in the filename
 - **Case-Insensitive Matching:** Matches names regardless of case
-- **Dynamic Separator Loading:** Loads separators from `config/separators.yaml`
+- **Dynamic Separator Loading:** Loads separators from `config/components.yaml`
 - **Separator Preservation:** Maintains original separators in the remainder
 
 ### 3. **Bash Integration** (`core/utils/name_utils.sh`)
@@ -49,7 +49,7 @@ Processing shorthand patterns first prevents them from being incorrectly split i
 - **Pipe-Delimited Output:** Returns results in format: `extracted_names|raw_remainder|match_status`
 
 ### 4. **Smart Cleaning Function**
-- **Separator Precedence:** Uses separator order from YAML config to determine cleaning preference
+- **Separator Precedence:** Uses separator order from `config/components.yaml` to determine cleaning preference
 - **Reverse Removal:** Removes duplicate separators in reverse order of YAML list
 - **Leading/Trailing Cleanup:** Removes unnecessary separators from start/end
 - **File Extension Awareness:** Preserves dots before file extensions
@@ -159,17 +159,25 @@ clean_filename_remainder "___Report.pdf"
 See [FILENAME_CONVENTIONS.md](docs/FILENAME_CONVENTIONS.md) for the full, up-to-date documentation on all name extraction, matching, and cleaning logic, including matcher types, YAML-driven separator configuration, and case handling.
 
 ### Separator Order and Cleaning
-- The order of separators in `config/separators.yaml` determines their cleaning preference.
+- The order of separators in `config/components.yaml` determines their cleaning preference.
 - When cleaning, for any run of consecutive separators, the most preferred (earliest in the YAML list) is kept and all others are removed.
 - This ensures consistent, extensible, and predictable filename normalization.
 
-**Example with separators.yaml:**
+**Example with components.yaml:**
 ```yaml
-standard:
-  - " "  # space (most preferred)
-  - "-"  # hyphen
-  - "_"  # underscore
-  - "."  # period (least preferred)
+Name:
+  allowed_separators_when_searching:
+    - " "  # space (most preferred)
+    - "-"  # hyphen
+    - "_"  # underscore
+    - "."  # period (least preferred)
+  allowed_separators:
+    - " "  # space
+Remainder:
+  allowed_separators:
+    - " "  # space
+    - "-"  # hyphen
+    - "."  # period
 ```
 
 **Cleaning examples:**
@@ -267,16 +275,25 @@ clean_date_filename_remainder "report-.pdf"
 
 ### Configuration
 
-The system uses dynamic separator configuration from `config/separators.yaml`:
+The system uses dynamic separator configuration from `config/components.yaml`:
 
 ```yaml
-default_separators:
-  standard:
+Name:
+  allowed_separators_when_searching:
     - " "  # space (most preferred)
     - "-"  # hyphen
     - "_"  # underscore
     - "."  # period (least preferred)
+  allowed_separators:
+    - " "  # space
+Remainder:
+  allowed_separators:
+    - " "  # space
+    - "-"  # hyphen
+    - "."  # period
 ```
+
+**To change or add valid separators, update `config/components.yaml`.**
 
 ### Processing Examples
 

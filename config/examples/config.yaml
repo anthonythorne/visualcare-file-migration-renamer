@@ -8,7 +8,7 @@ output_dir: "./output"
 mapping_file: "./config/mappings/users.csv"
 
 # Separator configuration
-separator_config: "./config/separators.yaml"
+separator_config: "./config/components.yaml"
 
 # Date formats to recognize in filenames
 date_formats:
