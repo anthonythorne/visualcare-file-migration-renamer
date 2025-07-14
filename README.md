@@ -265,29 +265,15 @@ extract_name_from_filename "john-doe-john-doe-report.pdf" "john doe"
 
 ## Testing
 
-### Regenerating Tests
+For all details on generating, running, and understanding the test suite (including name, date, and combined extraction tests), see:
 
-To regenerate BATS tests from your CSV test matrix (e.g., after fixing spelling errors):
+[docs/TESTING.md](docs/TESTING.md)
 
-```bash
-python3 tests/scripts/generate_bats_tests.py name
-python3 tests/scripts/generate_bats_tests.py date
-```
-
-### Running Tests
-
-To run all unit and integration tests at once, use the provided test runner script:
-
-```bash
-./tests/run_tests.sh
-```
-
-Or, to run specific test types manually:
-
-```bash
-bats --filter "[matcher_function=shorthand]" tests/unit/name_utils_table_test.bats
-bats --filter "[matcher_function=all_matches]" tests/unit/name_utils_table_test.bats
-```
+This file covers:
+- How to regenerate BATS tests from CSV matrices
+- How to run all or specific tests
+- The combined extraction matrix and its purpose
+- Troubleshooting tips
 
 ## Contributing
 
