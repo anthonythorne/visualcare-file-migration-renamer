@@ -1,0 +1,6 @@
+filename|name_to_match|extracted_name|extracted_date|raw_remainder|cleaned_remainder|expected_match|use_case|matcher_function
+John_Doe_2023-05-15_Report.pdf|john doe|John,Doe|2023-05-15|___Report.pdf|Report.pdf|true|Name and date with report|extract_name_from_filename
+jane-smith-20240101-invoice.docx|jane smith|jane,smith|2024-01-01|---invoice.docx|invoice.docx|true|Name and compact date with invoice|extract_name_from_filename
+2022-12-31_Michael_Brown_summary.txt|michael brown|Michael,Brown|2022-12-31|___summary.txt|summary.txt|true|Date, name, and summary|extract_name_from_filename
+report-2023-01-15-jdoe.pdf|john doe|jdoe|2023-01-15|report--.pdf|report.pdf|true|Shorthand name and ISO date|extract_shorthand_name_from_filename
+Sarah_Smith_15th-Mar-2023_notes.docx|sarah smith|Sarah,Smith|2023-03-15|___notes.docx|notes.docx|true|Written month date and name|extract_name_from_filename 

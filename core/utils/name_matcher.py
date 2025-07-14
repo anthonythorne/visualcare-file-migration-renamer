@@ -82,7 +82,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     
     Returns: extracted_names|raw_remainder|match_status
     """
-    debug_print(f"START: Processing filename: '{filename}' with name: '{name_to_match}'")
+    # debug_print(f"START: Processing filename: '{filename}' with name: '{name_to_match}'")
     name_parts = [p for p in name_to_match.split() if p]
     if not name_parts:
         return f"|{filename}|false"
@@ -91,7 +91,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     work_filename = filename
     
     # Step 1: Find all shorthand patterns first
-    debug_print("Step 1: Finding all shorthand patterns")
+    # debug_print("Step 1: Finding all shorthand patterns")
     shorthand_matches = []
     while True:
         result = extract_shorthand_name_from_filename(work_filename, name_to_match, clean_filename=False)
@@ -102,11 +102,11 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
         if work_filename == remainder:
             break  # Prevent infinite loop
         work_filename = remainder
-        debug_print(f"Found shorthand: '{extracted}', remainder: '{work_filename}'")
+        # debug_print(f"Found shorthand: '{extracted}', remainder: '{work_filename}'")
     extracted_pieces.extend(shorthand_matches)
     
     # Step 2: Find all remaining initials patterns
-    debug_print("Step 2: Finding all initials patterns")
+    # debug_print("Step 2: Finding all initials patterns")
     initials_matches = []
     while True:
         result = extract_initials_from_filename(work_filename, name_to_match, clean_filename=False)
@@ -117,11 +117,11 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
         if work_filename == remainder:
             break  # Prevent infinite loop
         work_filename = remainder
-        debug_print(f"Found initials: '{extracted}', remainder: '{work_filename}'")
+        # debug_print(f"Found initials: '{extracted}', remainder: '{work_filename}'")
     extracted_pieces.extend(initials_matches)
     
     # Step 3: Find all remaining first name matches
-    debug_print("Step 3: Finding all first name matches")
+    # debug_print("Step 3: Finding all first name matches")
     first_name_matches = []
     while True:
         result = extract_first_name_from_filename(work_filename, name_to_match, clean_filename=False)
@@ -132,11 +132,11 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
         if work_filename == remainder:
             break  # Prevent infinite loop
         work_filename = remainder
-        debug_print(f"Found first name: '{extracted}', remainder: '{work_filename}'")
+        # debug_print(f"Found first name: '{extracted}', remainder: '{work_filename}'")
     extracted_pieces.extend(first_name_matches)
     
     # Step 4: Find all remaining last name matches
-    debug_print("Step 4: Finding all last name matches")
+    # debug_print("Step 4: Finding all last name matches")
     last_name_matches = []
     while True:
         result = extract_last_name_from_filename(work_filename, name_to_match, clean_filename=False)
@@ -147,7 +147,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
         if work_filename == remainder:
             break  # Prevent infinite loop
         work_filename = remainder
-        debug_print(f"Found last name: '{extracted}', remainder: '{work_filename}'")
+        # debug_print(f"Found last name: '{extracted}', remainder: '{work_filename}'")
     extracted_pieces.extend(last_name_matches)
     
     if not extracted_pieces:
@@ -155,7 +155,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     
     # Return the raw remainder (before cleaning) as expected by tests
     final_extracted = ','.join(extracted_pieces)
-    debug_print(f"FINAL: Extracted: '{final_extracted}', Raw remainder: '{work_filename}'")
+    # debug_print(f"FINAL: Extracted: '{final_extracted}', Raw remainder: '{work_filename}'")
     return f"{final_extracted}|{work_filename}|true"
 
 def match_both_initials(filename, name_parts):
@@ -387,6 +387,29 @@ def clean_filename_remainder_py(remainder):
     
     result = cleaned + ext
     return result
+
+def extract_name_and_date_from_filename(filename: str, name_to_match: str) -> str:
+    """
+    Extract both name and date from a filename using existing extraction logic.
+    Returns: extracted_name|extracted_date|raw_remainder|name_matched|date_matched
+    If no date is found, extracted_date is empty and date_matched is false.
+    If no name is found, extracted_name is empty and name_matched is false.
+    raw_remainder is the filename with both name and date removed (uncleaned).
+    TODO: Add file metadata fallback for date if not found in filename.
+    """
+    # Extract name
+    name_result = extract_name_from_filename(filename, name_to_match)
+    extracted_name, name_remainder, name_matched = name_result.split('|')
+    # Import and call date extraction
+    import importlib.util, os
+    date_matcher_path = os.path.join(os.path.dirname(__file__), 'date_matcher.py')
+    spec = importlib.util.spec_from_file_location('date_matcher', date_matcher_path)
+    date_matcher = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(date_matcher)
+    date_result = date_matcher.extract_date_matches(name_remainder)
+    extracted_date, date_remainder, date_matched = date_result.split('|')
+    # Return the raw remainder (uncleaned) as the third field
+    return f"{extracted_name}|{extracted_date}|{date_remainder}|{name_matched}|{date_matched}"
 
 def main():
     """Main function to process command line arguments."""

@@ -123,6 +123,37 @@ Mixed Formats: 2023-01-15_and_2024-02-20 (multiple dates)
 - **Both Extraction and Cleaning Tests:** Validates both date extraction and remainder cleaning
 - **Edge Case Coverage:** Handles no-date files, multiple dates, and various separators
 
+## Combo Name and Date Extraction
+
+The system supports extracting both names and dates from filenames in a single call, using the combo extraction function:
+
+### 1. **Python-Based Combo Extractor** (`core/utils/name_matcher.py`)
+- **Function:** `extract_name_and_date_from_filename(filename, name_to_match)`
+- **Returns:** `extracted_name|extracted_date|raw_remainder|name_matched|date_matched`
+- **Raw remainder:** The filename with both name and date removed (all leftover separators preserved).
+- **Cleaned remainder:** Use the cleaning function to normalize the raw remainder for final renaming.
+
+### 2. **Bash Integration** (`core/utils/name_utils.sh`)
+- **Shell Wrapper:** `extract_name_and_date_from_filename <filename> <name_to_match>`
+- **Output:** `extracted_name|extracted_date|raw_remainder|name_matched|date_matched`
+
+#### Example Usage
+```bash
+# Extract both name and date from a filename
+source core/utils/name_utils.sh
+extract_name_and_date_from_filename "John_Doe_2023-05-15_Report.pdf" "john doe"
+# Output: John,Doe|2023-05-15|___Report.pdf|true|true
+
+# Clean the remainder for final renaming
+clean_filename_remainder "___Report.pdf"
+# Output: Report.pdf
+```
+
+### 3. **Combined Extraction Tests**
+- The combined extraction logic is tested using a dedicated CSV matrix: `tests/fixtures/combined_extraction_cases.csv`.
+- Tests are generated and run using the same BATS-based workflow as for name and date extraction.
+- See [docs/TESTING.md](docs/TESTING.md) for details on running and understanding combined tests.
+
 ## Naming and Separator Conventions
 
 See [FILENAME_CONVENTIONS.md](docs/FILENAME_CONVENTIONS.md) for the full, up-to-date documentation on all name extraction, matching, and cleaning logic, including matcher types, YAML-driven separator configuration, and case handling.

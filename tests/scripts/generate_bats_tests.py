@@ -59,10 +59,8 @@ source "${{BATS_TEST_DIRNAME}}/../../core/utils/date_utils.sh"
             test_name = case['use_case']
             final_test_name = f"combined-extraction-{i}: {test_name}"
             bats_content += f"""@test "{final_test_name}" {{
-    run extract_name_from_filename "{case['filename']}" "{case['name_to_match']}" "extract_name_from_filename"
-    IFS='|' read -r actual_extracted_name actual_raw_remainder actual_matched_name <<< "$output"
-    run extract_date_from_filename "{case['filename']}"
-    IFS='|' read -r actual_extracted_date actual_raw_remainder_date actual_matched_date <<< "$output"
+    run extract_name_and_date_from_filename "{case['filename']}" "{case['name_to_match']}"
+    IFS='|' read -r actual_extracted_name actual_extracted_date actual_raw_remainder actual_name_matched actual_date_matched <<< "$output"
 
     # Debug output
     echo "[DEBUG] Testing: {case['filename']}" >&2
@@ -74,18 +72,33 @@ source "${{BATS_TEST_DIRNAME}}/../../core/utils/date_utils.sh"
     echo "[DEBUG] Actual date: $actual_extracted_date" >&2
     echo "[DEBUG] Actual raw remainder: $actual_raw_remainder" >&2
     echo "[DEBUG] Actual cleaned: $(clean_filename_remainder "$actual_raw_remainder")" >&2
+    echo "[DEBUG] Name matched: $actual_name_matched" >&2
+    echo "[DEBUG] Date matched: $actual_date_matched" >&2
 
     assert_equal "$actual_extracted_name" "{case['extracted_name']}"
     assert_equal "$actual_extracted_date" "{case['extracted_date']}"
     assert_equal "$actual_raw_remainder" "{case['raw_remainder']}"
     assert_equal "$(clean_filename_remainder "$actual_raw_remainder")" "{case['cleaned_remainder']}"
+    if [ "{case['expected_match']}" = "true" ]; then
+        assert_equal "$actual_name_matched" "true"
+        assert_equal "$actual_date_matched" "true"
+    else
+        assert_equal "$actual_name_matched" "false"
+        assert_equal "$actual_date_matched" "false"
+    fi
 }}
 
 """
         # No separate cleaning tests for combined for now
-    else:
-        # Existing logic for name/date
-        bats_content = f"""#!/usr/bin/env bats
+        # Write the generated content to the BATS test file
+        with open(output_path, 'w') as f:
+            f.write(bats_content)
+        os.chmod(output_path, 0o755)
+        print(f"Generated {len(test_cases)} combined tests in {output_path}")
+        return
+    
+    # Load test helper functions
+    bats_content = f"""#!/usr/bin/env bats
 
 # Load test helper functions
 load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-support/load.bash"
@@ -189,7 +202,17 @@ extract_name_from_filename() {{
     print(f"Generated {len(test_cases) * 2} {test_type} tests in {output_path}")
 
 if __name__ == '__main__':
+    import sys
     parser = argparse.ArgumentParser(description="Generate BATS tests for name, date, or combined extraction.")
-    parser.add_argument('test_type', choices=['name', 'date', 'combined'], help="The type of tests to generate ('name', 'date', or 'combined').")
+    parser.add_argument('test_type', nargs='?', choices=['name', 'date', 'combined'], help="The type of tests to generate ('name', 'date', or 'combined'). If omitted, all will be generated.")
     args = parser.parse_args()
-    generate_bats_tests(args.test_type) 
+    if args.test_type:
+        generate_bats_tests(args.test_type)
+    else:
+        print("No test_type specified. Generating all test types: name, date, combined.\n")
+        for t in ['name', 'date', 'combined']:
+            try:
+                generate_bats_tests(t)
+            except Exception as e:
+                print(f"Error generating {t} tests: {e}")
+        print("\nAll test types generated.") 

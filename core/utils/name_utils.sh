@@ -105,6 +105,17 @@ extract_name_from_filename() {
     echo "${matched_name}|${remainder}|${matched}"
 }
 
+# Extract both name and date from filename using Python combo extractor
+# Usage: extract_name_and_date_from_filename <filename> <name_to_match>
+# Output: extracted_name|extracted_date|raw_remainder|name_matched|date_matched
+extract_name_and_date_from_filename() {
+    local filename="$1"
+    local name_to_match="$2"
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    python3 "$utils_dir/name_matcher.py" "$filename" "$name_to_match" "extract_name_and_date_from_filename"
+}
+
 # Main script
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # If script is run directly, process command line arguments
