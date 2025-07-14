@@ -1,4 +1,4 @@
-# Filename Conventions
+ # Filename Conventions
 
 This document describes the conventions and logic for extracting and cleaning names from filenames in the VisualCare file migration system.
 

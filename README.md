@@ -173,7 +173,7 @@ standard:
 
 2. Run the tool:
    ```bash
-   python main.py --csv mapping.csv
+   python3 main.py --csv mapping.csv
    ```
 
 ### Name Extraction Examples
@@ -209,7 +209,7 @@ extract_name_from_filename "john-d-report.pdf" "john doe" "extract_shorthand"
 # Clean the remainder
 clean_filename_remainder "--report.pdf"
 # Output: report.pdf
-```
+   ```
 
 ### Date Extraction Examples
 
@@ -249,7 +249,7 @@ default_separators:
 
 ### Processing Examples
 
-```bash
+   ```bash
 # Example 1: Shorthand first
 extract_name_from_filename "jdoe-john-doe-report.pdf" "john doe"
 # Output: jdoe,john,doe|---report.pdf|true
@@ -264,6 +264,16 @@ extract_name_from_filename "john-doe-john-doe-report.pdf" "john doe"
 ```
 
 ## Testing
+
+### Regenerating Tests
+
+To regenerate BATS tests from your CSV test matrix (e.g., after fixing spelling errors):
+
+```bash
+python3 scripts/generate_bats_tests.py
+```
+
+### Running Tests
 
 Run the comprehensive test suite:
 

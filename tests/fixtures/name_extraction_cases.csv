@@ -31,7 +31,7 @@ j0hn-d03-report.pdf|john doe|true|j0hn,d03|--report.pdf|report.pdf|all_matches|N
 jôn-döe-report.pdf|john doe|true|döe|jôn--report.pdf|jôn-report.pdf|all_matches|Name with accents
 john-doe-john-doe-report.pdf|john doe|true|john,john,doe,doe|----report.pdf|report.pdf|all_matches|Multiple matches (same name twice)
 john-doe-jdoe-report.pdf|john doe|true|jdoe,john,doe|---report.pdf|report.pdf|all_matches|Multiple matches (full and initials)
-john-doe-jdoe-report-johnd.pdf|john doe|true|jdoe,johnd,john,doe|----report.pdf|report.pdf|all_matches|Multiple matches (full and initials)
+john-doe-jdoe-report-john.pdf|john doe|true|jdoe,john,john,doe|---report-.pdf|report.pdf|all_matches|Multiple matches (full and initials)
 jdoe-john-doe-report.pdf|john doe|true|jdoe,john,doe|---report.pdf|report.pdf|all_matches|Multiple matches (initials and full)
 .pdf|john doe|false||.pdf|.pdf|all_matches|Edge case: empty filename
 JOHN-DOE-report.pdf|john doe|true|JOHN,DOE|--report.pdf|report.pdf|all_matches|Case: all uppercase

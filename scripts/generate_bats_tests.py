@@ -8,7 +8,7 @@ from pathlib import Path
 def generate_bats_tests(test_type):
     # Get the project root directory (2 levels up from this script)
     project_root = Path(__file__).parent.parent.absolute()
-
+    
     if test_type == 'name':
         csv_path = project_root / 'tests' / 'fixtures' / 'name_extraction_cases.csv'
         output_path = project_root / 'tests' / 'unit' / 'name_utils_table_test.bats'
@@ -27,15 +27,15 @@ def generate_bats_tests(test_type):
         clean_function = 'clean_date_filename_remainder'
     else:
         raise ValueError("Invalid test type specified. Must be 'name' or 'date'.")
-
+    
     # Ensure the output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
-
+    
     # Read the CSV file - both name and date now use pipe delimiter
     with open(csv_path, 'r') as f:
         reader = csv.DictReader(f, delimiter='|')
         test_cases = list(reader)
-
+    
     # Generate the BATS test file content
     bats_content = f"""#!/usr/bin/env bats
 
@@ -59,7 +59,7 @@ extract_name_from_filename() {{
 }}
 
 """
-
+    
     # Generate extraction tests
     for i, case in enumerate(test_cases, 1):
         test_name = case['use_case']
@@ -89,10 +89,10 @@ extract_name_from_filename() {{
 
         bats_content += f"""@test "{final_test_name}" {{
     run {function_call}
-
+    
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo \"$output\" | tail -n1)"
-
+    
     # Debug output
     echo "[DEBUG] Testing: {case['filename']}" >&2
     echo "[DEBUG] Expected match: {case['expected_match']}" >&2
@@ -100,7 +100,7 @@ extract_name_from_filename() {{
     echo "[DEBUG] Expected raw remainder: {case['raw_remainder']}" >&2
     echo "[DEBUG] Use case: {case['use_case']}" >&2
     echo "[DEBUG] Actual output: $output" >&2
-
+    
     # Assertions
     if [ "{case['expected_match']}" = "true" ]; then
         assert_equal "$actual_matched" "true"
@@ -114,7 +114,7 @@ extract_name_from_filename() {{
 }}
 
 """
-
+    
     # Generate filename cleaning tests
     bats_content += f"# --- Filename Cleaning Tests --- #\n\n"
     for i, case in enumerate(test_cases, 1):
@@ -127,26 +127,26 @@ extract_name_from_filename() {{
 
         bats_content += f"""@test "{final_test_name}" {{
     run {clean_function} "{case['raw_remainder']}"
-
+    
     # Debug output
     echo "[DEBUG] Testing remainder: {case['raw_remainder']}" >&2
     echo "[DEBUG] Expected cleaned: {case['cleaned_remainder']}" >&2
     echo "[DEBUG] Use case: {case['use_case']}" >&2
     echo "[DEBUG] Actual output: $output" >&2
-
+    
     # Assertions
     assert_equal "$output" "{case['cleaned_remainder']}"
 }}
 
 """
-
+    
     # Write the generated content to the BATS test file
     with open(output_path, 'w') as f:
         f.write(bats_content)
-
+    
     # Make the file executable
     os.chmod(output_path, 0o755)
-
+    
     print(f"Generated {len(test_cases) * 2} {test_type} tests in {output_path}")
 
 if __name__ == '__main__':

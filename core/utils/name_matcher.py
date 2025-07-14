@@ -109,7 +109,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     name_parts = [p for p in name_to_match.split() if p]
     if not name_parts:
         return f"|{filename}|false"
-
+    
     extracted_pieces = []
     work_filename = filename
     
@@ -464,8 +464,12 @@ def main():
             "error": f"Invalid function name provided: {function_name}"
         }), file=sys.stderr)
         sys.exit(1)
-        
-    result = matcher_function(filename, target_name)
+    
+    # For individual matcher functions, pass clean_filename=False to preserve raw remainder
+    if function_name in ["extract_first_name_only", "extract_last_name_only", "extract_initials_only", "extract_shorthand"]:
+        result = matcher_function(filename, target_name, clean_filename=False)
+    else:
+        result = matcher_function(filename, target_name)
     print(result)  # Only print the result to stdout
 
 if __name__ == "__main__":
