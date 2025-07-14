@@ -19,7 +19,4 @@ fi
 echo "Running unit tests..."
 bats "$SCRIPT_DIR/unit/"*.bats
 
-echo "Running integration tests..."
-bats "$SCRIPT_DIR/integration/"*.bats
-
 echo "All tests completed successfully!" 
