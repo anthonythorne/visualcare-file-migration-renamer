@@ -7,29 +7,6 @@ import yaml
 import os
 from typing import Tuple, List, Optional
 
-def normalize_name(name):
-    """Normalize a name by converting to lowercase and removing special characters."""
-    return re.sub(r'[^a-z0-9]', '', name.lower())
-
-def canonical_name(name):
-    """Return the canonical form of a name (e.g., 'john doe')."""
-    return ' '.join(re.findall(r'[a-zA-ZÀ-ÿ0-9]+', name.lower()))
-
-def find_first_name(filename, first_name):
-    """Find first name anywhere in filename, case insensitive"""
-    pattern = re.compile(rf"{first_name}", re.IGNORECASE)
-    return list(pattern.finditer(filename))
-
-def find_last_name(filename, last_name):
-    """Find last name anywhere in filename, case insensitive"""
-    pattern = re.compile(rf"{last_name}", re.IGNORECASE)
-    return list(pattern.finditer(filename))
-
-def find_initial(filename, initial):
-    """Find initial anywhere in filename, case insensitive"""
-    pattern = re.compile(rf"{initial}", re.IGNORECASE)
-    return list(pattern.finditer(filename))
-
 def debug_print(*args, **kwargs):
     """Print debug messages to stderr."""
     print(*args, file=sys.stderr, **kwargs)
@@ -180,33 +157,6 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     final_extracted = ','.join(extracted_pieces)
     debug_print(f"FINAL: Extracted: '{final_extracted}', Raw remainder: '{work_filename}'")
     return f"{final_extracted}|{work_filename}|true"
-
-def match_initials_surname(filename, name_parts):
-    """Match first initial + surname using base functions"""
-    if len(name_parts) < 2:
-        return None
-    
-    first, last = name_parts[0], name_parts[-1]
-    initial = first[0]
-    
-    initial_matches = find_initial(filename, initial)
-    last_matches = find_last_name(filename, last)
-    
-    matches = []
-    for i_match in initial_matches:
-        for l_match in last_matches:
-            if l_match.start() > i_match.end():
-                # Valid match - last name comes after initial
-                full_match = filename[i_match.start():l_match.end()]
-                remainder = filename[l_match.end():]
-                matches.append((full_match, remainder, i_match.start(), l_match.end()))
-    
-    if matches:
-        matches.sort(key=lambda x: x[2])
-        all_matches = [m[0] for m in matches]
-        return ",".join(all_matches), matches[-1][1], matches[0][2], matches[-1][3]
-    
-    return None
 
 def match_both_initials(filename, name_parts):
     """Match both initials using base functions"""

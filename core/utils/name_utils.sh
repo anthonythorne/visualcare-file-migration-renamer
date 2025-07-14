@@ -60,15 +60,6 @@ filename_contains_name() {
     return 1
 }
 
-# Test function to visualize name permutations
-test_name_permutations() {
-    local test_name="$1"
-    echo "Testing permutations for: $test_name"
-    echo "----------------------------------------"
-    generate_name_permutations "$test_name"
-    echo "----------------------------------------"
-}
-
 # Function to clean a filename remainder
 # Now delegates to Python for YAML-driven separator order
 clean_filename_remainder() {
