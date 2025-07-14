@@ -288,7 +288,7 @@ def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clea
 
 def separator_char_class():
     """Return a regex character class for all separators from YAML config."""
-    seps = load_allowed_separators_for_name()
+    seps = load_separators_for_searching()
     return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
 def extract_initials_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
@@ -330,13 +330,6 @@ def extract_initials_from_filename(filename: str, name_to_match: str, clean_file
             remainder = filename[:sep_end] + filename[name_end:]
         return f"{matched_text}|{remainder}|true"
     return f"|{filename}|false"
-
-def load_separator_list():
-    """Load the ordered list of separators from the YAML config."""
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'separators.yaml')
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    return config['default_separators']['standard']
 
 def clean_filename_remainder_py(remainder):
     """

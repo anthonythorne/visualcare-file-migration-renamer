@@ -8,6 +8,16 @@ Name:
     - "-"  # hyphen
     - "_"  # underscore
     - "."  # period
+    - "*"  # asterisk
+    - "@"  # at sign
+    - "#"  # hash
+    - "$"  # dollar
+    - "%"  # percent
+    - "&"  # ampersand
+    - "+"  # plus
+    - "="  # equals
+    - "~"  # tilde
+    - "|"  # pipe
   # Allowed separators to keep in the plucked full name (from directory, e.g., 'John Doe')
   allowed_separators:
     - " "  # space
@@ -24,6 +34,7 @@ Remainder:
   allowed_separators:
     - " "  # space
     - "-"  # hyphen
+    - "_"  # underscore
     - "."  # period
     # Add more as needed
   preserve_remainder_separators: true  # Whether to preserve original separators in the remainder (duplicates collapsed) 
