@@ -94,7 +94,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     debug_print("Step 1: Finding all shorthand patterns")
     shorthand_matches = []
     while True:
-        result = extract_shorthand(work_filename, name_to_match, clean_filename=False)
+        result = extract_shorthand_name_from_filename(work_filename, name_to_match, clean_filename=False)
         if result.startswith('|') or result.split('|')[2] != 'true':
             break
         extracted, remainder, _ = result.split('|')
@@ -109,7 +109,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     debug_print("Step 2: Finding all initials patterns")
     initials_matches = []
     while True:
-        result = extract_initials_only(work_filename, name_to_match, clean_filename=False)
+        result = extract_initials_from_filename(work_filename, name_to_match, clean_filename=False)
         if result.startswith('|') or result.split('|')[2] != 'true':
             break
         extracted, remainder, _ = result.split('|')
@@ -124,7 +124,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     debug_print("Step 3: Finding all first name matches")
     first_name_matches = []
     while True:
-        result = extract_first_name_only(work_filename, name_to_match, clean_filename=False)
+        result = extract_first_name_from_filename(work_filename, name_to_match, clean_filename=False)
         if result.startswith('|') or result.split('|')[2] != 'true':
             break
         extracted, remainder, _ = result.split('|')
@@ -139,7 +139,7 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     debug_print("Step 4: Finding all last name matches")
     last_name_matches = []
     while True:
-        result = extract_last_name_only(work_filename, name_to_match, clean_filename=False)
+        result = extract_last_name_from_filename(work_filename, name_to_match, clean_filename=False)
         if result.startswith('|') or result.split('|')[2] != 'true':
             break
         extracted, remainder, _ = result.split('|')
@@ -193,7 +193,7 @@ def extract_name_from_filename(filename: str, name_to_match: str) -> str:
     """
     return extract_all_name_matches(filename, name_to_match)
 
-def extract_first_name_only(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
+def extract_first_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
     """
     Extract only the first name from a filename.
     Returns: matched_name|remainder|matched
@@ -218,7 +218,7 @@ def extract_first_name_only(filename: str, name_to_match: str, clean_filename: b
         remainder = filename[:sep_end] + filename[name_end:]
     return f"{matched_name}|{remainder}|true"
 
-def extract_last_name_only(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
+def extract_last_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
     """
     Extract only the last name from a filename.
     Returns: matched_name|remainder|matched
@@ -243,7 +243,7 @@ def extract_last_name_only(filename: str, name_to_match: str, clean_filename: bo
         remainder = filename[:start] + filename[end:]
     return f"{matched_name}|{remainder}|true"
 
-def extract_shorthand(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
+def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
     """
     Extracts shorthand name patterns like 'j-doe' or 'john-d'.
     """
@@ -289,7 +289,7 @@ def separator_char_class():
     seps = load_separator_list()
     return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
-def extract_initials_only(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
+def extract_initials_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
     """
     Extract only initials from a filename. This handles separated (j-d) and grouped (jd) initials.
     """
@@ -416,7 +416,7 @@ def main():
         sys.exit(1)
     
     # For individual matcher functions, pass clean_filename=False to preserve raw remainder
-    if function_name in ["extract_first_name_only", "extract_last_name_only", "extract_initials_only", "extract_shorthand"]:
+    if function_name in ["extract_first_name_from_filename", "extract_last_name_from_filename", "extract_initials_from_filename", "extract_shorthand_name_from_filename"]:
         result = matcher_function(filename, target_name, clean_filename=False)
     else:
         result = matcher_function(filename, target_name)

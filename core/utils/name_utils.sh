@@ -73,7 +73,7 @@ clean_filename_remainder() {
 extract_name_from_filename() {
     local filename="$1"
     local name_to_match="$2"
-    local matcher_function="${3:-extract_all_name_matches}"
+    local matcher_function="${3:-extract_name_from_filename}"
 
     # Compute absolute path to core/utils
     local utils_dir

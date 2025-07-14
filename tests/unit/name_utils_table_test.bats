@@ -19,8 +19,8 @@ extract_name_from_filename() {
     python3 "${BATS_TEST_DIRNAME}/../../core/utils/name_matcher.py" "$filename" "$target_name" "$function_name"
 }
 
-@test "name-extraction-1 [matcher_function=first_name]: First Name only" {
-    run extract_name_from_filename "john-doe-report.pdf" "john doe" "extract_first_name_only"
+@test "name-extraction-1 [matcher_function=extract_first_name_from_filename]: First Name only" {
+    run extract_name_from_filename "john-doe-report.pdf" "john doe" "extract_first_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -45,8 +45,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-2 [matcher_function=first_name]: First Name only" {
-    run extract_name_from_filename "John Doe 20240525 report.pdf" "john doe" "extract_first_name_only"
+@test "name-extraction-2 [matcher_function=extract_first_name_from_filename]: First Name only" {
+    run extract_name_from_filename "John Doe 20240525 report.pdf" "john doe" "extract_first_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -71,8 +71,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-3 [matcher_function=last_name]: Last Name only" {
-    run extract_name_from_filename "john-doe-report.pdf" "john doe" "extract_last_name_only"
+@test "name-extraction-3 [matcher_function=extract_last_name_from_filename]: Last Name only" {
+    run extract_name_from_filename "john-doe-report.pdf" "john doe" "extract_last_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -97,8 +97,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-4 [matcher_function=last_name]: Last Name only" {
-    run extract_name_from_filename "John Doe 20240525 report.pdf" "john doe" "extract_last_name_only"
+@test "name-extraction-4 [matcher_function=extract_last_name_from_filename]: Last Name only" {
+    run extract_name_from_filename "John Doe 20240525 report.pdf" "john doe" "extract_last_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -123,8 +123,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-5 [matcher_function=initials]: Both Initials - Hyphen separator" {
-    run extract_name_from_filename "j-d-report.pdf" "john doe" "extract_initials_only"
+@test "name-extraction-5 [matcher_function=extract_initials_from_filename]: Both Initials - Hyphen separator" {
+    run extract_name_from_filename "j-d-report.pdf" "john doe" "extract_initials_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -149,8 +149,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-6 [matcher_function=initials]: Both Initials - Period separator" {
-    run extract_name_from_filename "Home J.D report.pdf" "john doe" "extract_initials_only"
+@test "name-extraction-6 [matcher_function=extract_initials_from_filename]: Both Initials - Period separator" {
+    run extract_name_from_filename "Home J.D report.pdf" "john doe" "extract_initials_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -175,8 +175,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-7 [matcher_function=initials]: Both Initials - Space separator" {
-    run extract_name_from_filename "File j d report.pdf" "john doe" "extract_initials_only"
+@test "name-extraction-7 [matcher_function=extract_initials_from_filename]: Both Initials - Space separator" {
+    run extract_name_from_filename "File j d report.pdf" "john doe" "extract_initials_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -201,8 +201,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-8 [matcher_function=initials]: Both Initials - Underscore separator" {
-    run extract_name_from_filename "j_d_report.pdf" "john doe" "extract_initials_only"
+@test "name-extraction-8 [matcher_function=extract_initials_from_filename]: Both Initials - Underscore separator" {
+    run extract_name_from_filename "j_d_report.pdf" "john doe" "extract_initials_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -227,8 +227,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-9 [matcher_function=initials]: Both Initials - Underscore separator" {
-    run extract_name_from_filename "File j_- d_report.pdf" "john doe" "extract_initials_only"
+@test "name-extraction-9 [matcher_function=extract_initials_from_filename]: Both Initials - Underscore separator" {
+    run extract_name_from_filename "File j_- d_report.pdf" "john doe" "extract_initials_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -253,8 +253,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-10 [matcher_function=shorthand]: First Initial + Last Name - Hyphen separator" {
-    run extract_name_from_filename "j-doe-report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-10 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Hyphen separator" {
+    run extract_name_from_filename "j-doe-report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -279,8 +279,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-11 [matcher_function=shorthand]: First Initial + Last Name - Underscore separator" {
-    run extract_name_from_filename "j_doe_report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-11 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Underscore separator" {
+    run extract_name_from_filename "j_doe_report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -305,8 +305,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-12 [matcher_function=shorthand]: First Initial + Last Name - Space separator" {
-    run extract_name_from_filename "j doe report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-12 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Space separator" {
+    run extract_name_from_filename "j doe report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -331,8 +331,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-13 [matcher_function=shorthand]: First Initial + Last Name - Period separator" {
-    run extract_name_from_filename "j.doe.report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-13 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Period separator" {
+    run extract_name_from_filename "j.doe.report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -357,8 +357,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-14 [matcher_function=shorthand]: First Name + Last Initial - Hyphen separator" {
-    run extract_name_from_filename "john-d-report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-14 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Hyphen separator" {
+    run extract_name_from_filename "john-d-report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -383,8 +383,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-15 [matcher_function=shorthand]: First Name + Last Initial - Underscore separator" {
-    run extract_name_from_filename "john_d_report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-15 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Underscore separator" {
+    run extract_name_from_filename "john_d_report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -409,8 +409,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-16 [matcher_function=shorthand]: First Name + Last Initial - Space separator" {
-    run extract_name_from_filename "john d report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-16 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Space separator" {
+    run extract_name_from_filename "john d report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -435,8 +435,8 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-17 [matcher_function=shorthand]: First Name + Last Initial - Period separator" {
-    run extract_name_from_filename "john.d.report.pdf" "john doe" "extract_shorthand"
+@test "name-extraction-17 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Period separator" {
+    run extract_name_from_filename "john.d.report.pdf" "john doe" "extract_shorthand_name_from_filename"
     
     # Split the output into components
     IFS='|' read -r actual_extracted actual_raw_remainder actual_matched <<< "$(echo "$output" | tail -n1)"
@@ -461,7 +461,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-18 [matcher_function=all_matches]: First Name - Hyphen separator" {
+@test "name-extraction-18 [matcher_function=extract_name_from_filename]: First Name - Hyphen separator" {
     run extract_name_from_filename "john-doe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -487,7 +487,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-19 [matcher_function=all_matches]: First Name - Underscore separator" {
+@test "name-extraction-19 [matcher_function=extract_name_from_filename]: First Name - Underscore separator" {
     run extract_name_from_filename "john_doe_report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -513,7 +513,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-20 [matcher_function=all_matches]: First Name - Space separator" {
+@test "name-extraction-20 [matcher_function=extract_name_from_filename]: First Name - Space separator" {
     run extract_name_from_filename "john doe report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -539,7 +539,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-21 [matcher_function=all_matches]: First Name - Period separator" {
+@test "name-extraction-21 [matcher_function=extract_name_from_filename]: First Name - Period separator" {
     run extract_name_from_filename "john.doe.report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -565,7 +565,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-22 [matcher_function=all_matches]: Last Name - Hyphen separator" {
+@test "name-extraction-22 [matcher_function=extract_name_from_filename]: Last Name - Hyphen separator" {
     run extract_name_from_filename "doe-john-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -591,7 +591,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-23 [matcher_function=all_matches]: Last Name - Underscore separator" {
+@test "name-extraction-23 [matcher_function=extract_name_from_filename]: Last Name - Underscore separator" {
     run extract_name_from_filename "doe_john_report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -617,7 +617,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-24 [matcher_function=all_matches]: Last Name - Space separator" {
+@test "name-extraction-24 [matcher_function=extract_name_from_filename]: Last Name - Space separator" {
     run extract_name_from_filename "doe john report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -643,7 +643,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-25 [matcher_function=all_matches]: Last Name - Period separator" {
+@test "name-extraction-25 [matcher_function=extract_name_from_filename]: Last Name - Period separator" {
     run extract_name_from_filename "doe.john.report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -669,7 +669,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-26 [matcher_function=all_matches]: Non-standard separator (asterisk)" {
+@test "name-extraction-26 [matcher_function=extract_name_from_filename]: Non-standard separator (asterisk)" {
     run extract_name_from_filename "john*doe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -695,7 +695,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-27 [matcher_function=all_matches]: Non-standard separator (at sign)" {
+@test "name-extraction-27 [matcher_function=extract_name_from_filename]: Non-standard separator (at sign)" {
     run extract_name_from_filename "john@doe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -721,7 +721,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-28 [matcher_function=all_matches]: Non-standard separator (hash)" {
+@test "name-extraction-28 [matcher_function=extract_name_from_filename]: Non-standard separator (hash)" {
     run extract_name_from_filename "john#doe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -747,7 +747,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-29 [matcher_function=all_matches]: Name with numbers/letter substitution" {
+@test "name-extraction-29 [matcher_function=extract_name_from_filename]: Name with numbers/letter substitution" {
     run extract_name_from_filename "j0hn-d03-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -773,7 +773,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-30 [matcher_function=all_matches]: Name with accents" {
+@test "name-extraction-30 [matcher_function=extract_name_from_filename]: Name with accents" {
     run extract_name_from_filename "jôn-döe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -799,7 +799,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-31 [matcher_function=all_matches]: Multiple matches (same name twice)" {
+@test "name-extraction-31 [matcher_function=extract_name_from_filename]: Multiple matches (same name twice)" {
     run extract_name_from_filename "john-doe-john-doe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -825,7 +825,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-32 [matcher_function=all_matches]: Multiple matches (full and initials)" {
+@test "name-extraction-32 [matcher_function=extract_name_from_filename]: Multiple matches (full and initials)" {
     run extract_name_from_filename "john-doe-jdoe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -851,7 +851,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-33 [matcher_function=all_matches]: Multiple matches (full and initials)" {
+@test "name-extraction-33 [matcher_function=extract_name_from_filename]: Multiple matches (full and initials)" {
     run extract_name_from_filename "john-doe-jdoe-report-john.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -877,7 +877,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-34 [matcher_function=all_matches]: Multiple matches (initials and full)" {
+@test "name-extraction-34 [matcher_function=extract_name_from_filename]: Multiple matches (initials and full)" {
     run extract_name_from_filename "jdoe-john-doe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -903,7 +903,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-35 [matcher_function=all_matches]: Edge case: empty filename" {
+@test "name-extraction-35 [matcher_function=extract_name_from_filename]: Edge case: empty filename" {
     run extract_name_from_filename ".pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -929,7 +929,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-36 [matcher_function=all_matches]: Case: all uppercase" {
+@test "name-extraction-36 [matcher_function=extract_name_from_filename]: Case: all uppercase" {
     run extract_name_from_filename "JOHN-DOE-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -955,7 +955,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-37 [matcher_function=all_matches]: Case: proper case" {
+@test "name-extraction-37 [matcher_function=extract_name_from_filename]: Case: proper case" {
     run extract_name_from_filename "John-Doe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -981,7 +981,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-38 [matcher_function=all_matches]: Case: mixed case" {
+@test "name-extraction-38 [matcher_function=extract_name_from_filename]: Case: mixed case" {
     run extract_name_from_filename "john-DOE-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1007,7 +1007,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-39 [matcher_function=all_matches]: Complex version and date" {
+@test "name-extraction-39 [matcher_function=extract_name_from_filename]: Complex version and date" {
     run extract_name_from_filename "john-doe-report-v1.0-2023.01.01.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1033,7 +1033,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-40 [matcher_function=all_matches]: Multiple matches: numbers and accents" {
+@test "name-extraction-40 [matcher_function=extract_name_from_filename]: Multiple matches: numbers and accents" {
     run extract_name_from_filename "j0hn-d03-jôn-döe-report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1059,7 +1059,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-41 [matcher_function=all_matches]: Edge case: only separators" {
+@test "name-extraction-41 [matcher_function=extract_name_from_filename]: Edge case: only separators" {
     run extract_name_from_filename "---.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1085,7 +1085,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-42 [matcher_function=all_matches]: Edge case: only numbers" {
+@test "name-extraction-42 [matcher_function=extract_name_from_filename]: Edge case: only numbers" {
     run extract_name_from_filename "123456.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1111,7 +1111,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-43 [matcher_function=all_matches]: Edge case: only special characters" {
+@test "name-extraction-43 [matcher_function=extract_name_from_filename]: Edge case: only special characters" {
     run extract_name_from_filename "!@#$%^&*().pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1137,7 +1137,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-44 [matcher_function=all_matches]: Multiple consecutive spaces" {
+@test "name-extraction-44 [matcher_function=extract_name_from_filename]: Multiple consecutive spaces" {
     run extract_name_from_filename "john   doe   report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1163,7 +1163,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-45 [matcher_function=all_matches]: Mixed consecutive separators" {
+@test "name-extraction-45 [matcher_function=extract_name_from_filename]: Mixed consecutive separators" {
     run extract_name_from_filename "john--doe__report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1189,7 +1189,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-46 [matcher_function=all_matches]: Mixed separators with spaces and punctuation" {
+@test "name-extraction-46 [matcher_function=extract_name_from_filename]: Mixed separators with spaces and punctuation" {
     run extract_name_from_filename "john . doe - report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1215,7 +1215,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-47 [matcher_function=all_matches]: Leading space" {
+@test "name-extraction-47 [matcher_function=extract_name_from_filename]: Leading space" {
     run extract_name_from_filename " john doe report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1241,7 +1241,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-48 [matcher_function=all_matches]: Trailing space before extension" {
+@test "name-extraction-48 [matcher_function=extract_name_from_filename]: Trailing space before extension" {
     run extract_name_from_filename "john doe report .pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1267,7 +1267,7 @@ extract_name_from_filename() {
     fi
 }
 
-@test "name-extraction-49 [matcher_function=all_matches]: Mixed separators (hyphen, underscore, space)" {
+@test "name-extraction-49 [matcher_function=extract_name_from_filename]: Mixed separators (hyphen, underscore, space)" {
     run extract_name_from_filename "john-doe_report report.pdf" "john doe" "extract_name_from_filename"
     
     # Split the output into components
@@ -1295,7 +1295,7 @@ extract_name_from_filename() {
 
 # --- Filename Cleaning Tests --- #
 
-@test "name-clean_filename-1 [matcher_function=first_name]: First Name only" {
+@test "name-clean_filename-1 [matcher_function=extract_first_name_from_filename]: First Name only" {
     run clean_filename_remainder "-doe-report.pdf"
     
     # Debug output
@@ -1308,7 +1308,7 @@ extract_name_from_filename() {
     assert_equal "$output" "doe-report.pdf"
 }
 
-@test "name-clean_filename-2 [matcher_function=first_name]: First Name only" {
+@test "name-clean_filename-2 [matcher_function=extract_first_name_from_filename]: First Name only" {
     run clean_filename_remainder " Doe 20240525 report.pdf"
     
     # Debug output
@@ -1321,7 +1321,7 @@ extract_name_from_filename() {
     assert_equal "$output" "Doe 20240525 report.pdf"
 }
 
-@test "name-clean_filename-3 [matcher_function=last_name]: Last Name only" {
+@test "name-clean_filename-3 [matcher_function=extract_last_name_from_filename]: Last Name only" {
     run clean_filename_remainder "john--report.pdf"
     
     # Debug output
@@ -1334,7 +1334,7 @@ extract_name_from_filename() {
     assert_equal "$output" "john-report.pdf"
 }
 
-@test "name-clean_filename-4 [matcher_function=last_name]: Last Name only" {
+@test "name-clean_filename-4 [matcher_function=extract_last_name_from_filename]: Last Name only" {
     run clean_filename_remainder "John  20240525 report.pdf"
     
     # Debug output
@@ -1347,7 +1347,7 @@ extract_name_from_filename() {
     assert_equal "$output" "John 20240525 report.pdf"
 }
 
-@test "name-clean_filename-5 [matcher_function=initials]: Both Initials - Hyphen separator" {
+@test "name-clean_filename-5 [matcher_function=extract_initials_from_filename]: Both Initials - Hyphen separator" {
     run clean_filename_remainder "-report.pdf"
     
     # Debug output
@@ -1360,7 +1360,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-6 [matcher_function=initials]: Both Initials - Period separator" {
+@test "name-clean_filename-6 [matcher_function=extract_initials_from_filename]: Both Initials - Period separator" {
     run clean_filename_remainder "Home  report.pdf"
     
     # Debug output
@@ -1373,7 +1373,7 @@ extract_name_from_filename() {
     assert_equal "$output" "Home report.pdf"
 }
 
-@test "name-clean_filename-7 [matcher_function=initials]: Both Initials - Space separator" {
+@test "name-clean_filename-7 [matcher_function=extract_initials_from_filename]: Both Initials - Space separator" {
     run clean_filename_remainder "File  report.pdf"
     
     # Debug output
@@ -1386,7 +1386,7 @@ extract_name_from_filename() {
     assert_equal "$output" "File report.pdf"
 }
 
-@test "name-clean_filename-8 [matcher_function=initials]: Both Initials - Underscore separator" {
+@test "name-clean_filename-8 [matcher_function=extract_initials_from_filename]: Both Initials - Underscore separator" {
     run clean_filename_remainder "_report.pdf"
     
     # Debug output
@@ -1399,7 +1399,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-9 [matcher_function=initials]: Both Initials - Underscore separator" {
+@test "name-clean_filename-9 [matcher_function=extract_initials_from_filename]: Both Initials - Underscore separator" {
     run clean_filename_remainder "File _report.pdf"
     
     # Debug output
@@ -1412,7 +1412,7 @@ extract_name_from_filename() {
     assert_equal "$output" "File report.pdf"
 }
 
-@test "name-clean_filename-10 [matcher_function=shorthand]: First Initial + Last Name - Hyphen separator" {
+@test "name-clean_filename-10 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Hyphen separator" {
     run clean_filename_remainder "-report.pdf"
     
     # Debug output
@@ -1425,7 +1425,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-11 [matcher_function=shorthand]: First Initial + Last Name - Underscore separator" {
+@test "name-clean_filename-11 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Underscore separator" {
     run clean_filename_remainder "_report.pdf"
     
     # Debug output
@@ -1438,7 +1438,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-12 [matcher_function=shorthand]: First Initial + Last Name - Space separator" {
+@test "name-clean_filename-12 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Space separator" {
     run clean_filename_remainder " report.pdf"
     
     # Debug output
@@ -1451,7 +1451,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-13 [matcher_function=shorthand]: First Initial + Last Name - Period separator" {
+@test "name-clean_filename-13 [matcher_function=extract_shorthand_name_from_filename]: First Initial + Last Name - Period separator" {
     run clean_filename_remainder ".report.pdf"
     
     # Debug output
@@ -1464,7 +1464,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-14 [matcher_function=shorthand]: First Name + Last Initial - Hyphen separator" {
+@test "name-clean_filename-14 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Hyphen separator" {
     run clean_filename_remainder "-report.pdf"
     
     # Debug output
@@ -1477,7 +1477,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-15 [matcher_function=shorthand]: First Name + Last Initial - Underscore separator" {
+@test "name-clean_filename-15 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Underscore separator" {
     run clean_filename_remainder "_report.pdf"
     
     # Debug output
@@ -1490,7 +1490,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-16 [matcher_function=shorthand]: First Name + Last Initial - Space separator" {
+@test "name-clean_filename-16 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Space separator" {
     run clean_filename_remainder " report.pdf"
     
     # Debug output
@@ -1503,7 +1503,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-17 [matcher_function=shorthand]: First Name + Last Initial - Period separator" {
+@test "name-clean_filename-17 [matcher_function=extract_shorthand_name_from_filename]: First Name + Last Initial - Period separator" {
     run clean_filename_remainder ".report.pdf"
     
     # Debug output
@@ -1516,7 +1516,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-18 [matcher_function=all_matches]: First Name - Hyphen separator" {
+@test "name-clean_filename-18 [matcher_function=extract_name_from_filename]: First Name - Hyphen separator" {
     run clean_filename_remainder "--report.pdf"
     
     # Debug output
@@ -1529,7 +1529,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-19 [matcher_function=all_matches]: First Name - Underscore separator" {
+@test "name-clean_filename-19 [matcher_function=extract_name_from_filename]: First Name - Underscore separator" {
     run clean_filename_remainder "__report.pdf"
     
     # Debug output
@@ -1542,7 +1542,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-20 [matcher_function=all_matches]: First Name - Space separator" {
+@test "name-clean_filename-20 [matcher_function=extract_name_from_filename]: First Name - Space separator" {
     run clean_filename_remainder "  report.pdf"
     
     # Debug output
@@ -1555,7 +1555,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-21 [matcher_function=all_matches]: First Name - Period separator" {
+@test "name-clean_filename-21 [matcher_function=extract_name_from_filename]: First Name - Period separator" {
     run clean_filename_remainder "..report.pdf"
     
     # Debug output
@@ -1568,7 +1568,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-22 [matcher_function=all_matches]: Last Name - Hyphen separator" {
+@test "name-clean_filename-22 [matcher_function=extract_name_from_filename]: Last Name - Hyphen separator" {
     run clean_filename_remainder "--report.pdf"
     
     # Debug output
@@ -1581,7 +1581,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-23 [matcher_function=all_matches]: Last Name - Underscore separator" {
+@test "name-clean_filename-23 [matcher_function=extract_name_from_filename]: Last Name - Underscore separator" {
     run clean_filename_remainder "__report.pdf"
     
     # Debug output
@@ -1594,7 +1594,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-24 [matcher_function=all_matches]: Last Name - Space separator" {
+@test "name-clean_filename-24 [matcher_function=extract_name_from_filename]: Last Name - Space separator" {
     run clean_filename_remainder "  report.pdf"
     
     # Debug output
@@ -1607,7 +1607,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-25 [matcher_function=all_matches]: Last Name - Period separator" {
+@test "name-clean_filename-25 [matcher_function=extract_name_from_filename]: Last Name - Period separator" {
     run clean_filename_remainder "..report.pdf"
     
     # Debug output
@@ -1620,7 +1620,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-26 [matcher_function=all_matches]: Non-standard separator (asterisk)" {
+@test "name-clean_filename-26 [matcher_function=extract_name_from_filename]: Non-standard separator (asterisk)" {
     run clean_filename_remainder "*-report.pdf"
     
     # Debug output
@@ -1633,7 +1633,7 @@ extract_name_from_filename() {
     assert_equal "$output" "*-report.pdf"
 }
 
-@test "name-clean_filename-27 [matcher_function=all_matches]: Non-standard separator (at sign)" {
+@test "name-clean_filename-27 [matcher_function=extract_name_from_filename]: Non-standard separator (at sign)" {
     run clean_filename_remainder "@-report.pdf"
     
     # Debug output
@@ -1646,7 +1646,7 @@ extract_name_from_filename() {
     assert_equal "$output" "@-report.pdf"
 }
 
-@test "name-clean_filename-28 [matcher_function=all_matches]: Non-standard separator (hash)" {
+@test "name-clean_filename-28 [matcher_function=extract_name_from_filename]: Non-standard separator (hash)" {
     run clean_filename_remainder "#-report.pdf"
     
     # Debug output
@@ -1659,7 +1659,7 @@ extract_name_from_filename() {
     assert_equal "$output" "#-report.pdf"
 }
 
-@test "name-clean_filename-29 [matcher_function=all_matches]: Name with numbers/letter substitution" {
+@test "name-clean_filename-29 [matcher_function=extract_name_from_filename]: Name with numbers/letter substitution" {
     run clean_filename_remainder "--report.pdf"
     
     # Debug output
@@ -1672,7 +1672,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-30 [matcher_function=all_matches]: Name with accents" {
+@test "name-clean_filename-30 [matcher_function=extract_name_from_filename]: Name with accents" {
     run clean_filename_remainder "jôn--report.pdf"
     
     # Debug output
@@ -1685,7 +1685,7 @@ extract_name_from_filename() {
     assert_equal "$output" "jôn-report.pdf"
 }
 
-@test "name-clean_filename-31 [matcher_function=all_matches]: Multiple matches (same name twice)" {
+@test "name-clean_filename-31 [matcher_function=extract_name_from_filename]: Multiple matches (same name twice)" {
     run clean_filename_remainder "----report.pdf"
     
     # Debug output
@@ -1698,7 +1698,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-32 [matcher_function=all_matches]: Multiple matches (full and initials)" {
+@test "name-clean_filename-32 [matcher_function=extract_name_from_filename]: Multiple matches (full and initials)" {
     run clean_filename_remainder "---report.pdf"
     
     # Debug output
@@ -1711,7 +1711,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-33 [matcher_function=all_matches]: Multiple matches (full and initials)" {
+@test "name-clean_filename-33 [matcher_function=extract_name_from_filename]: Multiple matches (full and initials)" {
     run clean_filename_remainder "---report-.pdf"
     
     # Debug output
@@ -1724,7 +1724,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-34 [matcher_function=all_matches]: Multiple matches (initials and full)" {
+@test "name-clean_filename-34 [matcher_function=extract_name_from_filename]: Multiple matches (initials and full)" {
     run clean_filename_remainder "---report.pdf"
     
     # Debug output
@@ -1737,7 +1737,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-35 [matcher_function=all_matches]: Edge case: empty filename" {
+@test "name-clean_filename-35 [matcher_function=extract_name_from_filename]: Edge case: empty filename" {
     run clean_filename_remainder ".pdf"
     
     # Debug output
@@ -1750,7 +1750,7 @@ extract_name_from_filename() {
     assert_equal "$output" ".pdf"
 }
 
-@test "name-clean_filename-36 [matcher_function=all_matches]: Case: all uppercase" {
+@test "name-clean_filename-36 [matcher_function=extract_name_from_filename]: Case: all uppercase" {
     run clean_filename_remainder "--report.pdf"
     
     # Debug output
@@ -1763,7 +1763,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-37 [matcher_function=all_matches]: Case: proper case" {
+@test "name-clean_filename-37 [matcher_function=extract_name_from_filename]: Case: proper case" {
     run clean_filename_remainder "--report.pdf"
     
     # Debug output
@@ -1776,7 +1776,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-38 [matcher_function=all_matches]: Case: mixed case" {
+@test "name-clean_filename-38 [matcher_function=extract_name_from_filename]: Case: mixed case" {
     run clean_filename_remainder "--report.pdf"
     
     # Debug output
@@ -1789,7 +1789,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-39 [matcher_function=all_matches]: Complex version and date" {
+@test "name-clean_filename-39 [matcher_function=extract_name_from_filename]: Complex version and date" {
     run clean_filename_remainder "--report-v1.0-2023.01.01.pdf"
     
     # Debug output
@@ -1802,7 +1802,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report-v1.0-2023.01.01.pdf"
 }
 
-@test "name-clean_filename-40 [matcher_function=all_matches]: Multiple matches: numbers and accents" {
+@test "name-clean_filename-40 [matcher_function=extract_name_from_filename]: Multiple matches: numbers and accents" {
     run clean_filename_remainder "--jôn--report.pdf"
     
     # Debug output
@@ -1815,7 +1815,7 @@ extract_name_from_filename() {
     assert_equal "$output" "jôn-report.pdf"
 }
 
-@test "name-clean_filename-41 [matcher_function=all_matches]: Edge case: only separators" {
+@test "name-clean_filename-41 [matcher_function=extract_name_from_filename]: Edge case: only separators" {
     run clean_filename_remainder "---.pdf"
     
     # Debug output
@@ -1828,7 +1828,7 @@ extract_name_from_filename() {
     assert_equal "$output" ".pdf"
 }
 
-@test "name-clean_filename-42 [matcher_function=all_matches]: Edge case: only numbers" {
+@test "name-clean_filename-42 [matcher_function=extract_name_from_filename]: Edge case: only numbers" {
     run clean_filename_remainder "123456.pdf"
     
     # Debug output
@@ -1841,7 +1841,7 @@ extract_name_from_filename() {
     assert_equal "$output" "123456.pdf"
 }
 
-@test "name-clean_filename-43 [matcher_function=all_matches]: Edge case: only special characters" {
+@test "name-clean_filename-43 [matcher_function=extract_name_from_filename]: Edge case: only special characters" {
     run clean_filename_remainder "!@#$%^&*().pdf"
     
     # Debug output
@@ -1854,7 +1854,7 @@ extract_name_from_filename() {
     assert_equal "$output" "!@#$%^&*().pdf"
 }
 
-@test "name-clean_filename-44 [matcher_function=all_matches]: Multiple consecutive spaces" {
+@test "name-clean_filename-44 [matcher_function=extract_name_from_filename]: Multiple consecutive spaces" {
     run clean_filename_remainder "      report.pdf"
     
     # Debug output
@@ -1867,7 +1867,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-45 [matcher_function=all_matches]: Mixed consecutive separators" {
+@test "name-clean_filename-45 [matcher_function=extract_name_from_filename]: Mixed consecutive separators" {
     run clean_filename_remainder "--__report.pdf"
     
     # Debug output
@@ -1880,7 +1880,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-46 [matcher_function=all_matches]: Mixed separators with spaces and punctuation" {
+@test "name-clean_filename-46 [matcher_function=extract_name_from_filename]: Mixed separators with spaces and punctuation" {
     run clean_filename_remainder " .  - report.pdf"
     
     # Debug output
@@ -1893,7 +1893,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-47 [matcher_function=all_matches]: Leading space" {
+@test "name-clean_filename-47 [matcher_function=extract_name_from_filename]: Leading space" {
     run clean_filename_remainder "   report.pdf"
     
     # Debug output
@@ -1906,7 +1906,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-48 [matcher_function=all_matches]: Trailing space before extension" {
+@test "name-clean_filename-48 [matcher_function=extract_name_from_filename]: Trailing space before extension" {
     run clean_filename_remainder "  report .pdf"
     
     # Debug output
@@ -1919,7 +1919,7 @@ extract_name_from_filename() {
     assert_equal "$output" "report.pdf"
 }
 
-@test "name-clean_filename-49 [matcher_function=all_matches]: Mixed separators (hyphen, underscore, space)" {
+@test "name-clean_filename-49 [matcher_function=extract_name_from_filename]: Mixed separators (hyphen, underscore, space)" {
     run clean_filename_remainder "-_report report.pdf"
     
     # Debug output

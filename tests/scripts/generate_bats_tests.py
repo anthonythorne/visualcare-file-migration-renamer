@@ -25,8 +25,12 @@ def generate_bats_tests(test_type):
         extracted_col = 'extracted_date'
         function_call_template = 'extract_date_from_filename "{filename}"'
         clean_function = 'clean_date_filename_remainder'
+    elif test_type == 'combined':
+        csv_path = project_root / 'tests' / 'fixtures' / 'combined_extraction_cases.csv'
+        output_path = project_root / 'tests' / 'unit' / 'combined_utils_table_test.bats'
+        source_script = None  # We'll source both name_utils.sh and date_utils.sh
     else:
-        raise ValueError("Invalid test type specified. Must be 'name' or 'date'.")
+        raise ValueError("Invalid test type specified. Must be 'name', 'date', or 'combined'.")
     
     # Ensure the output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -36,8 +40,52 @@ def generate_bats_tests(test_type):
         reader = csv.DictReader(f, delimiter='|')
         test_cases = list(reader)
     
-    # Generate the BATS test file content
-    bats_content = f"""#!/usr/bin/env bats
+    if test_type == 'combined':
+        bats_content = f"""#!/usr/bin/env bats
+
+# Combined name and date extraction tests
+# This file is auto-generated from combined_extraction_cases.csv
+# It checks that both name and date extraction work together on realistic filenames.
+
+load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-support/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-assert/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-file/load.bash"
+
+source "${{BATS_TEST_DIRNAME}}/../../core/utils/name_utils.sh"
+source "${{BATS_TEST_DIRNAME}}/../../core/utils/date_utils.sh"
+
+"""
+        for i, case in enumerate(test_cases, 1):
+            test_name = case['use_case']
+            final_test_name = f"combined-extraction-{i}: {test_name}"
+            bats_content += f"""@test "{final_test_name}" {{
+    run extract_name_from_filename "{case['filename']}" "{case['name_to_match']}" "extract_name_from_filename"
+    IFS='|' read -r actual_extracted_name actual_raw_remainder actual_matched_name <<< "$output"
+    run extract_date_from_filename "{case['filename']}"
+    IFS='|' read -r actual_extracted_date actual_raw_remainder_date actual_matched_date <<< "$output"
+
+    # Debug output
+    echo "[DEBUG] Testing: {case['filename']}" >&2
+    echo "[DEBUG] Expected name: {case['extracted_name']}" >&2
+    echo "[DEBUG] Expected date: {case['extracted_date']}" >&2
+    echo "[DEBUG] Expected raw remainder: {case['raw_remainder']}" >&2
+    echo "[DEBUG] Expected cleaned: {case['cleaned_remainder']}" >&2
+    echo "[DEBUG] Actual name: $actual_extracted_name" >&2
+    echo "[DEBUG] Actual date: $actual_extracted_date" >&2
+    echo "[DEBUG] Actual raw remainder: $actual_raw_remainder" >&2
+    echo "[DEBUG] Actual cleaned: $(clean_filename_remainder "$actual_raw_remainder")" >&2
+
+    assert_equal "$actual_extracted_name" "{case['extracted_name']}"
+    assert_equal "$actual_extracted_date" "{case['extracted_date']}"
+    assert_equal "$actual_raw_remainder" "{case['raw_remainder']}"
+    assert_equal "$(clean_filename_remainder "$actual_raw_remainder")" "{case['cleaned_remainder']}"
+}}
+
+"""
+        # No separate cleaning tests for combined for now
+    else:
+        # Existing logic for name/date
+        bats_content = f"""#!/usr/bin/env bats
 
 # Load test helper functions
 load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-support/load.bash"
@@ -66,20 +114,11 @@ extract_name_from_filename() {{
         
         final_test_name = f"{test_type}-extraction-{i}: {test_name}"
         if test_type == 'name':
-            matcher_func = case.get('matcher_function', 'all_matches')
+            matcher_func = case.get('matcher_function', 'extract_name_from_filename')
             final_test_name = f"{test_type}-extraction-{i} [matcher_function={matcher_func}]: {test_name}"
             
-            # Determine the correct python function to call based on the test case
-            if matcher_func == 'first_name':
-                py_function = 'extract_first_name_only'
-            elif matcher_func == 'last_name':
-                py_function = 'extract_last_name_only'
-            elif matcher_func == 'initials':
-                py_function = 'extract_initials_only'
-            elif matcher_func == 'shorthand':
-                py_function = 'extract_shorthand'
-            else: # all_matches and any other case
-                py_function = 'extract_name_from_filename'
+            # Use the matcher_function column directly as the python function name
+            py_function = matcher_func
 
             # The vcmigrate script is the entry point that calls the python script
             function_call = f'extract_name_from_filename "{case["filename"]}" "{case[id_col]}" "{py_function}"'
@@ -150,7 +189,7 @@ extract_name_from_filename() {{
     print(f"Generated {len(test_cases) * 2} {test_type} tests in {output_path}")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Generate BATS tests for name or date extraction.")
-    parser.add_argument('test_type', choices=['name', 'date'], help="The type of tests to generate ('name' or 'date').")
+    parser = argparse.ArgumentParser(description="Generate BATS tests for name, date, or combined extraction.")
+    parser.add_argument('test_type', choices=['name', 'date', 'combined'], help="The type of tests to generate ('name', 'date', or 'combined').")
     args = parser.parse_args()
     generate_bats_tests(args.test_type) 
