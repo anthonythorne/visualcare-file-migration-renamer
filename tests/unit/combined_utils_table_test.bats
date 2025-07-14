@@ -192,14 +192,14 @@ source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"
 }
 
 @test "combined-extraction-7: Compact date, name, and receipt" {
-    run extract_name_and_date_from_filename "20230506_john_doe_receipt.pdf" "john doe"
+    run extract_name_and_date_from_filename "20230506 john doe receipt.pdf" "john doe"
     IFS='|' read -r actual_extracted_name actual_extracted_date actual_raw_remainder actual_name_matched actual_date_matched <<< "$output"
 
     # Debug output
-    echo "[DEBUG] Testing: 20230506_john_doe_receipt.pdf" >&2
+    echo "[DEBUG] Testing: 20230506 john doe receipt.pdf" >&2
     echo "[DEBUG] Expected name: john,doe" >&2
     echo "[DEBUG] Expected date: 2023-05-06" >&2
-    echo "[DEBUG] Expected raw remainder: ___receipt.pdf" >&2
+    echo "[DEBUG] Expected raw remainder:    receipt.pdf" >&2
     echo "[DEBUG] Expected cleaned: receipt.pdf" >&2
     echo "[DEBUG] Actual name: $actual_extracted_name" >&2
     echo "[DEBUG] Actual date: $actual_extracted_date" >&2
@@ -210,7 +210,7 @@ source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"
 
     assert_equal "$actual_extracted_name" "john,doe"
     assert_equal "$actual_extracted_date" "2023-05-06"
-    assert_equal "$actual_raw_remainder" "___receipt.pdf"
+    assert_equal "$actual_raw_remainder" "   receipt.pdf"
     assert_equal "$(clean_filename_remainder "$actual_raw_remainder")" "receipt.pdf"
     if [ "true" = "true" ]; then
         assert_equal "$actual_name_matched" "true"
