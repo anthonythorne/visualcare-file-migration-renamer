@@ -1,5 +1,37 @@
 #!/usr/bin/env python3
 
+"""
+Name Matcher Utility for Filename Processing.
+
+This module provides comprehensive name extraction functionality for filenames using
+multiple algorithms including fuzzy matching, initials detection, shorthand patterns,
+and configurable separators. It handles various name formats and provides cleaning
+and normalization capabilities.
+
+File Path: core/utils/name_matcher.py
+
+@package VisualCare\\FileMigration\\Utils
+@since   1.0.0
+
+Algorithms:
+- Full name extraction with fuzzy character substitution
+- Initials detection (grouped and separated)
+- Shorthand patterns (j-doe, john-d)
+- First/last name individual extraction
+- Configurable separator handling
+- Remainder cleaning and normalization
+
+Configuration:
+- Loads separators from config/components.yaml
+- Supports fuzzy character substitutions
+- Configurable separator precedence for cleaning
+- Extension preservation during processing
+
+Returns:
+- Pipe-separated strings: extracted_name|remainder|matched
+- Supports both cleaned and raw remainder modes
+"""
+
 import re
 import sys
 import json

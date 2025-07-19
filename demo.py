@@ -1,10 +1,40 @@
 #!/usr/bin/env python3
 
 """
-VisualCare File Migration Renamer - Demo Script
+VisualCare File Migration Renamer - Demo Script.
 
 This script demonstrates all the features of the file migration renamer system,
 including name extraction, date extraction, user ID mapping, and filename formatting.
+It provides comprehensive examples and real-world use cases for testing and validation.
+
+File Path: demo.py
+
+@package VisualCare\FileMigration
+@since   1.0.0
+
+Demo Sections:
+- Name extraction with various filename formats
+- User ID mapping and lookup functionality
+- Filename formatting with template processing
+- Real-world examples from original requirements
+- Management flag detection and processing
+
+Features Demonstrated:
+- Fuzzy name matching algorithms
+- Date extraction from multiple formats
+- CSV-driven user ID mapping
+- Template-based filename generation
+- Management flag detection
+- Error handling and validation
+
+Usage:
+    python3 demo.py
+
+Output:
+- Comprehensive demonstration of all system features
+- Real-world examples with expected vs actual results
+- Validation of system functionality
+- Error handling examples
 """
 
 import sys

@@ -1,8 +1,36 @@
 #!/usr/bin/env python3
 
 """
-User ID mapping utility for filename normalization.
-Handles mapping between user IDs and full names for filename generation.
+User ID Mapping Utility for Filename Normalization.
+
+This module handles mapping between user IDs and full names for filename generation.
+It provides CSV-driven user mapping, fuzzy name matching, and template-based
+filename formatting with configurable components and separators.
+
+File Path: core/utils/user_mapping.py
+
+@package VisualCare\FileMigration\Utils
+@since   1.0.0
+
+Features:
+- CSV-based user ID to name mapping
+- Fuzzy name matching with case-insensitive lookup
+- Template-based filename formatting
+- Configurable component ordering and separators
+- Empty component handling and cleanup
+- Management flag and category support
+- Default mapping file creation
+
+Configuration:
+- Loads mapping from config/user_mapping.csv
+- Uses config/components.yaml for formatting rules
+- Supports configurable column names and file paths
+- Template placeholders: {id}, {name}, {date}, {remainder}, {category}, {management_flag}
+
+Dependencies:
+- Requires config/components.yaml for configuration
+- Requires config/user_mapping.csv for user mappings
+- Creates default mapping file if missing (configurable)
 """
 
 import csv

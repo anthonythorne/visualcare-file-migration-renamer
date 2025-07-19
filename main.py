@@ -1,11 +1,28 @@
 #!/usr/bin/env python3
 
 """
-VisualCare File Migration Renamer - Main CLI Script
+VisualCare File Migration Renamer - Main CLI Script.
 
 This script provides a comprehensive tool for renaming files based on extracted names,
 dates, and user IDs. It supports batch processing, dry-run mode, and comprehensive
-error handling.
+error handling. The script can process files from CSV mappings, directories, or test
+files using various extraction and formatting algorithms.
+
+File Path: main.py
+
+@package VisualCare\FileMigration
+@since   1.0.0
+
+Features:
+- Name extraction using fuzzy matching and multiple algorithms
+- Date extraction with fallback to file metadata
+- User ID mapping with CSV-driven configurations
+- Template-based filename formatting
+- Management flag detection
+- Category support (future feature)
+- Comprehensive logging and error handling
+- Test mode for development and validation
+- Dry-run mode for previewing changes
 
 Usage:
     python3 main.py --csv mapping.csv [options]
