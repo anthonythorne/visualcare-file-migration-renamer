@@ -1,6 +1,74 @@
 # Configuration for filename normalization components
 # Each section defines rules for a specific component of the filename
 
+# Filename format configuration - defines the order and structure of normalized filenames
+FilenameFormat:
+  # Template for normalized filename using placeholders
+  # Available placeholders: {id}, {name}, {date}, {remainder}, {category}, {management_flag}
+  template: "{id}_{name}_{remainder}_{date}"
+  
+  # Separator between components in the final filename
+  component_separator: "_"
+  
+  # Whether to include empty components (e.g., if no date, skip the separator)
+  skip_empty_components: true
+  
+  # Whether to clean up multiple consecutive separators in final filename
+  cleanup_separators: true
+
+# User ID mapping configuration
+UserMapping:
+  # Path to CSV file containing user ID to name mappings
+  # Expected format: user_id,full_name (e.g., "1234,Sarah Smith")
+  mapping_file: "config/user_mapping.csv"
+  
+  # Column names in the mapping CSV
+  id_column: "user_id"
+  name_column: "full_name"
+  
+  # Whether to create the mapping file if it doesn't exist
+  create_if_missing: true
+  
+  # Default behavior when user ID is not found in mapping
+  # Options: "error", "skip", "use_name_only"
+  missing_id_behavior: "error"
+
+# Category support (for future use)
+Category:
+  # Whether to enable category support
+  enabled: false
+  
+  # Default category when none can be determined
+  default_category: "general"
+  
+  # Category mapping from folder names to category codes
+  folder_mapping:
+    "Hazard & Risk Reports": "hazard"
+    "Management": "management"
+    "Support Plans": "support"
+    "Policies": "policy"
+  
+  # Whether to append category to filename
+  append_to_filename: false
+
+# Management flag configuration
+ManagementFlag:
+  # Whether to enable management flag detection
+  enabled: true
+  
+  # Keywords that indicate management files
+  keywords:
+    - "management"
+    - "admin"
+    - "supervisor"
+  
+  # Flag to append to management files
+  flag: "MGMT"
+  
+  # Where to place the flag in the filename
+  # Options: "prefix", "suffix", "separate_component"
+  placement: "suffix"
+
 Name:
   # Allowed separators to have in the name portion when searching for name parts.
   allowed_separators_when_searching:
