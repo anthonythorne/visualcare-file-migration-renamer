@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Load BATS assertion functions
-load '../test_helper/bats-support/load.bash'
-load '../test_helper/bats-assert/load.bash'
-load '../test_helper/bats-file/load.bash'
+load '../test-helper/bats-support/load.bash'
+load '../test-helper/bats-assert/load.bash'
+load '../test-helper/bats-file/load.bash'
 
 # Setup function to run before each test
 setup() {

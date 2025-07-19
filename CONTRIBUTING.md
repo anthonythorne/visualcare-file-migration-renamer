@@ -42,14 +42,14 @@ The project uses BATS (Bash Automated Testing System) for automated testing. Fol
    - Place unit tests in `tests/unit/`
    - Place integration tests in `tests/integration/`
    - Place test fixtures in `tests/fixtures/`
-   - Use `test_helper.bash` for common test functions
+   - Use `test-helper.bash` for common test functions
 
 2. Writing Tests:
    ```bash
    #!/usr/bin/env bats
    
    # Load test helper functions
-   load 'test_helper'
+   load 'test-helper'
    
    # Load the script to test
    load '../path/to/script.sh'

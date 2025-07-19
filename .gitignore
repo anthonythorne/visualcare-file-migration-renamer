@@ -1,8 +1,7 @@
 # Ignore all project information files.
 project-*.*
 logs/
-tests/test_files/**/
-!tests/test_files/.gitignore
+tests/test-files/**/
 
 # Ignore log files and debug output
 *.log

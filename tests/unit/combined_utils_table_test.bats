@@ -4,9 +4,9 @@
 # This file is auto-generated from combined_extraction_cases.csv
 # It checks that both name and date extraction work together on realistic filenames.
 
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-support/load.bash"
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-assert/load.bash"
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-file/load.bash"
+load "${BATS_TEST_DIRNAME}/../test-helper/bats-support/load.bash"
+load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
+load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
 source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"

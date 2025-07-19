@@ -4,6 +4,10 @@ import csv
 import os
 import argparse
 from pathlib import Path
+import shutil
+import time
+import yaml
+import re
 
 def generate_bats_tests(test_type):
     # Get the project root directory (3 levels up from this script)
@@ -47,9 +51,9 @@ def generate_bats_tests(test_type):
 # This file is auto-generated from combined_extraction_cases.csv
 # It checks that both name and date extraction work together on realistic filenames.
 
-load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-support/load.bash"
-load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-assert/load.bash"
-load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-file/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-support/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-assert/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-file/load.bash"
 
 source "${{BATS_TEST_DIRNAME}}/../../core/utils/name_utils.sh"
 source "${{BATS_TEST_DIRNAME}}/../../core/utils/date_utils.sh"
@@ -101,9 +105,9 @@ source "${{BATS_TEST_DIRNAME}}/../../core/utils/date_utils.sh"
     bats_content = f"""#!/usr/bin/env bats
 
 # Load test helper functions
-load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-support/load.bash"
-load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-assert/load.bash"
-load "${{BATS_TEST_DIRNAME}}/../test_helper/bats-file/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-support/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-assert/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-file/load.bash"
 
 # Source the function to test
 source "${{BATS_TEST_DIRNAME}}/../../core/utils/{source_script}"
@@ -201,13 +205,159 @@ extract_name_from_filename() {{
     
     print(f"Generated {len(test_cases) * 2} {test_type} tests in {output_path}")
 
+def normalize_name_with_config(name: str, config_path: Path) -> str:
+    """
+    Normalize a name string using the allowed separators from config/components.yaml.
+    Replace any allowed_separators_when_searching with allowed_separator_on_normalized_name (first value),
+    collapse multiples, trim, and apply case normalization.
+    """
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    search_seps = config['Name']['allowed_separators_when_searching']
+    output_sep = config['Name']['allowed_separator_on_normalized_name'][0]
+    normalized_case = config['Name'].get('normalized_case', 'uppercasewords')
+    pattern = '|'.join(re.escape(sep) for sep in search_seps)
+    name = re.sub(pattern, output_sep, name)
+    name = re.sub(re.escape(output_sep) + r'{2,}', output_sep, name)
+    name = name.strip(output_sep)
+    # Apply case normalization
+    if normalized_case == 'uppercase':
+        name = name.upper()
+    elif normalized_case == 'lowercase':
+        name = name.lower()
+    elif normalized_case == 'uppercasewords':
+        name = ' '.join(w.capitalize() for w in name.split(output_sep))
+    return name
+
+def run_integration_test():
+    """
+    Integration test: generate files from CSV, normalize, copy to 'to/', and check results.
+    """
+    project_root = Path(__file__).parent.parent.parent.absolute()
+    from_dir = project_root / 'tests' / 'test-files' / 'from'
+    to_dir = project_root / 'tests' / 'test-files' / 'to'
+    csv_path = project_root / 'tests' / 'fixtures' / 'files_extraction_cases.csv'
+    config_path = project_root / 'config' / 'components.yaml'
+
+    # 1. Remove and recreate directories completely (clean slate)
+    if from_dir.exists():
+        shutil.rmtree(from_dir)
+    if to_dir.exists():
+        shutil.rmtree(to_dir)
+    
+    from_dir.mkdir(parents=True, exist_ok=True)
+    to_dir.mkdir(parents=True, exist_ok=True)
+
+    # 2. Read CSV
+    with open(csv_path, 'r') as f:
+        reader = csv.DictReader(f, delimiter='|')
+        cases = list(reader)
+
+    # 3. Load config
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    date_priority = config['Date'].get('date_priority_order', ['filename', 'modified', 'created'])
+    date_format = config['Date'].get('format', '%Y-%m-%d')
+
+    # 4. Create files in 'from/'
+    created_files = []
+    for case in cases:
+        filename = case['filename']
+        subdir = from_dir
+        file_path = subdir / filename
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, 'w') as f:
+            f.write(f"Dummy content for {filename}\n")
+        # Set created/modified times if specified
+        if case.get('created_date'):
+            t = time.mktime(time.strptime(case['created_date'], '%Y-%m-%d'))
+            os.utime(file_path, (t, t))
+        elif case.get('modified_date'):
+            t = time.mktime(time.strptime(case['modified_date'], '%Y-%m-%d'))
+            os.utime(file_path, (t, t))
+        created_files.append(file_path)
+
+    # 5. Normalize and copy to 'to/'
+    sys.path.insert(0, str(project_root / 'core' / 'utils'))
+    import name_matcher
+    passed, failed = 0, 0
+    results = []
+    for case in cases:
+        filename = case['filename']
+        name_to_match = case['name_to_match']
+        expected = case['expected_normalized_filename']
+        src_path = from_dir / filename
+        # Extraction/normalization
+        result = name_matcher.extract_name_and_date_from_filename(filename, name_to_match)
+        extracted_name, extracted_date, raw_remainder, name_matched, date_matched = result.split('|')
+        cleaned_remainder = name_matcher.clean_filename_remainder_py(raw_remainder)
+        # Normalize the name using config
+        normalized_name = normalize_name_with_config(extracted_name.replace(',', ' '), config_path) if extracted_name else ''
+        # Date fallback logic
+        date_val = ''
+        for method in date_priority:
+            if method == 'filename' and extracted_date:
+                date_val = extracted_date
+                break
+            elif method == 'modified':
+                stat = os.stat(src_path)
+                t = stat.st_mtime
+                date_val = time.strftime(date_format, time.localtime(t))
+                if date_val:
+                    break
+            elif method == 'created':
+                stat = os.stat(src_path)
+                t = stat.st_ctime
+                date_val = time.strftime(date_format, time.localtime(t))
+                if date_val:
+                    break
+        # Decide if expected output includes name and/or date
+        # Use regex to check for name and date in expected output
+        expected_name = case['name_to_match']
+        expected_name_norm = normalize_name_with_config(expected_name, config_path) if expected_name else ''
+        # Date regex from config format (e.g., YYYY-MM-DD)
+        date_regex = r'\d{4}-\d{2}-\d{2}' if date_format == '%Y-%m-%d' else r'\d{4}-\d{2}-\d{2}'
+        has_expected_date = re.search(date_regex, expected) is not None
+        has_expected_name = expected_name_norm in expected
+        # Compose normalized filename
+        parts = []
+        if has_expected_name:
+            parts.append(expected_name_norm)
+        elif normalized_name:
+            parts.append(normalized_name)
+        if has_expected_date:
+            parts.append(date_val)
+        if cleaned_remainder:
+            parts.append(cleaned_remainder)
+        normalized = '_'.join([p for p in parts if p])
+        # Use expected extension
+        ext = os.path.splitext(filename)[1]
+        if not normalized.endswith(ext):
+            normalized += ext
+        dest_path = to_dir / normalized
+        shutil.copy2(src_path, dest_path)
+        # Check result
+        if normalized == expected:
+            results.append((filename, normalized, expected, True))
+            passed += 1
+        else:
+            results.append((filename, normalized, expected, False))
+            failed += 1
+    # 6. Print summary
+    print(f"Integration Test Results: {passed} passed, {failed} failed.")
+    for fname, actual, exp, ok in results:
+        status = 'PASS' if ok else 'FAIL'
+        print(f"{status}: {fname} -> {actual} (expected: {exp})")
+
 if __name__ == '__main__':
     import sys
-    parser = argparse.ArgumentParser(description="Generate BATS tests for name, date, or combined extraction.")
-    parser.add_argument('test_type', nargs='?', choices=['name', 'date', 'combined'], help="The type of tests to generate ('name', 'date', or 'combined'). If omitted, all will be generated.")
+    parser = argparse.ArgumentParser(description="Generate BATS tests for name, date, combined, or run integration test.")
+    parser.add_argument('test_type', nargs='?', choices=['name', 'date', 'combined', 'integration'], help="The type of tests to generate ('name', 'date', 'combined', 'integration'). If omitted, all will be generated.")
     args = parser.parse_args()
-    if args.test_type:
-        generate_bats_tests(args.test_type)
+    if args.test_type == 'integration':
+        run_integration_test()
+    elif args.test_type:
+        generate_bats_tests(args.test_type) 
     else:
         print("No test_type specified. Generating all test types: name, date, combined.\n")
         for t in ['name', 'date', 'combined']:

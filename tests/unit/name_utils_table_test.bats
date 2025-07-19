@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
 # Load test helper functions
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-support/load.bash"
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-assert/load.bash"
-load "${BATS_TEST_DIRNAME}/../test_helper/bats-file/load.bash"
+load "${BATS_TEST_DIRNAME}/../test-helper/bats-support/load.bash"
+load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
+load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 # Source the function to test
 source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"

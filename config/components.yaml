@@ -19,15 +19,21 @@ Name:
     - "~"  # tilde
     - "|"  # pipe
   # Allowed separators to keep in the plucked full name (from directory, e.g., 'John Doe')
-  allowed_separators:
+  allowed_separator_on_normalized_name:
     - " "  # space
   allow_multiple: true  # Allow multiple consecutive separators when searching
   normalize_output: true  # Normalize separators in output
   default_output_separator: "_"  # Default separator for normalized output
+  normalized_case: uppercasewords  # Options: uppercase, lowercase, uppercasewords
 
 Date:
   # Date format used for the final filename (strftime compatible)
   format: "%Y-%m-%d"  # Example: 2023-05-15
+  # Priority order for extracting date: options are 'filename', 'modified', 'created'
+  date_priority_order:
+    - filename
+    - modified
+    - created
 
 Remainder:
   # Allowed separators to keep in the remainder (duplicates will be collapsed)

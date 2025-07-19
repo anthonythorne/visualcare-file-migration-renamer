@@ -167,10 +167,10 @@ See [FILENAME_CONVENTIONS.md](docs/FILENAME_CONVENTIONS.md) for the full, up-to-
 ```yaml
 Name:
   allowed_separators_when_searching:
-    - " "  # space (most preferred)
-    - "-"  # hyphen
-    - "_"  # underscore
-    - "."  # period (least preferred)
+  - " "  # space (most preferred)
+  - "-"  # hyphen
+  - "_"  # underscore
+  - "."  # period (least preferred)
   allowed_separators:
     - " "  # space
 Remainder:
