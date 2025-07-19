@@ -9,7 +9,7 @@ filename formatting with configurable components and separators.
 
 File Path: core/utils/user_mapping.py
 
-@package VisualCare\FileMigration\Utils
+@package VisualCare\\FileMigration\\Utils
 @since   1.0.0
 
 Features:

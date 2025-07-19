@@ -1,3 +1,43 @@
+"""
+Date Matcher Utility for Filename Processing.
+
+This module provides comprehensive date extraction functionality from filenames using
+multiple date formats and patterns. It supports various international date formats
+and provides fallback mechanisms for date extraction.
+
+File Path: core/utils/date_matcher.py
+
+@package VisualCare\\FileMigration\\Utils
+@since   1.0.0
+
+Supported Date Formats:
+- YYYY-MM-DD (ISO format)
+- DD-MM-YYYY (European format)
+- MM-DD-YYYY (US format)
+- YYYYMMDD (compact format)
+- DDMMYYYY (European compact)
+- MMDDYYYY (US compact)
+- Month name formats (e.g., "15th Mar 2023")
+
+Features:
+- Multiple date pattern recognition
+- Separator preservation during extraction
+- Invalid date validation and handling
+- Extension preservation
+- Configurable separator handling
+
+Returns:
+- Pipe-separated strings: extracted_dates|remainder|matched
+- Multiple dates joined by commas if found
+- Preserves original filename structure in remainder
+
+Algorithm:
+- Iterative pattern matching with best-match selection
+- Separator preservation before and after dates
+- Invalid date filtering with datetime validation
+- Extension-aware processing
+"""
+
 import re
 import sys
 from datetime import datetime

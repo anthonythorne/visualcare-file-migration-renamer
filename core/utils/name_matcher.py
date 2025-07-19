@@ -273,7 +273,7 @@ def extract_last_name_from_filename(filename: str, name_to_match: str, clean_fil
         remainder = filename[:start] + filename[end:]
         remainder = clean_filename_remainder_py(remainder)
     else:
-        start, end = match.span(1) if match.lastindex and match.lastindex >= 1 else match.span(0)
+        start, end = match.span(0)
         remainder = filename[:start] + filename[end:]
     return f"{matched_name}|{remainder}|true"
 

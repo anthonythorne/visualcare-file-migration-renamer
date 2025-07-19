@@ -10,7 +10,7 @@ files using various extraction and formatting algorithms.
 
 File Path: main.py
 
-@package VisualCare\FileMigration
+@package VisualCare\\FileMigration
 @since   1.0.0
 
 Features:
@@ -52,13 +52,30 @@ class FileMigrationRenamer:
     """Main class for handling file migration and renaming operations."""
     
     def __init__(self, config_path: Optional[str] = None):
-        """Initialize the renamer with configuration."""
+        """
+        Initialize the renamer with configuration.
+        
+        Args:
+            config_path: Optional path to configuration file. If not provided,
+                        defaults to config/components.yaml relative to script location.
+        
+        Raises:
+            SystemExit: If configuration file cannot be loaded.
+        """
         self.config_path = config_path or str(Path(__file__).parent / 'config' / 'components.yaml')
         self.config = self._load_config()
         self.logger = self._setup_logging()
         
     def _load_config(self) -> Dict:
-        """Load configuration from YAML file."""
+        """
+        Load configuration from YAML file.
+        
+        Returns:
+            Dict: Configuration dictionary loaded from YAML file.
+        
+        Raises:
+            SystemExit: If configuration file cannot be read or parsed.
+        """
         try:
             with open(self.config_path, 'r') as f:
                 return yaml.safe_load(f)
@@ -67,7 +84,15 @@ class FileMigrationRenamer:
             sys.exit(1)
     
     def _setup_logging(self) -> logging.Logger:
-        """Setup logging configuration."""
+        """
+        Setup logging configuration for the application.
+        
+        Configures both file and console logging with timestamp and level information.
+        Log file is created as 'file_migration.log' in the current directory.
+        
+        Returns:
+            logging.Logger: Configured logger instance for the application.
+        """
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
@@ -80,30 +105,47 @@ class FileMigrationRenamer:
     
     def extract_file_components(self, filename: str, name_to_match: str) -> Dict:
         """
-        Extract all components from a filename.
+        Extract all components from a filename using multiple extraction algorithms.
+        
+        This method orchestrates the extraction of name, date, user ID, management flag,
+        and category from a filename. It uses the name_matcher, date_matcher, and
+        user_mapping utilities to perform comprehensive extraction.
         
         Args:
-            filename: The filename to process
-            name_to_match: The name to match against
+            filename: The filename to process and extract components from.
+            name_to_match: The name to match against for extraction algorithms.
             
         Returns:
-            Dictionary containing extracted components
+            Dict: Dictionary containing all extracted components including:
+                - filename: Original filename
+                - name_to_match: Target name for matching
+                - extracted_name: Extracted name from filename
+                - extracted_date: Extracted date from filename
+                - raw_remainder: Filename with name and date removed (uncleaned)
+                - cleaned_remainder: Normalized remainder with separators cleaned
+                - name_matched: Boolean indicating if name was successfully extracted
+                - date_matched: Boolean indicating if date was successfully extracted
+                - user_id: User ID mapped from the name
+                - management_flag: Management flag if detected
+                - category: Category if detected (future feature)
+        
+        Returns None if extraction fails completely.
         """
         try:
-            # Extract name and date
+            # Extract name and date using the name_matcher utility.
             result = extract_name_and_date_from_filename(filename, name_to_match)
             extracted_name, extracted_date, raw_remainder, name_matched, date_matched = result.split('|')
             
-            # Clean the remainder
+            # Clean the remainder using separator normalization.
             cleaned_remainder = clean_filename_remainder_py(raw_remainder)
             
-            # Get user ID
+            # Get user ID from the name using fuzzy matching.
             user_id = get_user_id_by_name(name_to_match) if name_matched == 'true' else None
             
-            # Detect management flag
+            # Detect management flag based on filename keywords.
             management_flag = self._detect_management_flag(filename)
             
-            # Detect category (future feature)
+            # Detect category from filename (future feature).
             category = self._detect_category(filename)
             
             return {
@@ -124,7 +166,18 @@ class FileMigrationRenamer:
             return None
     
     def _detect_management_flag(self, filename: str) -> str:
-        """Detect if file should have management flag."""
+        """
+        Detect if file should have management flag based on filename keywords.
+        
+        This method checks the filename against configured management keywords
+        to determine if the file should be flagged as a management document.
+        
+        Args:
+            filename: The filename to check for management keywords.
+            
+        Returns:
+            str: Management flag string if detected, empty string otherwise.
+        """
         config = self.config.get('ManagementFlag', {})
         if not config.get('enabled', False):
             return ""
@@ -132,6 +185,7 @@ class FileMigrationRenamer:
         keywords = config.get('keywords', [])
         filename_lower = filename.lower()
         
+        # Check each keyword for presence in filename.
         for keyword in keywords:
             if keyword.lower() in filename_lower:
                 return config.get('flag', 'MGMT')
@@ -139,12 +193,24 @@ class FileMigrationRenamer:
         return ""
     
     def _detect_category(self, filename: str) -> str:
-        """Detect category from filename (future feature)."""
+        """
+        Detect category from filename (future feature).
+        
+        This method will be enhanced to detect document categories based on
+        filename patterns, folder names, or content analysis.
+        
+        Args:
+            filename: The filename to analyze for category detection.
+            
+        Returns:
+            str: Category string if detected, default category otherwise.
+        """
         config = self.config.get('Category', {})
         if not config.get('enabled', False):
             return ""
         
-        # For now, return default category
+        # For now, return default category.
+        # Future implementation will include pattern matching and folder analysis.
         return config.get('default_category', 'general')
     
     def format_normalized_filename(self, components: Dict) -> str:

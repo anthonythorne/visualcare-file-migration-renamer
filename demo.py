@@ -9,7 +9,7 @@ It provides comprehensive examples and real-world use cases for testing and vali
 
 File Path: demo.py
 
-@package VisualCare\FileMigration
+@package VisualCare\\FileMigration
 @since   1.0.0
 
 Demo Sections:
