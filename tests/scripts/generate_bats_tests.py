@@ -83,11 +83,16 @@ source "${{BATS_TEST_DIRNAME}}/../../core/utils/date_utils.sh"
     assert_equal "$actual_extracted_date" "{case['extracted_date']}"
     assert_equal "$actual_raw_remainder" "{case['raw_remainder']}"
     assert_equal "$(clean_filename_remainder "$actual_raw_remainder")" "{case['cleaned_remainder']}"
+    # Name matching: should match if expected_match is true
     if [ "{case['expected_match']}" = "true" ]; then
         assert_equal "$actual_name_matched" "true"
-        assert_equal "$actual_date_matched" "true"
     else
         assert_equal "$actual_name_matched" "false"
+    fi
+    # Date matching: should match only if there's an expected date
+    if [ -n "{case['extracted_date']}" ]; then
+        assert_equal "$actual_date_matched" "true"
+    else
         assert_equal "$actual_date_matched" "false"
     fi
 }}
@@ -236,7 +241,7 @@ def run_integration_test():
     project_root = Path(__file__).parent.parent.parent.absolute()
     from_dir = project_root / 'tests' / 'test-files' / 'from'
     to_dir = project_root / 'tests' / 'test-files' / 'to'
-    csv_path = project_root / 'tests' / 'fixtures' / 'files_extraction_cases.csv'
+    csv_path = project_root / 'tests' / 'fixtures' / 'combined_extraction_cases.csv'
     config_path = project_root / 'config' / 'components.yaml'
 
     # 1. Remove and recreate directories completely (clean slate)
@@ -259,13 +264,17 @@ def run_integration_test():
     date_priority = config['Date'].get('date_priority_order', ['filename', 'modified', 'created'])
     date_format = config['Date'].get('format', '%Y-%m-%d')
 
-    # 4. Create files in 'from/'
+    # 4. Create files in 'from/' organized by person
     created_files = []
     for case in cases:
         filename = case['filename']
-        subdir = from_dir
-        file_path = subdir / filename
-        file_path.parent.mkdir(parents=True, exist_ok=True)
+        name_to_match = case['name_to_match']
+        
+        # Create person-specific subdirectory
+        person_dir = from_dir / name_to_match.title()
+        person_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = person_dir / filename
         with open(file_path, 'w') as f:
             f.write(f"Dummy content for {filename}\n")
         # Set created/modified times if specified
@@ -277,7 +286,7 @@ def run_integration_test():
             os.utime(file_path, (t, t))
         created_files.append(file_path)
 
-    # 5. Normalize and copy to 'to/'
+    # 5. Normalize and copy to 'to/' organized by person
     sys.path.insert(0, str(project_root / 'core' / 'utils'))
     import name_matcher
     passed, failed = 0, 0
@@ -286,7 +295,10 @@ def run_integration_test():
         filename = case['filename']
         name_to_match = case['name_to_match']
         expected = case['expected_normalized_filename']
-        src_path = from_dir / filename
+        
+        # Source path includes person directory
+        person_dir_name = name_to_match.title()
+        src_path = from_dir / person_dir_name / filename
         # Extraction/normalization
         result = name_matcher.extract_name_and_date_from_filename(filename, name_to_match)
         extracted_name, extracted_date, raw_remainder, name_matched, date_matched = result.split('|')
@@ -334,7 +346,11 @@ def run_integration_test():
         ext = os.path.splitext(filename)[1]
         if not normalized.endswith(ext):
             normalized += ext
-        dest_path = to_dir / normalized
+        
+        # Create person-specific destination directory
+        dest_person_dir = to_dir / person_dir_name
+        dest_person_dir.mkdir(parents=True, exist_ok=True)
+        dest_path = dest_person_dir / normalized
         shutil.copy2(src_path, dest_path)
         # Check result
         if normalized == expected:
