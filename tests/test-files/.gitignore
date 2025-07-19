@@ -1,8 +1,0 @@
-# This directory is used for test files and should be ignored by git
-# except for .gitignore files
-
-# Ignore all files and directories
-*
-
-# But keep .gitignore files
-!.gitignore 

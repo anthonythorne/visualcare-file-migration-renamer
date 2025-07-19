@@ -1,10 +1,13 @@
-# Configuration for filename normalization components
-# Each section defines rules for a specific component of the filename
+# Configuration for filename normalization components.
+# Each section defines rules for a specific component of the filename.
+# This file is loaded by the main application and utility modules.
 
-# Filename format configuration - defines the order and structure of normalized filenames
+# Filename format configuration - defines the order and structure of normalized filenames.
+# This section controls how the final filename is assembled from extracted components.
 FilenameFormat:
-  # Template for normalized filename using placeholders
+  # Template for normalized filename using placeholders.
   # Available placeholders: {id}, {name}, {date}, {remainder}, {category}, {management_flag}
+  # The template defines the order and separators between components.
   template: "{id}_{name}_{remainder}_{date}"
   
   # Separator between components in the final filename

@@ -29,17 +29,13 @@ Welcome to the comprehensive documentation for the VisualCare File Migration Ren
   - Troubleshooting
 
 ### 📋 Detailed Specifications
-- **[Naming Conventions](NAMING_CONVENTIONS.md)** - Name extraction logic and rules
-  - Processing algorithms
-  - Matcher functions
-  - Separator handling
-  - Examples and edge cases
-
-- **[Filename Conventions](FILENAME_CONVENTIONS.md)** - Filename processing and formatting
-  - Extraction patterns
-  - Cleaning logic
-  - Format specifications
-  - Real-world examples
+- **[Naming Conventions](NAMING_CONVENTIONS.md)** - Complete name extraction and filename processing
+  - Processing algorithms and matcher types
+  - Separator handling and cleaning logic
+  - Date extraction integration
+  - Template system and formatting
+  - Configuration management
+  - Examples and best practices
 
 ## 🎯 Quick Navigation
 
@@ -50,7 +46,7 @@ Welcome to the comprehensive documentation for the VisualCare File Migration Ren
 
 ### For Developers
 1. Read **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** for architecture
-2. Study **[Naming Conventions](NAMING_CONVENTIONS.md)** for extraction logic
+2. Study **[Naming Conventions](NAMING_CONVENTIONS.md)** for extraction algorithms
 3. Review **[Testing Guide](TESTING.md)** for test coverage
 
 ### For System Administrators
@@ -66,8 +62,7 @@ docs/
 ├── USAGE_GUIDE.md              # Comprehensive usage guide
 ├── IMPLEMENTATION_SUMMARY.md   # Technical architecture
 ├── TESTING.md                  # Testing documentation
-├── NAMING_CONVENTIONS.md       # Name extraction logic
-└── FILENAME_CONVENTIONS.md     # Filename processing
+└── NAMING_CONVENTIONS.md       # Complete name extraction and filename processing
 ```
 
 ## 🔍 Finding Information
@@ -84,13 +79,11 @@ docs/
 
 **Technical Details**
 - [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Architecture and design
-- [Naming Conventions](NAMING_CONVENTIONS.md) - Name extraction algorithms
-- [Filename Conventions](FILENAME_CONVENTIONS.md) - Filename processing
+- [Naming Conventions](NAMING_CONVENTIONS.md) - Name extraction algorithms and filename processing
 
 **Examples and Patterns**
 - [Usage Guide](USAGE_GUIDE.md) - Usage examples
-- [Naming Conventions](NAMING_CONVENTIONS.md) - Name extraction examples
-- [Filename Conventions](FILENAME_CONVENTIONS.md) - Filename examples
+- [Naming Conventions](NAMING_CONVENTIONS.md) - Name extraction and filename examples
 
 ### By User Type
 
