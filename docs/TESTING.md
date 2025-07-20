@@ -9,6 +9,186 @@ This document explains how to generate, run, and understand the tests for the Vi
 - **Combined Extraction Tests:** Validate both name and date extraction together using `tests/fixtures/combined_extraction_cases.csv`.
 - **Test Mode Integration Tests:** Validate the main CLI application using the `tests/test-files` structure.
 
+## Testing Rules and Standards
+
+### Core Testing Philosophy
+
+All tests must follow a **scaffolding approach** where:
+1. **Test cases are defined in CSV matrices** in `tests/fixtures/`
+2. **BATS tests are auto-generated** from CSV matrices using scaffolding commands
+3. **Test files are auto-created** from CSV matrices using setup scripts
+4. **Tests verify against the original matrices** to ensure functionality works as expected
+
+### Required Testing Process
+
+#### 1. CSV-Driven Test Matrices
+- All test cases must be defined in CSV files in `tests/fixtures/`
+- Use pipe (`|`) delimiters for CSV files
+- Include columns for input, expected output, and test metadata
+- Example: `name_extraction_cases.csv`, `date_extraction_cases.csv`, `combined_extraction_cases.csv`
+
+#### 2. Scaffolding Commands
+**NEVER create BATS tests manually.** Always use scaffolding commands:
+
+```bash
+# Generate BATS tests from CSV matrices
+python3 tests/scripts/generate_bats_tests.py name
+python3 tests/scripts/generate_bats_tests.py date
+python3 tests/scripts/generate_bats_tests.py combined
+```
+
+#### 3. Test File Setup Scripts
+**NEVER create test files manually.** Always use setup scripts:
+
+```bash
+# Create test files from CSV matrices
+python3 tests/scripts/setup_category_test_files.py
+python3 tests/scripts/setup_multi_level_test_files.py
+```
+
+#### 4. Test Directory Structure
+```
+tests/
+├── fixtures/                    # CSV test matrices
+│   ├── name_extraction_cases.csv
+│   ├── date_extraction_cases.csv
+│   ├── combined_extraction_cases.csv
+│   └── category_test_cases.csv
+├── test-files/                  # Test file directories
+│   ├── from-<test-name>/        # Input files for specific tests
+│   └── to-<test-name>/          # Output files for specific tests
+├── unit/                        # Generated BATS tests
+├── scripts/                     # Setup and generation scripts
+└── run_tests.sh                 # Main test runner
+```
+
+### Test Execution Hierarchy
+
+Tests must be run in order from smallest to largest:
+
+1. **Component Tests** (smallest)
+   - Name extraction tests: `bats tests/unit/name_utils_table_test.bats`
+   - Date extraction tests: `bats tests/unit/date_utils_table_test.bats`
+
+2. **Combined Tests** (medium)
+   - Combined extraction tests: `bats tests/unit/combined_utils_table_test.bats`
+
+3. **Integration Tests** (largest)
+   - Test mode integration: `python3 main.py --test-mode --test-name <test-name> --dry-run`
+   - Full test suite: `./tests/run_tests.sh`
+
+### Test File Management Rules
+
+#### Automatic Cleanup
+- Setup scripts **automatically clean** existing test directories
+- Scripts **delete and recreate** `from-<test-name>` and `to-<test-name>` directories
+- **Never manually create or modify** test files
+
+#### Test File Naming Convention
+- Input directories: `from-<test-name>` (e.g., `from-basic`, `from-category`)
+- Output directories: `to-<test-name>` (e.g., `to-basic`, `to-category`)
+- Person-specific subdirectories within each test directory
+
+#### Test File Content
+- Test files are created with **realistic content** based on CSV test cases
+- Files include **proper directory structures** for multi-level testing
+- Content reflects **actual use cases** from the CSV matrices
+
+#### Test Directory Cleanup Rules
+- **NEVER manually create** `tests/test-files/from/` directory
+- **NEVER manually create** `tests/test-files/from-<test-name>/` directories
+- **ALWAYS clean both input and output directories** before running tests
+- Setup scripts **automatically clean and recreate** all test directories
+- **Always use setup scripts** to create test files:
+  ```bash
+  python3 tests/scripts/setup_category_test_files.py
+  python3 tests/scripts/setup_multi_level_test_files.py
+  ```
+- If you see `tests/test-files/from/` directory, **delete it immediately**
+- Only `from-<test-name>/` directories should exist (e.g., `from-basic/`, `from-category/`)
+
+#### Test Directory Cleanup Process
+- **Before each test run**: Clean both `from-<test-name>/` and `to-<test-name>/` directories
+- **Setup scripts**: Create fresh input files in `from-<test-name>/` directories
+- **Test execution**: Creates output files in `to-<test-name>/` directories
+- **After test run**: Output directories are preserved for inspection
+- **Next test run**: Both directories are cleaned again for fresh start
+
+**Example cleanup process:**
+```bash
+# Before test run
+rm -rf tests/test-files/from-basic tests/test-files/to-basic
+
+# Setup creates fresh input files
+python3 tests/scripts/setup_category_test_files.py
+
+# Test creates output files
+python3 main.py --test-mode --test-name basic
+
+# Outputs preserved for inspection
+# Next test run will clean both directories again
+```
+
+#### Test Output Preservation
+- **Test outputs are preserved** for inspection and validation
+- `to-<test-name>/` directories are **NOT cleaned up** after tests
+- This allows you to:
+  - Inspect the actual files created by tests
+  - Compare input and output structures
+  - Debug filename transformations
+  - Validate processing results
+- **Manual cleanup** may be needed between test runs if you want fresh outputs
+- To clean outputs manually:
+  ```bash
+  rm -rf tests/test-files/to-*
+  ```
+
+### Code Organization Rules
+
+#### Test-Related Files Location
+- **All test files** must be in `tests/` directory
+- **Test fixtures** (CSV files) in `tests/fixtures/`
+- **Test scripts** in `tests/scripts/`
+- **Generated tests** in `tests/unit/`
+- **Test files** in `tests/test-files/`
+
+#### Configuration Files
+- Test-related config files (e.g., `category_mapping.csv`, `user_mapping.csv`) belong in `tests/fixtures/`
+- Main application config files remain in `config/`
+
+### Validation Rules
+
+#### Matrix Verification
+- Tests must **verify against the original CSV matrices**
+- Expected outputs in CSV must match actual test results
+- Any deviation requires updating the CSV matrix, not the test
+
+#### Test Independence
+- Each test must be **independent** and **repeatable**
+- Tests must **clean up after themselves**
+- No test should depend on the state of other tests
+
+#### Error Handling
+- Tests must handle **missing files gracefully**
+- Tests must provide **clear error messages**
+- Tests must **fail fast** when prerequisites aren't met
+
+### Extension Rules
+
+When adding new features:
+1. **Create CSV matrix** in `tests/fixtures/` with test cases
+2. **Create setup script** in `tests/scripts/` to generate test files
+3. **Update scaffolding commands** to generate BATS tests
+4. **Follow existing patterns** from name/date/combined tests
+5. **Never create tests manually** - always use scaffolding
+
+### Documentation Requirements
+
+- All test matrices must have **clear column headers**
+- Setup scripts must provide **usage instructions**
+- Test runners must show **clear progress and results**
+- All test failures must provide **actionable error messages**
+
 ## Test Mode Integration Testing
 
 The test mode functionality allows you to test the complete file processing pipeline using real files in the `tests/test-files` structure.
@@ -17,17 +197,28 @@ The test mode functionality allows you to test the complete file processing pipe
 
 ```
 tests/test-files/
-├── from/                    # Original files (input)
-│   ├── John Doe/           # Person-specific directories
+├── from-basic/                  # Input files for basic test
+│   ├── John Doe/               # Person-specific directories
 │   │   ├── file1.pdf
 │   │   └── file2.docx
 │   ├── Jane Smith/
+│   └── Temp Person/
+├── from-category/               # Input files for category test
+│   ├── John Doe/
+│   ├── Jane Smith/
 │   └── Bob Johnson/
-├── to-basic/               # Output for basic test
-├── to-userid/              # Output for user ID test
-├── to-management/          # Output for management test
-└── to-<test-name>/         # Custom test output directories
+├── from-<test-name>/            # Input files for specific tests
+├── to-basic/                    # Output for basic test
+├── to-userid/                   # Output for user ID test
+├── to-management/               # Output for management test
+└── to-<test-name>/              # Output for specific tests
 ```
+
+**IMPORTANT:** 
+- **NEVER create** `tests/test-files/from/` directory
+- **ALWAYS use** `tests/test-files/from-<test-name>/` directories
+- Each test type has its own input directory: `from-basic`, `from-category`, etc.
+- Setup scripts automatically create the correct `from-<test-name>` directories
 
 ### Running Test Mode
 
@@ -50,196 +241,3 @@ python3 main.py --test-mode --test-name basic --dry-run --verbose
 # Actual processing (not dry-run)
 python3 main.py --test-mode --test-name basic
 ```
-
-### Test Mode Features
-
-- **Separate Output Directories:** Each test creates its own `to-<test-name>` directory
-- **Person Filtering:** Process files for specific people only
-- **Dry Run Mode:** Preview changes without making them
-- **Visual Comparison:** Compare `from` and `to-<test-name>` directories
-- **Comprehensive Logging:** Detailed processing information
-
-### Test Mode BATS Tests
-
-The test mode functionality is also covered by BATS tests:
-
-```bash
-# Run test mode integration tests
-bats tests/unit/test_mode_integration_test.bats
-
-# Run specific test mode tests
-bats --filter "test-mode-basic" tests/unit/test_mode_integration_test.bats
-bats --filter "test-mode-person-filter" tests/unit/test_mode_integration_test.bats
-```
-
-## Regenerating Tests
-
-To regenerate BATS tests from the CSV test matrices:
-
-```bash
-python3 tests/scripts/generate_bats_tests.py name
-python3 tests/scripts/generate_bats_tests.py date
-python3 tests/scripts/generate_bats_tests.py combined
-```
-
-- This will update the test files in `tests/unit/`.
-- The combined command generates `tests/unit/combined_utils_table_test.bats`.
-
-## Running Tests
-
-To run all unit and integration tests at once:
-
-```bash
-./tests/run_tests.sh
-```
-
-This includes:
-- **144 unit tests** (name, date, combined extraction)
-- **4 integration tests** (test mode functionality)
-- **11 test mode BATS tests**
-
-To run a specific test type manually:
-
-```bash
-# Unit tests
-bats --filter "[matcher_function=shorthand]" tests/unit/name_utils_table_test.bats
-bats --filter "[matcher_function=all_matches]" tests/unit/name_utils_table_test.bats
-bats tests/unit/combined_utils_table_test.bats
-
-# Test mode tests
-bats tests/unit/test_mode_integration_test.bats
-
-# Integration tests
-python3 tests/scripts/generate_bats_tests.py integration
-```
-
-## Combined Extraction Matrix
-
-- The combined matrix (`tests/fixtures/combined_extraction_cases.csv`) contains filenames with both names and dates, plus other parts (e.g., "Report").
-- Each row specifies the expected extracted name(s), date(s), raw remainder, and cleaned remainder.
-- The generated tests assert that both name and date extraction work together as expected.
-
-## Combo Extraction Test Scaffolding
-
-The combined extraction tests use the Bash wrapper for the combo function, which is sourced in the BATS test files. Here is how the scaffolding works:
-
-```bash
-# In the BATS test file:
-source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
-
-@test "combo extraction example" {
-    run extract_name_and_date_from_filename "John_Doe_2023-05-15_Report.pdf" "john doe"
-    IFS='|' read -r actual_extracted_name actual_extracted_date actual_raw_remainder actual_name_matched actual_date_matched <<< "$output"
-    # Assertions
-    assert_equal "$actual_extracted_name" "John,Doe"
-    assert_equal "$actual_extracted_date" "2023-05-15"
-    assert_equal "$actual_raw_remainder" "___Report.pdf"
-    assert_equal "$actual_name_matched" "true"
-    assert_equal "$actual_date_matched" "true"
-}
-```
-
-**Example output for the combo function:**
-```
-John,Doe|2023-05-15|___Report.pdf|true|true
-```
-
-**To run the combined tests:**
-```bash
-bats tests/unit/combined_utils_table_test.bats
-```
-
-## Test Fixtures and Scripts
-
-- **Test matrices:** `tests/fixtures/`
-- **Test files:** `tests/test-files/`
-- **Test generator:** `tests/scripts/generate_bats_tests.py`
-- **Generated tests:** `tests/unit/`
-
-## Test Coverage
-
-### Unit Tests (144 total)
-- **Name extraction:** 98 tests covering all matcher functions
-- **Date extraction:** 16 tests covering various date formats
-- **Combined extraction:** 30 tests covering name + date extraction
-
-### Integration Tests (15 total)
-- **Test mode integration:** 11 BATS tests
-- **Main CLI integration:** 4 shell script tests
-
-### Test Scenarios Covered
-- ✅ Basic name extraction (first, last, initials, shorthand)
-- ✅ Date extraction (ISO, US, European, written months)
-- ✅ Combined extraction (name + date in same filename)
-- ✅ User ID mapping and integration
-- ✅ Management flag detection
-- ✅ Person-specific filtering
-- ✅ Error handling and edge cases
-- ✅ File processing pipeline
-- ✅ Output directory management
-
-## Troubleshooting
-
-### Common Issues
-
-**Tests fail after editing a matrix:**
-```bash
-# Regenerate the tests
-python3 tests/scripts/generate_bats_tests.py name
-python3 tests/scripts/generate_bats_tests.py date
-python3 tests/scripts/generate_bats_tests.py combined
-```
-
-**BATS not installed:**
-```bash
-npm install -g bats
-# or
-brew install bats-core
-```
-
-**Test mode tests fail:**
-```bash
-# Check test files structure
-ls -la tests/test-files/from/
-ls -la tests/test-files/to-*/
-
-# Run with verbose output
-python3 main.py --test-mode --test-name basic --dry-run --verbose
-```
-
-**Permission issues:**
-```bash
-# Make test runner executable
-chmod +x tests/run_tests.sh
-```
-
-### Debugging Test Mode
-
-To debug test mode issues:
-
-1. **Check file structure:**
-   ```bash
-   tree tests/test-files/
-   ```
-
-2. **Run with verbose output:**
-   ```bash
-   python3 main.py --test-mode --test-name debug --dry-run --verbose
-   ```
-
-3. **Check specific person:**
-   ```bash
-   python3 main.py --test-mode --test-name debug --person "John Doe" --dry-run --verbose
-   ```
-
-4. **Compare output directories:**
-   ```bash
-   diff -r tests/test-files/from/John\ Doe/ tests/test-files/to-basic/John\ Doe/
-   ```
-
-## More Information
-
-- See `docs/FILENAME_CONVENTIONS.md` and `docs/NAMING_CONVENTIONS.md` for extraction logic details.
-- See `docs/USAGE_GUIDE.md` for comprehensive usage instructions.
-- See `README.md` for comprehensive project documentation.
-- See `IMPLEMENTATION_SUMMARY.md` for technical implementation details. 

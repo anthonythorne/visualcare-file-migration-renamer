@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 """
-VisualCare File Migration Renamer - Main CLI Script.
+VisualCare File Migration Renamer - Main Application.
 
-This script provides a comprehensive tool for renaming files based on extracted names,
-dates, and user IDs. It supports batch processing, dry-run mode, and comprehensive
-error handling. The script can process files from CSV mappings, directories, or test
-files using various extraction and formatting algorithms.
+This module provides the main CLI interface and core processing logic for
+renaming files based on extracted names, dates, and user IDs.
 
 File Path: main.py
 
@@ -14,39 +12,28 @@ File Path: main.py
 @since   1.0.0
 
 Features:
-- Name extraction using fuzzy matching and multiple algorithms
-- Date extraction with fallback to file metadata
-- User ID mapping with CSV-driven configurations
-- Template-based filename formatting
-- Management flag detection
-- Category support (future feature)
-- Comprehensive logging and error handling
-- Test mode for development and validation
+- CSV-based file mapping and processing
+- Multi-level directory support
+- Name and date extraction from filenames
+- User ID mapping and validation
+- Test mode for validation and debugging
 - Dry-run mode for previewing changes
-
-Usage:
-    python3 main.py --csv mapping.csv [options]
-    python3 main.py --input-dir /path/to/files --output-dir /path/to/output [options]
-    python3 main.py --test-mode [options]  # Use tests/test-files structure
 """
 
 import argparse
 import csv
-import os
-import sys
 import logging
 import shutil
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+import sys
 import yaml
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
-# Add core/utils to path for imports
-sys.path.insert(0, str(Path(__file__).parent / 'core' / 'utils'))
-
-from name_matcher import extract_name_and_date_from_filename, clean_filename_remainder_py
-from user_mapping import get_user_id_by_name, format_filename_with_id, load_config
-from date_matcher import extract_date_matches
-from directory_processor import DirectoryProcessor
+from core.utils.category_processor import CategoryProcessor
+from core.utils.directory_processor import DirectoryProcessor
+from core.utils.name_matcher import extract_name_and_date_from_filename, clean_filename_remainder_py
+from core.utils.user_mapping import get_user_id_by_name, format_filename_with_id
 
 
 class FileMigrationRenamer:
@@ -67,6 +54,7 @@ class FileMigrationRenamer:
         self.config = self._load_config()
         self.logger = self._setup_logging()
         self.directory_processor = DirectoryProcessor(self.config)
+        self.category_processor = CategoryProcessor(self.config)
         
     def _load_config(self) -> Dict:
         """
@@ -173,8 +161,33 @@ class FileMigrationRenamer:
             # Detect management flag based on full path keywords.
             management_flag = self._detect_management_flag(path_to_analyze)
             
-            # Detect category from full path (future feature).
-            category = self._detect_category(path_to_analyze)
+            # Detect category from folder structure.
+            category = self._detect_category(path_to_analyze, folder_info)
+            
+            # Remove category name from remainder to avoid duplication
+            if category and folder_info and folder_info.get('folder_only_string'):
+                # Get the category name that corresponds to this category ID
+                category_name = None
+                for name, cat_id in self.category_processor.get_all_categories().items():
+                    if cat_id == category:
+                        category_name = name
+                        break
+                
+                # Remove the category name from the remainder if it's there
+                if category_name:
+                    # Remove the category name from the cleaned remainder
+                    remainder_parts = cleaned_remainder.split()
+                    filtered_parts = [part for part in remainder_parts if part.lower() != category_name.lower()]
+                    cleaned_remainder = ' '.join(filtered_parts).strip()
+            
+            # Get user ID from the name using fuzzy matching.
+            user_id = get_user_id_by_name(name_to_match) if name_matched == 'true' else None
+            
+            # Detect management flag based on full path keywords.
+            management_flag = self._detect_management_flag(path_to_analyze)
+            
+            # Detect category from folder structure.
+            category = self._detect_category(path_to_analyze, folder_info)
             
             # Extract folder date information
             folder_date = None
@@ -186,18 +199,33 @@ class FileMigrationRenamer:
             if extracted_date and date_matched == 'true':
                 try:
                     # Try to parse the extracted date
-                    from datetime import datetime
-                    # This is a simplified date parsing - you may need to enhance this
                     filename_date = datetime.strptime(extracted_date, '%Y-%m-%d')
                 except ValueError:
                     pass
             
+            # Get file system dates
+            modified_date = None
+            created_date = None
+            if folder_info and 'filepath' in folder_info:
+                try:
+                    stat = folder_info['filepath'].stat()
+                    modified_date = datetime.fromtimestamp(stat.st_mtime)
+                    created_date = datetime.fromtimestamp(stat.st_ctime)
+                except (OSError, AttributeError):
+                    pass
+            
             priority_date = self.directory_processor.get_priority_date(
-                folder_date, filename_date, None, None
+                folder_date, filename_date, modified_date, created_date
             )
             
-            # Use priority date if available
-            final_date = priority_date.strftime('%Y-%m-%d') if priority_date else extracted_date
+            # Use priority date if available, otherwise use current date as fallback
+            if priority_date:
+                final_date = priority_date.strftime('%Y-%m-%d')
+            elif extracted_date:
+                final_date = extracted_date
+            else:
+                # Fallback to current date if no date is available
+                final_date = datetime.now().strftime('%Y-%m-%d')
             
             return {
                 'filename': filename,
@@ -244,26 +272,26 @@ class FileMigrationRenamer:
         
         return ""
     
-    def _detect_category(self, filename: str) -> str:
+    def _detect_category(self, filename: str, folder_info: Optional[Dict] = None) -> str:
         """
-        Detect category from filename (future feature).
+        Detect category from filename and folder structure.
         
-        This method will be enhanced to detect document categories based on
-        filename patterns, folder names, or content analysis.
+        This method uses the category processor to detect document categories based on
+        first-level directory names that match category mappings.
         
         Args:
             filename: The filename to analyze for category detection.
+            folder_info: Optional dictionary containing folder path information.
             
         Returns:
-            str: Category string if detected, default category otherwise.
+            str: Category ID if detected, empty string otherwise.
         """
-        config = self.config.get('Category', {})
-        if not config.get('enabled', False):
+        if not folder_info:
             return ""
         
-        # For now, return default category.
-        # Future implementation will include pattern matching and folder analysis.
-        return config.get('default_category', 'general')
+        # Use the category processor to detect category from folder path
+        category_id = self.category_processor.detect_category_from_path(folder_info)
+        return category_id or ""
     
     def format_normalized_filename(self, components: Dict) -> str:
         """
@@ -296,6 +324,10 @@ class FileMigrationRenamer:
                 category=components['category'] or "",
                 management_flag=components['management_flag'] or ""
             )
+            
+            # Apply category formatting if category is detected
+            if components['category'] and self.category_processor.should_include_category_in_filename():
+                formatted = self.category_processor.format_filename_with_category(formatted, components['category'])
             
             # Add file extension
             if not formatted.endswith(original_ext):
@@ -515,6 +547,9 @@ class FileMigrationRenamer:
             
             for filepath, folder_info in files_with_info:
                 filename = filepath.name
+                
+                # Add filepath to folder_info for date extraction
+                folder_info['filepath'] = filepath
                 
                 # Extract components with folder information
                 components = self.extract_file_components(filename, person_name, folder_info)

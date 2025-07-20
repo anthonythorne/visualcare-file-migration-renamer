@@ -15,6 +15,27 @@ if ! command -v bats &> /dev/null; then
     exit 1
 fi
 
+# Setup test files
+echo "Setting up test files..."
+echo "=================================================="
+
+# Clean existing test directories for fresh start
+echo "Cleaning existing test directories..."
+rm -rf tests/test-files/from-* tests/test-files/to-*
+
+echo "Setting up category test files..."
+python3 "$SCRIPT_DIR/scripts/setup_category_test_files.py"
+
+echo "Setting up multi-level test files..."
+python3 "$SCRIPT_DIR/scripts/setup_multi_level_test_files.py"
+
+echo "Setting up basic test files..."
+python3 "$SCRIPT_DIR/scripts/setup_basic_test_files.py"
+
+echo "Test files setup complete!"
+echo "=================================================="
+echo ""
+
 # Run all unit tests
 echo "Running unit tests..."
 bats "$SCRIPT_DIR/unit/"*.bats
@@ -64,5 +85,17 @@ else
     exit 1
 fi
 
+# Test 5: Category system processing
+echo "Test 5: Category system processing"
+python3 main.py --test-mode --test-name category --dry-run --verbose > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "✓ Category system processing test passed"
+else
+    echo "✗ Category system processing test failed"
+    exit 1
+fi
+
 echo ""
-echo "All tests completed successfully!" 
+echo "All tests completed successfully!"
+echo ""
+echo "Test outputs preserved in tests/test-files/to-* directories for inspection." 

@@ -372,6 +372,7 @@ def clean_filename_remainder_py(remainder):
     2. Remove separators in reverse order of the YAML config (least preferred first)
     3. Keep one instance of the most preferred separator
     4. Remove leading/trailing separators (least preferred first)
+    5. Replace forward slashes with spaces (for folder separators)
     """
     if not remainder:
         return remainder
@@ -382,6 +383,9 @@ def clean_filename_remainder_py(remainder):
         ext = '.' + ext
     else:
         base, ext = remainder, ''
+    
+    # Step 0: Replace forward slashes with spaces (for folder separators)
+    base = base.replace('/', ' ')
     
     # Load separators in order (most preferred first)
     seps = load_remainder_allowed_separators()
@@ -469,7 +473,7 @@ def main():
     if function_name in ["extract_first_name_from_filename", "extract_last_name_from_filename", "extract_initials_from_filename", "extract_shorthand_name_from_filename"]:
         result = matcher_function(filename, target_name, clean_filename=False)
     else:
-    result = matcher_function(filename, target_name)
+        result = matcher_function(filename, target_name)
     print(result)  # Only print the result to stdout
 
 if __name__ == "__main__":

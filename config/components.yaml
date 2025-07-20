@@ -124,8 +124,8 @@ DateFolderHandling:
   # Priority for date sources (when full_date_handling is "use_as_date")
   # Higher priority sources override lower priority ones
   date_priority:
-    - "folder_date"      # Date from folder name
     - "filename_date"    # Date extracted from filename
+    - "folder_date"      # Date from folder name
     - "modified_date"    # File modification date
     - "created_date"     # File creation date
 
@@ -133,7 +133,7 @@ DateFolderHandling:
 UserMapping:
   # Path to CSV file containing user ID to name mappings
   # Expected format: user_id,full_name (e.g., "1001,John Doe")
-  mapping_file: "config/user_mapping.csv"
+  mapping_file: "tests/fixtures/user_mapping.csv"
   
   # Column names in the mapping CSV
   id_column: "user_id"
@@ -146,23 +146,33 @@ UserMapping:
   # Options: "error", "skip", "use_name_only"
   missing_id_behavior: "error"
 
-# Category support (for future use)
+# Category support for multi-level directory processing
 Category:
   # Whether to enable category support
-  enabled: false
+  enabled: true
   
   # Default category when none can be determined
   default_category: "general"
   
-  # Category mapping from folder names to category codes
-  folder_mapping:
-    "Hazard & Risk Reports": "hazard"
-    "Management": "management"
-    "Support Plans": "support"
-    "Policies": "policy"
+  # Path to CSV file containing category ID to name mappings
+  mapping_file: "tests/fixtures/category_mapping.csv"
   
-  # Whether to append category to filename
-  append_to_filename: false
+  # Column names in the mapping CSV
+  id_column: "category_id"
+  name_column: "category_name"
+  
+  # Whether to use case insensitive matching
+  case_insensitive: true
+  
+  # Whether to only check first-level directories for category matches
+  first_level_only: true
+  
+  # Whether to append category ID to filename
+  append_to_filename: true
+  
+  # Where to place the category ID in the filename
+  # Options: "prefix", "suffix", "separate_component"
+  placement: "suffix"
 
 # Management flag configuration
 ManagementFlag:
@@ -210,9 +220,10 @@ Name:
 Date:
   # Date format used for the final filename (strftime compatible)
   format: "%Y-%m-%d"  # Example: 2023-05-15
-  # Priority order for extracting date: options are 'filename', 'modified', 'created'
+  # Priority order for extracting date: options are 'filename', 'foldername', 'modified', 'created'
   date_priority_order:
     - filename
+    - foldername
     - modified
     - created
 
@@ -223,5 +234,6 @@ Remainder:
     - "-"  # hyphen
     - "_"  # underscore
     - "."  # period
+    - "/"  # forward slash (for folder separators)
     # Add more as needed
   preserve_remainder_separators: true  # Whether to preserve original separators in the remainder (duplicates collapsed) 

@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 
 """
-Setup Multi-Level Directory Test Files.
+Setup Category Test Files.
 
-This script creates test files with multi-level directory structures
-in the tests/test-files/from/ directory for testing the multi-level
-directory processing functionality.
+This script creates test files with category directory structures
+in the tests/test-files/from-category/ directory for testing the category
+system functionality.
 
-File Path: tests/scripts/setup_multi_level_test_files.py
+File Path: tests/scripts/setup_category_test_files.py
 
 @package VisualCare\\FileMigration\\Tests
 @since   1.0.0
 
 Creates test files with:
-- Multi-level directory structures
-- Year folders (2023, 2024, 2025)
-- Category folders (WHS, Medical, CHAPS, etc.)
-- Date-based filenames
-- Person names in filenames
+- Category directory structures (WHS, Medical, Financial, etc.)
+- Person folders (John Doe, Jane Smith, Bob Johnson)
+- Subdirectories within categories
+- Files with and without categories
 - Various file types (PDF, DOCX, JPG, etc.)
 """
 
@@ -31,22 +30,24 @@ from typing import Dict, List
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 
-def setup_multi_level_test_files():
-    """Set up multi-level directory test files for testing."""
+def setup_category_test_files():
+    """Set up category test files for testing."""
     
     # Get project root and test files directory
     project_root = Path(__file__).parent.parent.parent
     test_files_dir = project_root / 'tests' / 'test-files'
-    from_dir = test_files_dir / 'from-multi-level'
+    from_dir = test_files_dir / 'from-category'
+    to_dir = test_files_dir / 'to-category'
     
     # Load test cases from CSV
     test_cases = load_test_cases()
     
-    print("Setting up Multi-Level Directory Test Files")
+    print("Setting up Category Test Files")
     print("=" * 50)
     
     # Clean up existing input test files only (preserve output directories for inspection)
     cleanup_existing_files(from_dir)
+    # Note: Output directories are preserved for inspection
     
     # Create test files for each test case
     created_files = []
@@ -58,18 +59,18 @@ def setup_multi_level_test_files():
     
     print(f"\nCreated {len(created_files)} test files")
     print(f"Test files location: {from_dir}")
-    print("\nTo run the multi-level directory test:")
-    print("python3 main.py --test-mode --test-name multi-level --dry-run")
+    print("\nTo run the category test:")
+    print("python3 main.py --test-mode --test-name category --dry-run")
     print("\nTo run with actual processing:")
-    print("python3 main.py --test-mode --test-name multi-level")
+    print("python3 main.py --test-mode --test-name category")
     
     return created_files
 
 
 def load_test_cases() -> List[Dict]:
-    """Load test cases from the multi-level directory fixture."""
+    """Load test cases from the category fixture."""
     test_cases = []
-    fixture_path = Path(__file__).parent.parent / 'fixtures' / 'multi_level_directory_cases.csv'
+    fixture_path = Path(__file__).parent.parent / 'fixtures' / 'category_test_cases.csv'
     
     if not fixture_path.exists():
         print(f"Error: Test fixture not found: {fixture_path}")
@@ -83,20 +84,21 @@ def load_test_cases() -> List[Dict]:
     return test_cases
 
 
-def cleanup_existing_files(from_dir: Path):
+def cleanup_existing_files(test_dir: Path):
     """Clean up existing test files while preserving directory structure."""
-    print("Cleaning up existing test files...")
-    
-    # Create directory if it doesn't exist
-    from_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Remove all files but keep directories
-    for person_dir in from_dir.iterdir():
-        if person_dir.is_dir():
-            for file_path in person_dir.rglob('*'):
-                if file_path.is_file():
-                    file_path.unlink()
-            print(f"Cleaned: {person_dir.name}/")
+    if test_dir.exists():
+        print(f"Cleaning up existing test files in {test_dir.name}...")
+        
+        # Remove all files but keep directories
+        for person_dir in test_dir.iterdir():
+            if person_dir.is_dir():
+                for file_path in person_dir.rglob('*'):
+                    if file_path.is_file():
+                        file_path.unlink()
+                print(f"Cleaned: {person_dir.name}/")
+    else:
+        print(f"Creating directory: {test_dir}")
+        test_dir.mkdir(parents=True, exist_ok=True)
 
 
 def create_test_file(from_dir: Path, test_case: Dict) -> Path:
@@ -105,28 +107,30 @@ def create_test_file(from_dir: Path, test_case: Dict) -> Path:
     # Parse the full path
     full_path = test_case['full_path']
     person_name = test_case['person_name']
-    description = test_case['description']
+    expected_filename = test_case['expected_filename']
+    expected_category = test_case['expected_category']
     
     # Create the full directory structure
     file_path = from_dir / full_path
     file_path.parent.mkdir(parents=True, exist_ok=True)
     
     # Create file content based on the test case
-    content = f"""Test file for multi-level directory processing.
+    content = f"""Test file for category system processing.
 
 Test Case: {test_case['test_case']}
 Person: {person_name}
-Description: {description}
-Expected Filename: {test_case['expected_filename']}
+Full Path: {full_path}
+Expected Filename: {expected_filename}
+Expected Category: {expected_category}
 
-This is a test file created for validating multi-level directory
-processing functionality in the VisualCare File Migration Renamer.
+This is a test file created for validating category system
+functionality in the VisualCare File Migration Renamer.
 
-File: {full_path}
 Expected User ID: {test_case['expected_user_id']}
 Expected Name: {test_case['expected_name']}
 Expected Remainder: {test_case['expected_remainder']}
 Expected Date: {test_case['expected_date']}
+Description: {test_case['description']}
 
 Date Information:
 - Folder Date: {test_case.get('folder_date', 'None')}
@@ -143,22 +147,22 @@ Date Information:
     return file_path
 
 
-def run_multi_level_test():
-    """Run the multi-level directory test using the main script."""
-    print("\nRunning Multi-Level Directory Test")
+def run_category_test():
+    """Run the category test using the main script."""
+    print("\nRunning Category Test")
     print("=" * 50)
     
     # Import and run the main script
     import subprocess
     import sys
     
-    # Run the test mode with multi-level test name
+    # Run the test mode with category test name
     cmd = [
         sys.executable, 
         'main.py', 
         '--test-mode', 
         '--test-name', 
-        'multi-level',
+        'category',
         '--dry-run'
     ]
     
@@ -181,14 +185,14 @@ def main():
     """Main function to set up and optionally run the test."""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Set up multi-level directory test files")
+    parser = argparse.ArgumentParser(description="Set up category test files")
     parser.add_argument('--run-test', action='store_true', help='Run the test after setup')
     parser.add_argument('--actual', action='store_true', help='Run with actual processing (not dry-run)')
     
     args = parser.parse_args()
     
     # Set up test files
-    created_files = setup_multi_level_test_files()
+    created_files = setup_category_test_files()
     
     if args.run_test:
         if args.actual:
@@ -202,18 +206,18 @@ def main():
                 'main.py', 
                 '--test-mode', 
                 '--test-name', 
-                'multi-level'
+                'category'
             ]
             
             print(f"Running: {' '.join(cmd)}")
             result = subprocess.run(cmd)
             print(f"Exit code: {result.returncode}")
         else:
-            success = run_multi_level_test()
+            success = run_category_test()
             if success:
-                print("✅ Multi-level directory test completed successfully!")
+                print("✅ Category test completed successfully")
             else:
-                print("❌ Multi-level directory test failed!")
+                print("❌ Category test failed")
                 sys.exit(1)
 
 
