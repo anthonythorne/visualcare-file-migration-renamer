@@ -35,11 +35,11 @@ python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-m
 
 ### Example 1: Support Plan Document
 **Original:** `F016 Sarah Support Plan 16.04.23 - v5.0.docx`  
-**Processed:** `1004_Sarah Smith_F016 Support Plan v5.0_2023-04-16.docx`
+**Processed:** `1001_John Doe_F016 Support Plan v5.0_2023-04-16.docx`
 
 ### Example 2: Hazard Report
-**Original:** `Hazard Report - Crates under legs of lounge - Sarah Smith.pdf`  
-**Processed:** `1004_Sarah Smith_Hazard Report Crates under legs of lounge.pdf`
+**Original:** `Hazard Report - Crates under legs of lounge - John Doe.pdf`
+**Processed:** `1001_John Doe_Hazard Report Crates under legs of lounge.pdf`
 
 ### Example 3: Management Document
 **Original:** `management_report_2023-12-01.pdf`  
@@ -109,7 +109,7 @@ user_id,full_name
 1001,John Doe
 1002,Jane Smith
 1003,Bob Johnson
-1004,Sarah Smith
+1001,John Doe
 1005,Michael Brown
 ```
 

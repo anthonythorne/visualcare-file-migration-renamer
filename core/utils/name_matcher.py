@@ -469,7 +469,7 @@ def main():
     if function_name in ["extract_first_name_from_filename", "extract_last_name_from_filename", "extract_initials_from_filename", "extract_shorthand_name_from_filename"]:
         result = matcher_function(filename, target_name, clean_filename=False)
     else:
-        result = matcher_function(filename, target_name)
+    result = matcher_function(filename, target_name)
     print(result)  # Only print the result to stdout
 
 if __name__ == "__main__":

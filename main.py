@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).parent / 'core' / 'utils'))
 from name_matcher import extract_name_and_date_from_filename, clean_filename_remainder_py
 from user_mapping import get_user_id_by_name, format_filename_with_id, load_config
 from date_matcher import extract_date_matches
+from directory_processor import DirectoryProcessor
 
 
 class FileMigrationRenamer:
@@ -65,6 +66,7 @@ class FileMigrationRenamer:
         self.config_path = config_path or str(Path(__file__).parent / 'config' / 'components.yaml')
         self.config = self._load_config()
         self.logger = self._setup_logging()
+        self.directory_processor = DirectoryProcessor(self.config)
         
     def _load_config(self) -> Dict:
         """
@@ -103,63 +105,113 @@ class FileMigrationRenamer:
         )
         return logging.getLogger(__name__)
     
-    def extract_file_components(self, filename: str, name_to_match: str) -> Dict:
+    def extract_file_components(self, filename: str, name_to_match: str, folder_info: Optional[Dict] = None) -> Dict:
         """
         Extract all components from a filename using multiple extraction algorithms.
         
         This method orchestrates the extraction of name, date, user ID, management flag,
-        and category from a filename. It uses the name_matcher, date_matcher, and
-        user_mapping utilities to perform comprehensive extraction.
+        and category from a filename or full path. It uses the name_matcher, date_matcher,
+        user_mapping, and directory_processor utilities to perform comprehensive extraction.
         
         Args:
             filename: The filename to process and extract components from.
             name_to_match: The name to match against for extraction algorithms.
+            folder_info: Optional dictionary containing folder path information.
             
         Returns:
             Dict: Dictionary containing all extracted components including:
                 - filename: Original filename
                 - name_to_match: Target name for matching
-                - extracted_name: Extracted name from filename
-                - extracted_date: Extracted date from filename
-                - raw_remainder: Filename with name and date removed (uncleaned)
+                - extracted_name: Extracted name from full path
+                - extracted_date: Extracted date from full path
+                - raw_remainder: Full path with name and date removed (uncleaned)
                 - cleaned_remainder: Normalized remainder with separators cleaned
                 - name_matched: Boolean indicating if name was successfully extracted
                 - date_matched: Boolean indicating if date was successfully extracted
                 - user_id: User ID mapped from the name
                 - management_flag: Management flag if detected
                 - category: Category if detected (future feature)
+                - folder_date: Date from folder structure (if any)
         
         Returns None if extraction fails completely.
         """
         try:
-            # Extract name and date using the name_matcher utility.
-            result = extract_name_and_date_from_filename(filename, name_to_match)
+            # Use full path string if available, otherwise use filename
+            path_to_analyze = filename
+            if folder_info and folder_info.get('full_path_string'):
+                path_to_analyze = folder_info['full_path_string']
+            
+            # Extract name and date using the name_matcher utility from the full path.
+            result = extract_name_and_date_from_filename(path_to_analyze, name_to_match)
             extracted_name, extracted_date, raw_remainder, name_matched, date_matched = result.split('|')
             
-            # Clean the remainder using separator normalization.
-            cleaned_remainder = clean_filename_remainder_py(raw_remainder)
+            # Process folder remainder if available
+            if folder_info and folder_info.get('folder_only_string'):
+                # Process the folder string to create remainder
+                folder_remainder = self.directory_processor.process_folder_remainder(
+                    folder_info['folder_only_string'], name_to_match
+                )
+                
+                # Combine folder remainder with filename remainder
+                if folder_remainder:
+                    if raw_remainder:
+                        # If both exist, combine them with a space
+                        combined_remainder = f"{folder_remainder} {raw_remainder}"
+                    else:
+                        combined_remainder = folder_remainder
+                else:
+                    combined_remainder = raw_remainder
+            else:
+                combined_remainder = raw_remainder
+            
+            # Clean the combined remainder using separator normalization.
+            cleaned_remainder = clean_filename_remainder_py(combined_remainder)
             
             # Get user ID from the name using fuzzy matching.
             user_id = get_user_id_by_name(name_to_match) if name_matched == 'true' else None
             
-            # Detect management flag based on filename keywords.
-            management_flag = self._detect_management_flag(filename)
+            # Detect management flag based on full path keywords.
+            management_flag = self._detect_management_flag(path_to_analyze)
             
-            # Detect category from filename (future feature).
-            category = self._detect_category(filename)
+            # Detect category from full path (future feature).
+            category = self._detect_category(path_to_analyze)
+            
+            # Extract folder date information
+            folder_date = None
+            if folder_info:
+                folder_date = folder_info.get('folder_date')
+            
+            # Determine priority date
+            filename_date = None
+            if extracted_date and date_matched == 'true':
+                try:
+                    # Try to parse the extracted date
+                    from datetime import datetime
+                    # This is a simplified date parsing - you may need to enhance this
+                    filename_date = datetime.strptime(extracted_date, '%Y-%m-%d')
+                except ValueError:
+                    pass
+            
+            priority_date = self.directory_processor.get_priority_date(
+                folder_date, filename_date, None, None
+            )
+            
+            # Use priority date if available
+            final_date = priority_date.strftime('%Y-%m-%d') if priority_date else extracted_date
             
             return {
                 'filename': filename,
                 'name_to_match': name_to_match,
                 'extracted_name': extracted_name,
-                'extracted_date': extracted_date,
+                'extracted_date': final_date,
                 'raw_remainder': raw_remainder,
                 'cleaned_remainder': cleaned_remainder,
                 'name_matched': name_matched == 'true',
-                'date_matched': date_matched == 'true',
+                'date_matched': date_matched == 'true' or priority_date is not None,
                 'user_id': user_id,
                 'management_flag': management_flag,
-                'category': category
+                'category': category,
+                'folder_date': folder_date
             }
         except Exception as e:
             self.logger.error(f"Error extracting components from {filename}: {e}")
@@ -346,12 +398,12 @@ class FileMigrationRenamer:
     def process_directory(self, input_dir: str, output_dir: str, name_mapping: Dict[str, str], 
                          dry_run: bool = False) -> List[Dict]:
         """
-        Process all files in a directory.
+        Process all files in a directory with multi-level support.
         
         Args:
             input_dir: Input directory path
             output_dir: Output directory path
-            name_mapping: Dictionary mapping filenames to names
+            name_mapping: Dictionary mapping directory names to person names
             dry_run: If True, don't actually process files
             
         Returns:
@@ -369,66 +421,75 @@ class FileMigrationRenamer:
         if not dry_run:
             output_path.mkdir(parents=True, exist_ok=True)
         
-        # Process each file
-        for filepath in input_path.rglob('*'):
-            if filepath.is_file():
-                filename = filepath.name
-                name_to_match = name_mapping.get(filename, "")
-                
-                if not name_to_match:
-                    results.append({'error': f"No name mapping for: {filename}"})
-                    continue
-                
-                # Extract components
-                components = self.extract_file_components(filename, name_to_match)
-                if not components:
-                    results.append({'error': f"Failed to extract components from {filename}"})
-                    continue
-                
-                # Format new filename
-                new_filename = self.format_normalized_filename(components)
-                
-                result = {
-                    'original_filename': filename,
-                    'new_filename': new_filename,
-                    'components': components,
-                    'success': True
-                }
-                
-                if not dry_run:
-                    try:
-                        # Copy to output directory with new name
-                        new_filepath = output_path / new_filename
-                        shutil.copy2(filepath, new_filepath)
-                        result['copied'] = True
-                        self.logger.info(f"Copied: {filename} -> {new_filename}")
-                    except Exception as e:
-                        result['error'] = f"Failed to copy {filename}: {e}"
-                        result['success'] = False
-                        self.logger.error(result['error'])
-                else:
-                    result['copied'] = False
-                    self.logger.info(f"DRY RUN - Would copy: {filename} -> {new_filename}")
-                
-                results.append(result)
+        # Get all files recursively with folder information
+        files_with_info = self.directory_processor.get_files_recursive(input_path)
+        
+        for filepath, folder_info in files_with_info:
+            filename = filepath.name
+            
+            # Determine person name from directory structure
+            # For multi-level directories, use the top-level directory name as person name
+            relative_path = filepath.relative_to(input_path)
+            person_name = relative_path.parts[0] if relative_path.parts else ""
+            
+            # Use name_mapping if provided, otherwise use directory name
+            name_to_match = name_mapping.get(person_name, person_name)
+            
+            if not name_to_match:
+                results.append({'error': f"No name mapping for: {person_name}"})
+                continue
+            
+            # Extract components with folder information
+            components = self.extract_file_components(filename, name_to_match, folder_info)
+            if not components:
+                results.append({'error': f"Failed to extract components from {filename}"})
+                continue
+            
+            # Format new filename
+            new_filename = self.format_normalized_filename(components)
+            
+            result = {
+                'original_filename': str(relative_path),
+                'new_filename': new_filename,
+                'components': components,
+                'person': person_name,
+                'success': True
+            }
+            
+            if not dry_run:
+                try:
+                    # Copy to output directory with new name
+                    new_filepath = output_path / new_filename
+                    shutil.copy2(filepath, new_filepath)
+                    result['copied'] = True
+                    self.logger.info(f"Copied: {relative_path} -> {new_filename}")
+                except Exception as e:
+                    result['error'] = f"Failed to copy {relative_path}: {e}"
+                    result['success'] = False
+                    self.logger.error(result['error'])
+            else:
+                result['copied'] = False
+                self.logger.info(f"DRY RUN - Would copy: {relative_path} -> {new_filename}")
+            
+            results.append(result)
         
         return results
     
     def process_test_files(self, dry_run: bool = False, person_filter: Optional[str] = None, test_name: str = "basic") -> List[Dict]:
         """
-        Process files using the tests/test-files structure.
+        Process files using the tests/test-files structure with multi-level support.
         
         Args:
             dry_run: If True, don't actually process files
             person_filter: If specified, only process files for this person
-            test_name: Name of the test (determines output directory: to-<test_name>)
+            test_name: Name of the test (determines input directory: from-<test_name> and output directory: to-<test_name>)
             
         Returns:
             List of processing results
         """
         results = []
         test_files_dir = Path(__file__).parent / 'tests' / 'test-files'
-        from_dir = test_files_dir / 'from'
+        from_dir = test_files_dir / f'from-{test_name}'
         to_dir = test_files_dir / f'to-{test_name}'
         
         if not from_dir.exists():
@@ -449,45 +510,46 @@ class FileMigrationRenamer:
             if not dry_run:
                 output_person_dir.mkdir(parents=True, exist_ok=True)
             
-            # Process each file in the person's directory
-            for filepath in person_dir.iterdir():
-                if filepath.is_file():
-                    filename = filepath.name
-                    
-                    # Extract components
-                    components = self.extract_file_components(filename, person_name)
-                    if not components:
-                        results.append({'error': f"Failed to extract components from {filename}"})
-                        continue
-                    
-                    # Format new filename
-                    new_filename = self.format_normalized_filename(components)
-                    
-                    result = {
-                        'person': person_name,
-                        'original_filename': filename,
-                        'new_filename': new_filename,
-                        'components': components,
-                        'success': True,
-                        'test_name': test_name
-                    }
-                    
-                    if not dry_run:
-                        try:
-                            # Copy to output directory with new name
-                            new_filepath = output_person_dir / new_filename
-                            shutil.copy2(filepath, new_filepath)
-                            result['copied'] = True
-                            self.logger.info(f"Copied: {person_name}/{filename} -> {test_name}/{person_name}/{new_filename}")
-                        except Exception as e:
-                            result['error'] = f"Failed to copy {filename}: {e}"
-                            result['success'] = False
-                            self.logger.error(result['error'])
-                    else:
-                        result['copied'] = False
-                        self.logger.info(f"DRY RUN - Would copy: {person_name}/{filename} -> {test_name}/{person_name}/{new_filename}")
-                    
-                    results.append(result)
+            # Get all files recursively with folder information
+            files_with_info = self.directory_processor.get_files_recursive(person_dir)
+            
+            for filepath, folder_info in files_with_info:
+                filename = filepath.name
+                
+                # Extract components with folder information
+                components = self.extract_file_components(filename, person_name, folder_info)
+                if not components:
+                    results.append({'error': f"Failed to extract components from {filename}"})
+                    continue
+                
+                # Format new filename
+                new_filename = self.format_normalized_filename(components)
+                
+                result = {
+                    'person': person_name,
+                    'original_filename': str(filepath.relative_to(person_dir)),
+                    'new_filename': new_filename,
+                    'components': components,
+                    'success': True,
+                    'test_name': test_name
+                }
+                
+                if not dry_run:
+                    try:
+                        # Copy to output directory with new name
+                        new_filepath = output_person_dir / new_filename
+                        shutil.copy2(filepath, new_filepath)
+                        result['copied'] = True
+                        self.logger.info(f"Copied: {person_name}/{filepath.relative_to(person_dir)} -> {test_name}/{person_name}/{new_filename}")
+                    except Exception as e:
+                        result['error'] = f"Failed to copy {filename}: {e}"
+                        result['success'] = False
+                        self.logger.error(result['error'])
+                else:
+                    result['copied'] = False
+                    self.logger.info(f"DRY RUN - Would copy: {person_name}/{filepath.relative_to(person_dir)} -> {test_name}/{person_name}/{new_filename}")
+                
+                results.append(result)
         
         return results
     

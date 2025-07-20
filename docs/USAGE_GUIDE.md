@@ -172,7 +172,7 @@ user_id,full_name
 1001,John Doe
 1002,Jane Smith
 1003,Bob Johnson
-1004,Sarah Smith
+1001,John Doe
 1005,Michael Brown
 ```
 
@@ -202,17 +202,17 @@ template: "{id}_{name}_{category}_{remainder}_{date}"
 
 ### Example Transformations
 
-**Input:** `F016 Sarah Support Plan 16.04.23 - v5.0.docx`
+**Input:** `F016 John Support Plan 16.04.23 - v5.0.docx`
 - Client ID: 1001
-- Client Name: Sarah Smith
+- Client Name: John Doe
 - Date: 16.04.23 → 2023-04-16
-- **Output:** `1001_Sarah Smith_F016SarahSupportPlanV5.0_2023-04-16.docx`
+- **Output:** `1001_John Doe_F016JohnSupportPlanV5.0_2023-04-16.docx`
 
-**Input:** `Hazard Report - Crates under legs of lounge - Sarah Smith.pdf`
+**Input:** `Hazard Report - Crates under legs of lounge - John Doe.pdf`
 - Client ID: 1001
-- Client Name: Sarah Smith
+- Client Name: John Doe
 - Date: From file metadata → 2023-05-12
-- **Output:** `1001_Sarah Smith_HazardReportCratesUnderLegsofLounge_2023-05-12.pdf`
+- **Output:** `1001_John Doe_HazardReportCratesUnderLegsofLounge_2023-05-12.pdf`
 
 ## Advanced Features
 

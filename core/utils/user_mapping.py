@@ -92,7 +92,7 @@ def create_default_mapping(mapping_path: Path, id_column: str, name_column: str)
         {id_column: '1001', name_column: 'John Doe'},
         {id_column: '1002', name_column: 'Jane Smith'},
         {id_column: '1003', name_column: 'Bob Johnson'},
-        {id_column: '1004', name_column: 'Sarah Smith'},
+        {id_column: '1001', name_column: 'John Doe'},
         {id_column: '1005', name_column: 'Michael Brown'},
     ]
     
@@ -161,7 +161,7 @@ def extract_user_id_from_filename(filename: str, name_to_match: str) -> Optional
     # Common patterns: ID at start, ID with separators, etc.
     import re
     
-    # Pattern for user ID at start of filename (e.g., "1234_filename.pdf")
+    # Pattern for user ID at start of filename (e.g., "1001_filename.pdf")
     start_pattern = r'^(\d{3,5})[_\-\s]'
     match = re.search(start_pattern, filename)
     if match:
@@ -170,7 +170,7 @@ def extract_user_id_from_filename(filename: str, name_to_match: str) -> Optional
         if get_name_by_user_id(potential_id):
             return potential_id
     
-    # Pattern for user ID anywhere in filename (e.g., "filename_1234_something.pdf")
+    # Pattern for user ID anywhere in filename (e.g., "filename_1001_something.pdf")
     anywhere_pattern = r'[_\-\s](\d{3,5})[_\-\s]'
     match = re.search(anywhere_pattern, filename)
     if match:

@@ -373,7 +373,7 @@ if __name__ == '__main__':
     if args.test_type == 'integration':
         run_integration_test()
     elif args.test_type:
-        generate_bats_tests(args.test_type) 
+    generate_bats_tests(args.test_type) 
     else:
         print("No test_type specified. Generating all test types: name, date, combined.\n")
         for t in ['name', 'date', 'combined']:

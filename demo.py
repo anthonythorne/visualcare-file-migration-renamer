@@ -57,7 +57,7 @@ def demo_name_extraction():
         ("jane-smith-proposal.docx", "jane smith"),
         ("bob.johnson.2023.10.05.receipt.pdf", "bob johnson"),
         ("jsmith_final_report_2024-01-15.pdf", "jane smith"),
-        ("F016 Sarah Support Plan 16.04.23 - v5.0.docx", "sarah smith"),
+        ("F016 John Support Plan 16.04.23 - v5.0.docx", "john doe"),
     ]
     
     for filename, name_to_match in test_cases:
@@ -82,7 +82,7 @@ def demo_user_mapping():
     """Demonstrate user ID mapping functionality."""
     print("\n=== User ID Mapping Demo ===")
     
-    test_names = ["John Doe", "Jane Smith", "Bob Johnson", "Sarah Smith", "Unknown Person"]
+    test_names = ["John Doe", "Jane Smith", "Bob Johnson", "Alice Brown", "Unknown Person"]
     
     for name in test_names:
         user_id = get_user_id_by_name(name)
@@ -109,8 +109,8 @@ def demo_filename_formatting():
             'management_flag': ''
         },
         {
-            'user_id': '1004',
-            'name': 'Sarah Smith',
+            'user_id': '1001',
+            'name': 'John Doe',
             'date': '2023-04-16',
             'remainder': 'F016 Support Plan v5.0',
             'category': '',
@@ -151,14 +151,14 @@ def demo_real_world_examples():
     
     examples = [
         {
-            'original': 'F016 Sarah Support Plan 16.04.23 - v5.0.docx',
-            'name': 'sarah smith',
-            'expected': '1234_Sarah Smith_F016SarahSupportPlanV5.0_20230416.docx'
+            'original': 'F016 John Support Plan 16.04.23 - v5.0.docx',
+            'name': 'john doe',
+            'expected': '1001_John Doe_F016JohnSupportPlanV5.0_20230416.docx'
         },
         {
-            'original': 'Hazard Report - Crates under legs of lounge - Sarah Smith.pdf',
-            'name': 'sarah smith',
-            'expected': '1234_Sarah Smith_HazardReportCratesUnderLegsofLounge_20230512.pdf'
+            'original': 'Hazard Report - Crates under legs of lounge - John Doe.pdf',
+            'name': 'john doe',
+            'expected': '1001_John Doe_HazardReportCratesUnderLegsofLounge_20230512.pdf'
         }
     ]
     

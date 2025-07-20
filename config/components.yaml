@@ -19,10 +19,120 @@ FilenameFormat:
   # Whether to clean up multiple consecutive separators in final filename
   cleanup_separators: true
 
+# File ignore configuration
+FileIgnore:
+  # List of files to ignore during processing
+  # These files will be skipped entirely
+  ignore_files:
+    - "desktop.ini"
+    - "Thumbs.db"
+    - ".DS_Store"
+    - "~tmp*"
+    - "*.tmp"
+    - "*.temp"
+    - "*.bak"
+    - "*.backup"
+    - "*.old"
+    - "*.orig"
+  
+  # List of directories to ignore during processing
+  # These directories and their contents will be skipped entirely
+  ignore_directories:
+    - ".git"
+    - ".svn"
+    - "__pycache__"
+    - "node_modules"
+    - ".vscode"
+    - ".idea"
+  
+  # Whether to ignore hidden files (files starting with .)
+  ignore_hidden_files: true
+  
+  # Whether to ignore system files
+  ignore_system_files: true
+
+# Multi-level directory handling configuration
+DirectoryStructure:
+  # Whether to enable multi-level directory processing
+  enabled: true
+  
+  # Maximum depth to process (0 = unlimited, 1 = immediate subdirectories only, etc.)
+  max_depth: 0
+  
+  # How to handle directory names in the filename
+  # Options: "include", "exclude", "smart"
+  # - "include": Include all directory names in the path
+  # - "exclude": Exclude directory names from filename
+  # - "smart": Include meaningful directory names, exclude system/utility directories
+  directory_handling: "smart"
+  
+  # Directory names to exclude from filename (when using smart mode)
+  exclude_directories:
+    - "MISC"
+    - "PERSONAL"
+    - "Previous"
+    - "Old"
+    - "Archive"
+    - "Backup"
+    - "Temp"
+    - "Temporary"
+  
+  # Whether to flatten directory structure in output
+  # If true, all files will be placed in a single output directory
+  # If false, maintain relative directory structure
+  flatten_structure: true
+  
+  # Folder separator replacement for remainder processing
+  # Replace folder separators with this character in remainder
+  folder_separator_replacement: " "
+  
+  # Whether to preserve YYYY folders in remainder
+  # If true, year folders like "2023", "2024" are kept in remainder
+  preserve_year_folders: true
+  
+  # Whether to remove date folders from remainder
+  # If true, date folders like "01.06.2023" are removed from remainder
+  remove_date_folders: true
+
+# Year and date folder handling
+DateFolderHandling:
+  # Whether to enable year/date folder processing
+  enabled: true
+  
+  # Pattern to match year-only folders (e.g., "2023", "2024", "2025")
+  year_pattern: r"^\d{4}$"
+  
+  # Pattern to match full date folders (e.g., "25.01.15", "2023.07.25")
+  full_date_pattern: r"^\d{2}\.\d{2}\.\d{4}$|^\d{4}\.\d{2}\.\d{2}$"
+  
+  # How to handle year folders
+  # Options: "prepend", "append", "ignore", "use_as_date"
+  # - "prepend": Add year to beginning of filename
+  # - "append": Add year to end of filename  
+  # - "ignore": Don't include year in filename
+  # - "use_as_date": Use year as the file date
+  year_handling: "prepend"
+  
+  # How to handle full date folders
+  # Options: "use_as_date", "prepend", "append", "ignore"
+  # - "use_as_date": Use folder date as the file date (overrides file date)
+  # - "prepend": Add date to beginning of filename
+  # - "append": Add date to end of filename
+  # - "ignore": Don't include date in filename
+  full_date_handling: "use_as_date"
+  
+  # Priority for date sources (when full_date_handling is "use_as_date")
+  # Higher priority sources override lower priority ones
+  date_priority:
+    - "folder_date"      # Date from folder name
+    - "filename_date"    # Date extracted from filename
+    - "modified_date"    # File modification date
+    - "created_date"     # File creation date
+
 # User ID mapping configuration
 UserMapping:
   # Path to CSV file containing user ID to name mappings
-  # Expected format: user_id,full_name (e.g., "1234,Sarah Smith")
+  # Expected format: user_id,full_name (e.g., "1001,John Doe")
   mapping_file: "config/user_mapping.csv"
   
   # Column names in the mapping CSV
