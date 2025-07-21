@@ -510,12 +510,10 @@ class FileMigrationRenamer:
     def process_test_files(self, dry_run: bool = False, person_filter: Optional[str] = None, test_name: str = "basic") -> List[Dict]:
         """
         Process files using the tests/test-files structure with multi-level support.
-        
         Args:
             dry_run: If True, don't actually process files
             person_filter: If specified, only process files for this person
             test_name: Name of the test (determines input directory: from-<test_name> and output directory: to-<test_name>)
-            
         Returns:
             List of processing results
         """
@@ -523,43 +521,27 @@ class FileMigrationRenamer:
         test_files_dir = Path(__file__).parent / 'tests' / 'test-files'
         from_dir = test_files_dir / f'from-{test_name}'
         to_dir = test_files_dir / f'to-{test_name}'
-        
         if not from_dir.exists():
             results.append({'error': f"Test files directory not found: {from_dir}"})
             return results
-        
-        # Get person directories
         person_dirs = [d for d in from_dir.iterdir() if d.is_dir()]
         if person_filter:
             person_dirs = [d for d in person_dirs if person_filter.lower() in d.name.lower()]
-        
         for person_dir in person_dirs:
             person_name = person_dir.name
             self.logger.info(f"Processing person: {person_name}")
-            
-            # Create corresponding output directory
             output_person_dir = to_dir / person_name
             if not dry_run:
                 output_person_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Get all files recursively with folder information
             files_with_info = self.directory_processor.get_files_recursive(person_dir)
-            
             for filepath, folder_info in files_with_info:
                 filename = filepath.name
-                
-                # Add filepath to folder_info for date extraction
                 folder_info['filepath'] = filepath
-                
-                # Extract components with folder information
                 components = self.extract_file_components(filename, person_name, folder_info)
                 if not components:
                     results.append({'error': f"Failed to extract components from {filename}"})
                     continue
-                
-                # Format new filename
                 new_filename = self.format_normalized_filename(components)
-                
                 result = {
                     'person': person_name,
                     'original_filename': str(filepath.relative_to(person_dir)),
@@ -568,10 +550,8 @@ class FileMigrationRenamer:
                     'success': True,
                     'test_name': test_name
                 }
-                
                 if not dry_run:
                     try:
-                        # Copy to output directory with new name
                         new_filepath = output_person_dir / new_filename
                         shutil.copy2(filepath, new_filepath)
                         result['copied'] = True
@@ -583,9 +563,7 @@ class FileMigrationRenamer:
                 else:
                     result['copied'] = False
                     self.logger.info(f"DRY RUN - Would copy: {person_name}/{filepath.relative_to(person_dir)} -> {test_name}/{person_name}/{new_filename}")
-                
                 results.append(result)
-        
         return results
     
     def print_summary(self, results: List[Dict]):
@@ -629,116 +607,82 @@ def main():
     parser = argparse.ArgumentParser(
         description="VisualCare File Migration Renamer - Rename files based on extracted names, dates, and user IDs"
     )
-    
-    parser.add_argument(
-        '--csv', 
-        help='Path to CSV file with filename mappings'
-    )
-    
     parser.add_argument(
         '--input-dir',
         help='Input directory containing files to process'
     )
-    
     parser.add_argument(
         '--output-dir',
         help='Output directory for processed files'
     )
-    
     parser.add_argument(
         '--name-mapping',
-        help='CSV file with filename to name mappings (for directory processing)'
+        help='CSV file with filename to name mappings (optional, for directory processing)'
     )
-    
+    parser.add_argument(
+        '--category-mapping',
+        help='CSV file with category mappings (optional, for directory processing)'
+    )
     parser.add_argument(
         '--test-mode',
         action='store_true',
         help='Use tests/test-files structure for processing'
     )
-    
     parser.add_argument(
         '--test-name',
         default='basic',
         help='Name of the test (determines output directory: to-<test_name>). Default: basic'
     )
-    
     parser.add_argument(
         '--person',
         help='Filter to specific person when using test mode'
     )
-    
     parser.add_argument(
         '--dry-run',
         action='store_true',
         help='Preview changes without making them'
     )
-    
     parser.add_argument(
         '--config',
         help='Path to configuration file (default: config/components.yaml)'
     )
-    
     parser.add_argument(
         '--verbose', '-v',
         action='store_true',
         help='Enable verbose logging'
     )
-    
     args = parser.parse_args()
-    
-    # Setup logging level
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    
-    # Initialize renamer
     renamer = FileMigrationRenamer(args.config)
-    
-    # Process based on input type
     if args.test_mode:
-        # Process test files using tests/test-files structure
         print(f"Processing test files using tests/test-files structure")
         print(f"Test name: {args.test_name}")
         if args.person:
             print(f"Filtering to person: {args.person}")
         results = renamer.process_test_files(args.dry_run, args.person, args.test_name)
         renamer.print_summary(results)
-        
-    elif args.csv:
-        # Process CSV mapping
-        print(f"Processing CSV mapping: {args.csv}")
-        results = renamer.process_csv_mapping(args.csv, args.dry_run)
-        renamer.print_summary(results)
-        
     elif args.input_dir and args.output_dir:
-        # Process directory
-        if not args.name_mapping:
-            print("Error: --name-mapping is required for directory processing")
-            sys.exit(1)
-        
-        # Load name mapping
         name_mapping = {}
-        try:
-            with open(args.name_mapping, 'r') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    filename = row.get('filename', '').strip()
-                    name = row.get('name_to_match', '').strip()
-                    if filename and name:
-                        name_mapping[filename] = name
-        except Exception as e:
-            print(f"Error loading name mapping: {e}")
-            sys.exit(1)
-        
+        if args.name_mapping:
+            try:
+                with open(args.name_mapping, 'r') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        filename = row.get('filename', '').strip()
+                        name = row.get('name_to_match', '').strip()
+                        if filename and name:
+                            name_mapping[filename] = name
+            except Exception as e:
+                print(f"Error loading name mapping: {e}")
+                sys.exit(1)
         print(f"Processing directory: {args.input_dir} -> {args.output_dir}")
         results = renamer.process_directory(args.input_dir, args.output_dir, name_mapping, args.dry_run)
         renamer.print_summary(results)
-        
     else:
-        print("Error: Must specify either --test-mode, --csv, or both --input-dir and --output-dir")
+        print("Error: Must specify either --test-mode or both --input-dir and --output-dir")
         parser.print_help()
         sys.exit(1)
-    
-    # Exit successfully
     sys.exit(0)
 
 

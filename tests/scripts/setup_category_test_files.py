@@ -45,9 +45,9 @@ def setup_category_test_files():
     print("Setting up Category Test Files")
     print("=" * 50)
     
-    # Clean up existing input test files only (preserve output directories for inspection)
+    # Clean up existing input and output test files for fresh start
     cleanup_existing_files(from_dir)
-    # Note: Output directories are preserved for inspection
+    cleanup_existing_files(to_dir)
     
     # Create test files for each test case
     created_files = []

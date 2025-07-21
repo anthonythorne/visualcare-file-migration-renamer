@@ -38,6 +38,7 @@ def setup_multi_level_test_files():
     project_root = Path(__file__).parent.parent.parent
     test_files_dir = project_root / 'tests' / 'test-files'
     from_dir = test_files_dir / 'from-multi-level'
+    to_dir = test_files_dir / 'to-multi-level'
     
     # Load test cases from CSV
     test_cases = load_test_cases()
@@ -45,8 +46,9 @@ def setup_multi_level_test_files():
     print("Setting up Multi-Level Directory Test Files")
     print("=" * 50)
     
-    # Clean up existing input test files only (preserve output directories for inspection)
+    # Clean up existing input and output test files for fresh start
     cleanup_existing_files(from_dir)
+    cleanup_existing_files(to_dir)
     
     # Create test files for each test case
     created_files = []

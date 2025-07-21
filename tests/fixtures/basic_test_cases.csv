@@ -1,0 +1,9 @@
+full_path,person_name,expected_filename,expected_user_id,expected_name,expected_remainder,expected_date,description
+John Doe/John_Doe_2023-05-15_Report.pdf,John Doe,1001_John Doe_Report_2023-05-15.pdf,1001,John Doe,Report,2023-05-15,Basic report for John Doe
+John Doe/john-doe-20240101-invoice.docx,John Doe,1001_john doe_invoice_2024-01-01.docx,1001,John Doe,invoice,2024-01-01,Invoice for John Doe
+John Doe/2022-12-31_John_Doe_summary.txt,John Doe,1001_John Doe_summary_2022-12-31.txt,1001,John Doe,summary,2022-12-31,Summary for John Doe
+Jane Smith/jane-smith-20240101-invoice.docx,Jane Smith,1002_jane smith_invoice_2024-01-01.docx,1002,Jane Smith,invoice,2024-01-01,Invoice for Jane Smith
+Jane Smith/Jane_Smith_2023-06-20_Report.pdf,Jane Smith,1002_Jane Smith_Report_2023-06-20.pdf,1002,Jane Smith,Report,2023-06-20,Basic report for Jane Smith
+Jane Smith/2023-01-15_jane_smith_notes.txt,Jane Smith,1002_jane smith_notes_2023-01-15.txt,1002,Jane Smith,notes,2023-01-15,Notes for Jane Smith
+Temp Person/test_file.txt,Temp Person,test_file_2025-07-21.txt,,Temp Person,test_file,,Test file for Temp Person
+John Doe/John_Doe_2024-03-15_Additional_Report.pdf,John Doe,1001_John Doe_Additional_Report_2024-03-15.pdf,1001,John Doe,Additional_Report,2024-03-15,Additional report for John Doe 

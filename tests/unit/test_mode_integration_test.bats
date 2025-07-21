@@ -9,9 +9,9 @@ setup() {
     PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_DIRNAME")/.." && pwd)"
     cd "$PROJECT_ROOT"
     
-    # Clean existing input test directories for fresh start
-    # Note: We preserve output directories for inspection
+    # Clean existing input and output test directories for fresh start
     rm -rf tests/test-files/from-*
+    rm -rf tests/test-files/to-*
     
     # Run setup scripts to create test files from CSV matrices
     python3 tests/scripts/setup_basic_test_files.py
@@ -25,7 +25,7 @@ setup() {
     # Basic test creates 8 files (hardcoded in setup script)
     expected_count=8
     
-    # Run actual processing (not dry-run)
+    # Run actual processing (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name basic
     [ "$status" -eq 0 ]
     
@@ -43,13 +43,16 @@ setup() {
     [[ "$output" == *"Total files: $expected_count"* ]]
     [[ "$output" == *"Successful: $expected_count"* ]]
     [[ "$output" == *"Errors: 0"* ]]
+    # Validate output filenames
+    run python3 "$PROJECT_ROOT/tests/scripts/validate_test_outputs.py" basic
+    [ "$status" -eq 0 ]
 }
 
 @test "test-mode-category: Category test mode processing with actual file creation" {
     # Count expected files from CSV matrix (50 data lines)
     expected_count=50
     
-    # Run actual processing (not dry-run)
+    # Run actual processing (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name category
     [ "$status" -eq 0 ]
     
@@ -67,13 +70,16 @@ setup() {
     [[ "$output" == *"Total files: $expected_count"* ]]
     [[ "$output" == *"Successful: $expected_count"* ]]
     [[ "$output" == *"Errors: 0"* ]]
+    # Validate output filenames
+    run python3 "$PROJECT_ROOT/tests/scripts/validate_test_outputs.py" category
+    [ "$status" -eq 0 ]
 }
 
 @test "test-mode-multi-level: Multi-level test mode processing with actual file creation" {
     # Count expected files from CSV matrix (30 data lines)
     expected_count=30
     
-    # Run actual processing (not dry-run)
+    # Run actual processing (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name multi-level
     [ "$status" -eq 0 ]
     
@@ -91,13 +97,16 @@ setup() {
     [[ "$output" == *"Total files: $expected_count"* ]]
     [[ "$output" == *"Successful: $expected_count"* ]]
     [[ "$output" == *"Errors: 0"* ]]
+    # Validate output filenames
+    run python3 "$PROJECT_ROOT/tests/scripts/validate_test_outputs.py" multi-level
+    [ "$status" -eq 0 ]
 }
 
 @test "test-mode-person-filter: Person filtering with actual file creation" {
     # Count expected files for John Doe (4 files in basic test)
     expected_count=4
     
-    # Run actual processing with person filter (not dry-run)
+    # Run actual processing with person filter (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name basic --person "John Doe"
     [ "$status" -eq 0 ]
     
@@ -119,7 +128,7 @@ setup() {
     # Count expected files for Jane Smith from CSV matrix
     expected_count=$(grep -c "Jane Smith" tests/fixtures/category_test_cases.csv)
     
-    # Run actual processing with case insensitive person filter (not dry-run)
+    # Run actual processing with case insensitive person filter (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name category --person "jane smith"
     [ "$status" -eq 0 ]
     
@@ -141,7 +150,7 @@ setup() {
     # Basic test creates 8 files (hardcoded in setup script)
     expected_count=8
     
-    # Run actual processing with verbose output (not dry-run)
+    # Run actual processing with verbose output (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name basic --verbose
     [ "$status" -eq 0 ]
     
@@ -166,7 +175,7 @@ setup() {
     mkdir -p "$PROJECT_ROOT/tests/test-files/from-custom-test/Temp Person"
     echo "test content" > "$PROJECT_ROOT/tests/test-files/from-custom-test/Temp Person/test_file.txt"
     
-    # Run actual processing (not dry-run)
+    # Run actual processing (not dry-run) - no CSV data for custom test
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name custom-test
     [ "$status" -eq 0 ]
     
@@ -181,7 +190,7 @@ setup() {
 }
 
 @test "test-mode-person-breakdown: Person breakdown shows actual processing results" {
-    # Run actual processing (not dry-run)
+    # Run actual processing (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name basic
     [ "$status" -eq 0 ]
     
@@ -201,7 +210,7 @@ setup() {
     # Basic test creates 8 files (hardcoded in setup script)
     expected_count=8
     
-    # Run actual processing (not dry-run)
+    # Run actual processing (not dry-run) with real extraction logic
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name basic
     [ "$status" -eq 0 ]
     
@@ -228,7 +237,7 @@ setup() {
 }
 
 @test "test-mode-csv-matrix-validation: Output files match CSV matrix expectations" {
-    # Run category test with actual processing
+    # Run category test with actual processing using CSV data
     run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name category
     [ "$status" -eq 0 ]
     
@@ -255,7 +264,7 @@ setup() {
 }
 
 @test "test-mode-processing-success: No errors during actual file processing" {
-    # Run all test modes to ensure no processing errors
+    # Run all test modes to ensure no processing errors with CSV data
     for test_name in basic category multi-level; do
         echo "Testing $test_name mode..."
         run python3 "$PROJECT_ROOT/main.py" --test-mode --test-name "$test_name"

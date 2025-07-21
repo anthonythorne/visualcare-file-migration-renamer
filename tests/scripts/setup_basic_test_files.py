@@ -1,30 +1,24 @@
 #!/usr/bin/env python3
 """
-Setup script for basic test files.
+Setup script for basic test files (matrix-driven).
 
-Creates test files for the basic test scenario with John Doe and Jane Smith.
+Creates test files for the basic test scenario using tests/fixtures/basic_test_cases.csv.
 """
-
-import os
+import csv
 from pathlib import Path
 
 def setup_basic_test_files():
-    """Create test files for the basic test scenario."""
-    print("Setting up Basic Test Files")
+    print("Setting up Basic Test Files (matrix-driven)")
     print("=" * 50)
-    
-    # Get the project root directory
     project_root = Path(__file__).parent.parent.parent
     test_files_dir = project_root / 'tests' / 'test-files'
     from_dir = test_files_dir / 'from-basic'
     to_dir = test_files_dir / 'to-basic'
-    
     # Create directories
     print(f"Creating directory: {from_dir}")
     from_dir.mkdir(parents=True, exist_ok=True)
     print(f"Creating directory: {to_dir}")
     to_dir.mkdir(parents=True, exist_ok=True)
-    
     # Clean up existing test files
     def cleanup_existing_files(directory):
         if directory.exists():
@@ -34,46 +28,28 @@ def setup_basic_test_files():
                 elif item.is_dir():
                     import shutil
                     shutil.rmtree(item)
-    
     cleanup_existing_files(from_dir)
-    # Note: Output directory is preserved for inspection
-    
-    # Test files to create
-    test_files = [
-        # John Doe files
-        ("John Doe", "John_Doe_2023-05-15_Report.pdf"),
-        ("John Doe", "john-doe-20240101-invoice.docx"),
-        ("John Doe", "2022-12-31_John_Doe_summary.txt"),
-        
-        # Jane Smith files  
-        ("Jane Smith", "jane-smith-20240101-invoice.docx"),
-        ("Jane Smith", "Jane_Smith_2023-06-20_Report.pdf"),
-        ("Jane Smith", "2023-01-15_jane_smith_notes.txt"),
-        
-        # Temp Person files (for other tests)
-        ("Temp Person", "test_file.txt"),
-        
-        # Additional test file to demonstrate dynamic counting
-        ("John Doe", "John_Doe_2024-03-15_Additional_Report.pdf"),
-    ]
-    
-    # Create test files
-    for person, filename in test_files:
-        person_dir = from_dir / person
-        person_dir.mkdir(parents=True, exist_ok=True)
-        
-        file_path = person_dir / filename
-        with open(file_path, 'w') as f:
-            f.write(f"Test content for {filename}")
-        
-        print(f"✅ Created: {person}/{filename}")
-    
+    # Load test cases from CSV
+    fixture_path = Path(__file__).parent.parent / 'fixtures' / 'basic_test_cases.csv'
+    test_files = []
+    with open(fixture_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            full_path = row['full_path']
+            person_name = row['person_name']
+            description = row.get('description', '')
+            file_path = from_dir / full_path
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(file_path, 'w') as f_out:
+                f_out.write(f"Test content for {full_path}\nPerson: {person_name}\nDescription: {description}\n")
+            test_files.append((person_name, full_path))
+            print(f"✅ Created: {person_name}/{file_path.name}")
     print(f"\nCreated {len(test_files)} test files")
     print(f"Test files location: {from_dir}")
-    print()
+    print() 
     print("To run the basic test:")
     print("python3 main.py --test-mode --test-name basic --dry-run")
-    print()
+    print() 
     print("To run with actual processing:")
     print("python3 main.py --test-mode --test-name basic")
 
