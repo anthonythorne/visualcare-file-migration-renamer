@@ -63,6 +63,10 @@ def setup_category_test_files():
     print("python3 main.py --test-mode --test-name category --dry-run")
     print("\nTo run with actual processing:")
     print("python3 main.py --test-mode --test-name category")
+
+    # Regenerate output validation BATS tests for category
+    import subprocess
+    subprocess.run(["python3", "tests/scripts/generate_output_validation_bats.py"])
     
     return created_files
 
@@ -85,20 +89,11 @@ def load_test_cases() -> List[Dict]:
 
 
 def cleanup_existing_files(test_dir: Path):
-    """Clean up existing test files while preserving directory structure."""
+    """Fully delete the directory and all its contents, then recreate it (for both input and output test dirs)."""
     if test_dir.exists():
-        print(f"Cleaning up existing test files in {test_dir.name}...")
-        
-        # Remove all files but keep directories
-        for person_dir in test_dir.iterdir():
-            if person_dir.is_dir():
-                for file_path in person_dir.rglob('*'):
-                    if file_path.is_file():
-                        file_path.unlink()
-                print(f"Cleaned: {person_dir.name}/")
-    else:
-        print(f"Creating directory: {test_dir}")
-        test_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Deleting and recreating directory: {test_dir}")
+        shutil.rmtree(test_dir)
+    test_dir.mkdir(parents=True, exist_ok=True)
 
 
 def create_test_file(from_dir: Path, test_case: Dict) -> Path:

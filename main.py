@@ -29,6 +29,7 @@ import yaml
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
+import re
 
 from core.utils.category_processor import CategoryProcessor
 from core.utils.directory_processor import DirectoryProcessor
@@ -96,31 +97,9 @@ class FileMigrationRenamer:
     def extract_file_components(self, filename: str, name_to_match: str, folder_info: Optional[Dict] = None) -> Dict:
         """
         Extract all components from a filename using multiple extraction algorithms.
-        
         This method orchestrates the extraction of name, date, user ID, management flag,
         and category from a filename or full path. It uses the name_matcher, date_matcher,
         user_mapping, and directory_processor utilities to perform comprehensive extraction.
-        
-        Args:
-            filename: The filename to process and extract components from.
-            name_to_match: The name to match against for extraction algorithms.
-            folder_info: Optional dictionary containing folder path information.
-            
-        Returns:
-            Dict: Dictionary containing all extracted components including:
-                - filename: Original filename
-                - name_to_match: Target name for matching
-                - extracted_name: Extracted name from full path
-                - extracted_date: Extracted date from full path
-                - raw_remainder: Full path with name and date removed (uncleaned)
-                - cleaned_remainder: Normalized remainder with separators cleaned
-                - name_matched: Boolean indicating if name was successfully extracted
-                - date_matched: Boolean indicating if date was successfully extracted
-                - user_id: User ID mapped from the name
-                - management_flag: Management flag if detected
-                - category: Category if detected (future feature)
-                - folder_date: Date from folder structure (if any)
-        
         Returns None if extraction fails completely.
         """
         try:
@@ -128,42 +107,39 @@ class FileMigrationRenamer:
             path_to_analyze = filename
             if folder_info and folder_info.get('full_path_string'):
                 path_to_analyze = folder_info['full_path_string']
-            
+
             # Extract name and date using the name_matcher utility from the full path.
             result = extract_name_and_date_from_filename(path_to_analyze, name_to_match)
             extracted_name, extracted_date, raw_remainder, name_matched, date_matched = result.split('|')
-            
+
             # Process folder remainder if available
+            folder_remainder = None
             if folder_info and folder_info.get('folder_only_string'):
-                # Process the folder string to create remainder
                 folder_remainder = self.directory_processor.process_folder_remainder(
-                    folder_info['folder_only_string'], name_to_match
+                    folder_info['folder_only_string'], name_to_match, folder_info.get('category_name') if folder_info and 'category_name' in folder_info else None
                 )
-                
-                # Combine folder remainder with filename remainder
-                if folder_remainder:
-                    if raw_remainder:
-                        # If both exist, combine them with a space
-                        combined_remainder = f"{folder_remainder} {raw_remainder}"
-                    else:
-                        combined_remainder = folder_remainder
-                else:
-                    combined_remainder = raw_remainder
+            # Join folder remainder (after category or after person root if no category) and filename remainder
+            if folder_remainder and raw_remainder:
+                combined_remainder = f"{folder_remainder} {raw_remainder}"
+            elif folder_remainder:
+                combined_remainder = folder_remainder
             else:
                 combined_remainder = raw_remainder
-            
             # Clean the combined remainder using separator normalization.
             cleaned_remainder = clean_filename_remainder_py(combined_remainder)
-            
+
             # Get user ID from the name using fuzzy matching.
             user_id = get_user_id_by_name(name_to_match) if name_matched == 'true' else None
-            
+
             # Detect management flag based on full path keywords.
             management_flag = self._detect_management_flag(path_to_analyze)
-            
+
             # Detect category from folder structure.
             category = self._detect_category(path_to_analyze, folder_info)
-            
+            # Add detected category name to folder_info for remainder cleaning
+            if folder_info is not None and category:
+                folder_info['category_name'] = category
+
             # Remove category name from remainder to avoid duplication
             if category and folder_info and folder_info.get('folder_only_string'):
                 # Get the category name that corresponds to this category ID
@@ -172,38 +148,24 @@ class FileMigrationRenamer:
                     if cat_id == category:
                         category_name = name
                         break
-                
-                # Remove the category name from the remainder if it's there
                 if category_name:
-                    # Remove the category name from the cleaned remainder
-                    remainder_parts = cleaned_remainder.split()
-                    filtered_parts = [part for part in remainder_parts if part.lower() != category_name.lower()]
-                    cleaned_remainder = ' '.join(filtered_parts).strip()
-            
-            # Get user ID from the name using fuzzy matching.
-            user_id = get_user_id_by_name(name_to_match) if name_matched == 'true' else None
-            
-            # Detect management flag based on full path keywords.
-            management_flag = self._detect_management_flag(path_to_analyze)
-            
-            # Detect category from folder structure.
-            category = self._detect_category(path_to_analyze, folder_info)
-            
+                    # Remove the category name from the cleaned remainder (case-insensitive, all occurrences)
+                    pattern = re.compile(rf'\b{re.escape(category_name)}\b', re.IGNORECASE)
+                    cleaned_remainder = pattern.sub('', cleaned_remainder)
+                    cleaned_remainder = re.sub(r'\s+', ' ', cleaned_remainder).strip()
+
             # Extract folder date information
             folder_date = None
             if folder_info:
                 folder_date = folder_info.get('folder_date')
-            
-            # Determine priority date
+
+            # Determine priority date using config order
             filename_date = None
             if extracted_date and date_matched == 'true':
                 try:
-                    # Try to parse the extracted date
                     filename_date = datetime.strptime(extracted_date, '%Y-%m-%d')
                 except ValueError:
-                    pass
-            
-            # Get file system dates
+                    filename_date = None
             modified_date = None
             created_date = None
             if folder_info and 'filepath' in folder_info:
@@ -213,24 +175,27 @@ class FileMigrationRenamer:
                     created_date = datetime.fromtimestamp(stat.st_ctime)
                 except (OSError, AttributeError):
                     pass
-            
+            # Use the config's date priority order
             priority_date = self.directory_processor.get_priority_date(
                 folder_date, filename_date, modified_date, created_date
             )
-            
-            # Use priority date if available, otherwise use current date as fallback
+            # Use priority date if available, otherwise fallback to extracted_date, then current date
             if priority_date:
                 final_date = priority_date.strftime('%Y-%m-%d')
             elif extracted_date:
                 final_date = extracted_date
             else:
-                # Fallback to current date if no date is available
                 final_date = datetime.now().strftime('%Y-%m-%d')
-            
+
+            # Always ensure user_id and name are present
+            if not user_id:
+                user_id = get_user_id_by_name(name_to_match) or ''
+            normalized_name = extracted_name or name_to_match or ''
+
             return {
                 'filename': filename,
                 'name_to_match': name_to_match,
-                'extracted_name': extracted_name,
+                'extracted_name': normalized_name,
                 'extracted_date': final_date,
                 'raw_remainder': raw_remainder,
                 'cleaned_remainder': cleaned_remainder,
@@ -296,26 +261,21 @@ class FileMigrationRenamer:
     def format_normalized_filename(self, components: Dict) -> str:
         """
         Format the normalized filename using the configured template.
-        
         Args:
             components: Dictionary of extracted components
-            
         Returns:
             Formatted filename string
         """
         try:
             # Get normalized name
             normalized_name = components['extracted_name'].replace(',', ' ') if components['extracted_name'] else ""
-            
             # Get file extension
             original_ext = Path(components['filename']).suffix
-            
             # Clean remainder without extension
             remainder = components['cleaned_remainder'] or ""
             if remainder.endswith(original_ext):
                 remainder = remainder[:-len(original_ext)]
-            
-            # Format using the template
+            # Format using the template from config (should be {id}_{name}_{remainder}_{date})
             formatted = format_filename_with_id(
                 user_id=components['user_id'] or "",
                 name=normalized_name,
@@ -324,15 +284,15 @@ class FileMigrationRenamer:
                 category=components['category'] or "",
                 management_flag=components['management_flag'] or ""
             )
-            
-            # Apply category formatting if category is detected
+            # Apply category formatting if category is detected and config says to append
             if components['category'] and self.category_processor.should_include_category_in_filename():
                 formatted = self.category_processor.format_filename_with_category(formatted, components['category'])
-            
-            # Add file extension
+            # Add file extension if not present
             if not formatted.endswith(original_ext):
                 formatted += original_ext
-            
+            # Remove any duplicate or trailing separators (e.g., underscores)
+            formatted = re.sub(r'_+', '_', formatted)
+            formatted = formatted.strip('_')
             return formatted
         except Exception as e:
             self.logger.error(f"Error formatting filename: {e}")

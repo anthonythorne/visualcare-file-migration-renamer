@@ -341,16 +341,16 @@ class DirectoryProcessor:
         
         return None
     
-    def process_folder_remainder(self, folder_string: str, person_name: str) -> str:
+    def process_folder_remainder(self, folder_string: str, person_name: str, category_name: str = None) -> str:
         """
-        Process folder string to create remainder by removing person names and dates.
-        
+        Process folder string to create remainder by removing person names, category names, and dates.
+        If a category is present, only include the subpath after the category as the remainder.
         Args:
             folder_string: The folder path string (e.g., "John Doe/2023/WHS/Incidents")
             person_name: The person name to remove from folders
-            
+            category_name: The category name to remove from folders (optional)
         Returns:
-            str: Processed remainder with person names and dates removed, separators replaced with spaces
+            str: Processed remainder with person names, category names, and dates removed, separators replaced with spaces
         """
         if not folder_string:
             return ""
@@ -360,36 +360,35 @@ class DirectoryProcessor:
         remove_date_folders = self.dir_structure_config.get('remove_date_folders', True)
         separator_replacement = self.dir_structure_config.get('folder_separator_replacement', ' ')
         
-        # Split by folder separator
         folder_parts = folder_string.split('/')
         processed_parts = []
         
+        # Remove person name if present at the start
+        if folder_parts and folder_parts[0].lower() == person_name.lower():
+            folder_parts = folder_parts[1:]
+        
+        # If category_name is present, find its first occurrence and only keep subpath after it
+        if category_name:
+            for idx, part in enumerate(folder_parts):
+                if part.lower() == category_name.lower():
+                    folder_parts = folder_parts[idx+1:]
+                    break
+        
         for part in folder_parts:
             part = part.strip()
-            
-            # Skip if it's just the person name
-            if part.lower() == person_name.lower():
-                continue
-            
             # Handle year folders (4 digits)
             if re.match(r'^\d{4}$', part):
                 if preserve_year_folders:
                     processed_parts.append(part)
                 continue
-            
             # Handle date folders (DD.MM.YYYY or YYYY.MM.DD)
             if self.is_full_date_folder(part):
                 if not remove_date_folders:
                     processed_parts.append(part)
                 continue
-            
-            # Add the part if it's not a person name or date
+            # Add the part if it's not a date/year
             processed_parts.append(part)
         
-        # Join with configured separator replacement
         remainder = separator_replacement.join(processed_parts)
-        
-        # Clean up multiple separators
         remainder = re.sub(r'\s+', ' ', remainder).strip()
-        
         return remainder 

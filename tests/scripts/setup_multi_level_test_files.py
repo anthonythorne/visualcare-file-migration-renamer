@@ -64,6 +64,10 @@ def setup_multi_level_test_files():
     print("python3 main.py --test-mode --test-name multi-level --dry-run")
     print("\nTo run with actual processing:")
     print("python3 main.py --test-mode --test-name multi-level")
+
+    # Regenerate output validation BATS tests for multi-level
+    import subprocess
+    subprocess.run(["python3", "tests/scripts/generate_output_validation_bats.py"])
     
     return created_files
 
@@ -85,20 +89,13 @@ def load_test_cases() -> List[Dict]:
     return test_cases
 
 
-def cleanup_existing_files(from_dir: Path):
+def cleanup_existing_files(directory: Path):
     """Clean up existing test files while preserving directory structure."""
-    print("Cleaning up existing test files...")
-    
-    # Create directory if it doesn't exist
-    from_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Remove all files but keep directories
-    for person_dir in from_dir.iterdir():
-        if person_dir.is_dir():
-            for file_path in person_dir.rglob('*'):
-                if file_path.is_file():
-                    file_path.unlink()
-            print(f"Cleaned: {person_dir.name}/")
+    import shutil
+    if directory.exists():
+        print(f"Deleting and recreating directory: {directory}")
+        shutil.rmtree(directory)
+    directory.mkdir(parents=True, exist_ok=True)
 
 
 def create_test_file(from_dir: Path, test_case: Dict) -> Path:

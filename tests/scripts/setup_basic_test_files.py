@@ -21,14 +21,13 @@ def setup_basic_test_files():
     to_dir.mkdir(parents=True, exist_ok=True)
     # Clean up existing test files
     def cleanup_existing_files(directory):
+        import shutil
         if directory.exists():
-            for item in directory.iterdir():
-                if item.is_file():
-                    item.unlink()
-                elif item.is_dir():
-                    import shutil
-                    shutil.rmtree(item)
+            print(f"Deleting and recreating directory: {directory}")
+            shutil.rmtree(directory)
+        directory.mkdir(parents=True, exist_ok=True)
     cleanup_existing_files(from_dir)
+    cleanup_existing_files(to_dir)
     # Load test cases from CSV
     fixture_path = Path(__file__).parent.parent / 'fixtures' / 'basic_test_cases.csv'
     test_files = []
@@ -52,6 +51,10 @@ def setup_basic_test_files():
     print() 
     print("To run with actual processing:")
     print("python3 main.py --test-mode --test-name basic")
+
+    # Regenerate output validation BATS tests for basic
+    import subprocess
+    subprocess.run(["python3", "tests/scripts/generate_output_validation_bats.py"])
 
 if __name__ == "__main__":
     setup_basic_test_files() 
