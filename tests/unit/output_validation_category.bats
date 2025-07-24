@@ -107,8 +107,8 @@ setup() {
   [ -f "$file" ]
 }
 
-@test "category row 18: Jane Smith - 1002_Jane Smith_Mealtime Management Mealtime Checklist_2023-01-01_10.pdf" {
-  local file="$PROJECT_ROOT/tests/test-files/to-category/Jane Smith/1002_Jane Smith_Mealtime Management Mealtime Checklist_2023-01-01_10.pdf"
+@test "category row 18: Jane Smith - 1002_Jane Smith_Mealtime Management Mealtime Checklist_2025-01-01_12.pdf" {
+  local file="$PROJECT_ROOT/tests/test-files/to-category/Jane Smith/1002_Jane Smith_Mealtime Management Mealtime Checklist_2025-01-01_12.pdf"
   echo Checking: $file
   [ -f "$file" ]
 }

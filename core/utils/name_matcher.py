@@ -365,18 +365,12 @@ def extract_initials_from_filename(filename: str, name_to_match: str, clean_file
 
 def clean_filename_remainder_py(remainder):
     """
-    Clean a filename remainder by collapsing runs of consecutive allowed separators to the most preferred one (from YAML order).
-    
-    The algorithm:
-    1. Find areas where there are one or more separators grouped together
-    2. Remove separators in reverse order of the YAML config (least preferred first)
-    3. Keep one instance of the most preferred separator
-    4. Remove leading/trailing separators (least preferred first)
-    5. Replace forward slashes with spaces (for folder separators)
+    Clean a filename remainder by collapsing runs of consecutive allowed separators to the most preferred one (from YAML order),
+    and replacing reserved/component separators (e.g., underscores) with the configured remainder_separator.
     """
     if not remainder:
         return remainder
-        
+    
     # Split extension to preserve it
     if '.' in remainder:
         base, ext = remainder.rsplit('.', 1)
@@ -389,33 +383,30 @@ def clean_filename_remainder_py(remainder):
     
     # Load separators in order (most preferred first)
     seps = load_remainder_allowed_separators()
-    
+    # Load the configured remainder separator
+    config = load_config()
+    remainder_sep = config.get('Remainder', {}).get('remainder_separator', ' ')
+    # Replace underscores and any reserved/component separators with the configured remainder separator
+    reserved_seps = ['_']  # Add more if needed
+    for sep in reserved_seps:
+        base = base.replace(sep, remainder_sep)
     # Build regex to match any run of 2+ separators
     sep_class = ''.join(re.escape(s) for s in seps)
-    
     def replace_run(match):
         """Replace a run of separators with the most preferred one."""
         run = match.group(0)
-        
-        # Find the most preferred separator in this run
         for sep in seps:  # seps is already in preference order
             if sep in run:
                 return sep
-        
-        # Fallback to first character if no known separator found
         return run[0]
-    
     # Step 1: Collapse runs of 2+ separators to the most preferred
     cleaned = re.sub(rf'[{sep_class}]{{2,}}', replace_run, base)
-    
     # Step 2: Remove leading separators (least preferred first)
     for sep in reversed(seps):  # Start with least preferred
         cleaned = cleaned.lstrip(sep)
-    
     # Step 3: Remove trailing separators (least preferred first)
     for sep in reversed(seps):  # Start with least preferred
         cleaned = cleaned.rstrip(sep)
-    
     result = cleaned + ext
     return result
 

@@ -370,6 +370,33 @@ user_id,full_name
 - Web-based configuration
 - Plugin architecture
 
+## File Date Handling in Testing and Real Runs
+
+- **Testing:**
+  - The test setup script creates files in the `from-<testname>` directory and sets their modification and access times to the `expected_date` from the matrix (at midnight).
+  - When the core functionality runs, it moves or duplicates files to the `to-<testname>` directory and preserves these times on the output file.
+  - Date extraction logic uses these times as per the configured priority.
+
+- **Real Runs:**
+  - The original file's modification and access times (as set by the OS or user) are preserved on the output file, whether moved or duplicated.
+  - The date extraction logic uses the real file's metadata, ensuring output filenames reflect the true file dates.
+
+- **Consistency:**
+  - The core logic always ensures the output file has the same modification/access times as the original, so tests and real runs are consistent.
+
+## Known Pitfalls and Limitations
+
+- **Modification Time:**
+  - The tool always preserves the modification time (`mtime`) of files when moving or duplicating, ensuring reliable date-based logic.
+- **Creation Time:**
+  - Creation time (`birth time`) is not reliably available or settable on all filesystems/OSes.
+  - When moving within the same filesystem, the OS preserves creation time; when moving across filesystems or duplicating, creation time is reset and cannot be set by the tool.
+  - Users should not rely on creation time for critical logic.
+- **Date Extraction:**
+  - The tool can extract from creation time if configured and available, but will fall back to modification time if not.
+- **Best Practice:**
+  - Always rely on modification time for date-based processing, as it is universally supported and preserved by the tool.
+
 ## Maintenance and Support
 
 ### 1. Code Quality

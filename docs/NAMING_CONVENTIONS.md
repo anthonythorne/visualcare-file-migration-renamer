@@ -30,6 +30,12 @@ The system supports several matcher types, each with its own logic:
 - **`shorthand`**: Matches first initial + last name (e.g., `j-doe`, `jdoe`, `j.doe`) or first name + last initial (e.g., `john-d`, `john.d`)
 - **`all_matches`**: Extracts all possible matches using the processing order described above
 
+### Person Name Source
+- The directory name under `from-<testname>/` is always treated as the person's name.
+- The extracted name is always included in the output filename, regardless of whether a user ID is found in the mapping.
+- If a user ID is found, it is included in the `{id}` field; if not, `{id}` is empty, but `{name}` is always present.
+- There is no logic to omit the name based on user ID mapping.
+
 ## Separator Handling
 
 ### Configuration-Driven Separators

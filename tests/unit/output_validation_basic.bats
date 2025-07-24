@@ -41,9 +41,14 @@ setup() {
   [ -f "$file" ]
 }
 
-# Skipped row 7: Temp Person - test_file_2025-07-21.txt (dynamic date or special case)
-@test "basic row 8: John Doe - 1001_John Doe_Additional_Report_2024-03-15.pdf" {
-  local file="$PROJECT_ROOT/tests/test-files/to-basic/John Doe/1001_John Doe_Additional_Report_2024-03-15.pdf"
+@test "basic row 7: Temp Person - Temp Person_test file_2025-07-21.txt" {
+  local file="$PROJECT_ROOT/tests/test-files/to-basic/Temp Person/Temp Person_test file_2025-07-21.txt"
+  echo Checking: $file
+  [ -f "$file" ]
+}
+
+@test "basic row 8: John Doe - 1001_John Doe_Additional Report_2024-03-15.pdf" {
+  local file="$PROJECT_ROOT/tests/test-files/to-basic/John Doe/1001_John Doe_Additional Report_2024-03-15.pdf"
   echo Checking: $file
   [ -f "$file" ]
 }

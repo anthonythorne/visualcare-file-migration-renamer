@@ -37,17 +37,27 @@ def setup_basic_test_files():
             full_path = row['full_path']
             person_name = row['person_name']
             description = row.get('description', '')
+            expected_date = row.get('expected_date', '')
             file_path = from_dir / full_path
             file_path.parent.mkdir(parents=True, exist_ok=True)
             with open(file_path, 'w') as f_out:
                 f_out.write(f"Test content for {full_path}\nPerson: {person_name}\nDescription: {description}\n")
+            # Set file modification and creation date if expected_date is provided
+            if expected_date:
+                import time
+                import os
+                try:
+                    t = time.mktime(time.strptime(expected_date, '%Y-%m-%d'))
+                    os.utime(file_path, (t, t))
+                except Exception as e:
+                    print(f"Warning: Could not set file date for {file_path}: {e}")
             test_files.append((person_name, full_path))
             print(f"✅ Created: {person_name}/{file_path.name}")
     print(f"\nCreated {len(test_files)} test files")
     print(f"Test files location: {from_dir}")
     print() 
     print("To run the basic test:")
-    print("python3 main.py --test-mode --test-name basic --dry-run")
+    print("python3 main.py --test-mode --test-name basic")
     print() 
     print("To run with actual processing:")
     print("python3 main.py --test-mode --test-name basic")

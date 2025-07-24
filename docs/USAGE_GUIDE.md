@@ -7,13 +7,13 @@ This comprehensive guide covers how to use the VisualCare File Migration Renamer
 ### Basic Usage
 ```bash
 # Test mode (recommended for testing)
-python3 main.py --test-mode --test-name my-test --dry-run
+python3 main.py --test-mode --test-name my-test
 
 # Process CSV mapping
-python3 main.py --csv mapping.csv --dry-run
+python3 main.py --csv mapping.csv
 
 # Process directory with name mapping
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv --dry-run
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
 ```
 
 ## Command Line Options
@@ -42,13 +42,13 @@ Test mode uses the built-in `tests/test-files` structure for safe testing:
 
 ```bash
 # Basic test with all files
-python3 main.py --test-mode --test-name basic --dry-run
+python3 main.py --test-mode --test-name basic
 
 # Test with specific person
-python3 main.py --test-mode --test-name person-test --person "John Doe" --dry-run
+python3 main.py --test-mode --test-name person-test --person "John Doe"
 
 # Test with verbose output
-python3 main.py --test-mode --test-name debug --dry-run --verbose
+python3 main.py --test-mode --test-name debug --verbose
 
 # Actual processing (not dry-run)
 python3 main.py --test-mode --test-name production
@@ -72,13 +72,13 @@ Process files using a CSV file that maps old filenames to new filenames:
 
 ```bash
 # Preview changes
-python3 main.py --csv mapping.csv --dry-run
+python3 main.py --csv mapping.csv
 
 # Apply changes
 python3 main.py --csv mapping.csv
 
 # With verbose output
-python3 main.py --csv mapping.csv --dry-run --verbose
+python3 main.py --csv mapping.csv --verbose
 ```
 
 **CSV Format:**
@@ -94,7 +94,7 @@ Process all files in a directory using a name mapping file:
 
 ```bash
 # Preview changes
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv --dry-run
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
 
 # Apply changes
 python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
@@ -222,10 +222,10 @@ Filter processing to specific people only:
 
 ```bash
 # Process only John Doe's files
-python3 main.py --test-mode --test-name john-only --person "John Doe" --dry-run
+python3 main.py --test-mode --test-name john-only --person "John Doe"
 
 # Case-insensitive filtering
-python3 main.py --test-mode --test-name jane-only --person "jane smith" --dry-run
+python3 main.py --test-mode --test-name jane-only --person "jane smith"
 ```
 
 ### Management Flag Detection
@@ -234,7 +234,7 @@ The system automatically detects management-related files:
 
 ```bash
 # Files containing "management", "admin", or "supervisor" get flagged
-python3 main.py --test-mode --test-name management --dry-run
+python3 main.py --test-mode --test-name management
 ```
 
 ### Verbose Logging
@@ -242,7 +242,7 @@ python3 main.py --test-mode --test-name management --dry-run
 Get detailed information about the processing:
 
 ```bash
-python3 main.py --test-mode --test-name debug --dry-run --verbose
+python3 main.py --test-mode --test-name debug --verbose
 ```
 
 **Verbose Output Example:**
@@ -281,7 +281,7 @@ The system provides detailed error reporting:
 
 ```bash
 # Check for errors in dry-run mode
-python3 main.py --test-mode --test-name error-check --dry-run
+python3 main.py --test-mode --test-name error-check
 
 # Review error summary
 === Processing Summary ===
@@ -299,13 +299,13 @@ Errors: 2
 ### 1. Always Use Dry-Run First
 ```bash
 # Always preview changes before applying
-python3 main.py --csv mapping.csv --dry-run
+python3 main.py --csv mapping.csv
 ```
 
 ### 2. Use Test Mode for Development
 ```bash
 # Test with built-in files first
-python3 main.py --test-mode --test-name development --dry-run
+python3 main.py --test-mode --test-name development
 ```
 
 ### 3. Backup Original Files
@@ -317,13 +317,13 @@ cp -r /path/to/input /path/to/backup
 ### 4. Use Verbose Logging for Debugging
 ```bash
 # Get detailed processing information
-python3 main.py --test-mode --test-name debug --dry-run --verbose
+python3 main.py --test-mode --test-name debug --verbose
 ```
 
 ### 5. Test with Small Batches
 ```bash
 # Test with specific person first
-python3 main.py --test-mode --test-name small-batch --person "John Doe" --dry-run
+python3 main.py --test-mode --test-name small-batch --person "John Doe"
 ```
 
 ## Integration Examples
@@ -334,13 +334,13 @@ python3 main.py --test-mode --test-name small-batch --person "John Doe" --dry-ru
 # Process multiple test scenarios
 
 echo "Running basic test..."
-python3 main.py --test-mode --test-name basic --dry-run
+python3 main.py --test-mode --test-name basic
 
 echo "Running user ID test..."
-python3 main.py --test-mode --test-name userid --dry-run
+python3 main.py --test-mode --test-name userid
 
 echo "Running management test..."
-python3 main.py --test-mode --test-name management --dry-run
+python3 main.py --test-mode --test-name management
 
 echo "All tests completed!"
 ```
@@ -367,7 +367,7 @@ echo "Processing completed!"
 ./tests/run_tests.sh
 
 # Check configuration
-python3 main.py --test-mode --test-name config-check --dry-run
+python3 main.py --test-mode --test-name config-check
 
 # Verify file structure
 tree tests/test-files/
@@ -389,3 +389,33 @@ For more detailed information, see:
 - [Testing Guide](TESTING.md)
 - [Naming Conventions](NAMING_CONVENTIONS.md)
 - [Filename Conventions](FILENAME_CONVENTIONS.md) 
+
+## File Date Handling and Extraction
+
+- **Testing:**
+  - Test files are created with modification and access times set to the matrix date (usually midnight).
+  - The tool preserves these times when moving or duplicating files to the output directory.
+
+- **Real Usage:**
+  - The tool preserves the original file's modification and access times on the output file, whether moved or duplicated (using the `--duplicate` flag).
+  - Date extraction logic uses these times as per the configured priority in `components.yaml`.
+
+- **Date Extraction Priority:**
+  - You can configure the tool to extract the date from filename, foldername, modification time, or creation time (if supported by your OS/filesystem).
+  - If `created` is included in the priority order, the tool will attempt to use the file's creation/birth time. Note: On some filesystems (especially Linux/WSL2), creation time may not be settable or available.
+
+- **Consistency:**
+  - This approach ensures that both test and real runs are consistent and reliable. 
+
+## Known Pitfalls and Limitations
+
+- **Modification Time:**
+  - Only modification time (`mtime`) is reliably preserved and settable by the tool.
+- **Creation Time:**
+  - Creation time (`birth time`) is not reliably available or settable on all filesystems/OSes.
+  - When moving within the same filesystem, the OS preserves creation time; when moving across filesystems or duplicating, creation time is reset and cannot be set by the tool.
+  - Do not rely on creation time for critical logic.
+- **Date Extraction:**
+  - The tool can extract from creation time if configured and available, but will fall back to modification time if not.
+- **Best Practice:**
+  - Always rely on modification time for date-based processing, as it is universally supported and preserved by the tool. 

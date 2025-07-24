@@ -61,7 +61,7 @@ def setup_multi_level_test_files():
     print(f"\nCreated {len(created_files)} test files")
     print(f"Test files location: {from_dir}")
     print("\nTo run the multi-level directory test:")
-    print("python3 main.py --test-mode --test-name multi-level --dry-run")
+    print("python3 main.py --test-mode --test-name multi-level")
     print("\nTo run with actual processing:")
     print("python3 main.py --test-mode --test-name multi-level")
 

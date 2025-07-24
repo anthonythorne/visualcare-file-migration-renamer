@@ -12,13 +12,13 @@ pip install pyyaml
 ### Basic Usage
 ```bash
 # Test mode (recommended for testing)
-python3 main.py --test-mode --test-name my-test --dry-run
+python3 main.py --test-mode --test-name my-test
 
 # Process files using CSV mapping
-python3 main.py --csv mapping.csv --dry-run
+python3 main.py --csv mapping.csv
 
 # Process directory with name mapping
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv --dry-run
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
 ```
 
 ## 📋 Features
@@ -50,10 +50,10 @@ python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-m
 ### Test Mode (Recommended)
    ```bash
 # Basic test with all files
-python3 main.py --test-mode --test-name basic --dry-run
+python3 main.py --test-mode --test-name basic
 
 # Test with specific person
-python3 main.py --test-mode --test-name person-test --person "John Doe" --dry-run
+python3 main.py --test-mode --test-name person-test --person "John Doe"
 
 # Actual processing (not dry-run)
 python3 main.py --test-mode --test-name production
@@ -62,7 +62,7 @@ python3 main.py --test-mode --test-name production
 ### CSV Mapping
 ```bash
 # Preview changes
-python3 main.py --csv mapping.csv --dry-run
+python3 main.py --csv mapping.csv
 
 # Apply changes
 python3 main.py --csv mapping.csv
@@ -78,7 +78,7 @@ another_file.docx,Jane Smith
 ### Directory Processing
 ```bash
 # Process entire directory
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv --dry-run
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
 ```
 
 ## ⚙️ Configuration
@@ -137,13 +137,13 @@ ManagementFlag:
 ### Test Mode Integration
 ```bash
 # Basic test mode
-python3 main.py --test-mode --test-name basic --dry-run
+python3 main.py --test-mode --test-name basic
 
 # User ID processing
-python3 main.py --test-mode --test-name userid --dry-run
+python3 main.py --test-mode --test-name userid
 
 # Management flag processing
-python3 main.py --test-mode --test-name management --dry-run
+python3 main.py --test-mode --test-name management
 ```
 
 ## 📚 Documentation

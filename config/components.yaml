@@ -8,7 +8,7 @@ FilenameFormat:
   # Template for normalized filename using placeholders.
   # Available placeholders: {id}, {name}, {date}, {remainder}, {category}, {management_flag}
   # The template defines the order and separators between components.
-  template: "{id}_{name}_{remainder}_{date}"
+  template: "{id}_{name}_{remainder}_{date}_{category}"
   
   # Separator between components in the final filename
   component_separator: "_"
@@ -123,11 +123,6 @@ DateFolderHandling:
   
   # Priority for date sources (when full_date_handling is "use_as_date")
   # Higher priority sources override lower priority ones
-  date_priority:
-    - "filename_date"    # Date extracted from filename
-    - "folder_date"      # Date from folder name
-    - "modified_date"    # File modification date
-    - "created_date"     # File creation date
 
 # User ID mapping configuration
 UserMapping:
@@ -237,3 +232,4 @@ Remainder:
     - "/"  # forward slash (for folder separators)
     # Add more as needed
   preserve_remainder_separators: true  # Whether to preserve original separators in the remainder (duplicates collapsed) 
+  remainder_separator: " "  # Separator to use within the remainder (default: space) 

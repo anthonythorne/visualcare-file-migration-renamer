@@ -210,6 +210,46 @@ extract_name_from_filename() {{
     
     print(f"Generated {len(test_cases) * 2} {test_type} tests in {output_path}")
 
+def generate_file_creation_bats_tests():
+    """
+    Generate BATS tests for all file-creation-based test matrices (basic, category, multi-level).
+    Each test will:
+    1. Run main.py in test mode for the test name.
+    2. Run validate_test_outputs.py <testname> to check output files against the matrix.
+    3. Fail if any mismatch is found.
+    """
+    project_root = Path(__file__).parent.parent.parent.absolute()
+    test_cases = [
+        ('basic', 'Basic test mode processing'),
+        ('category', 'Category test mode processing'),
+        ('multi-level', 'Multi-level test mode processing'),
+    ]
+    output_path = project_root / 'tests' / 'unit' / 'file_creation_matrix_tests.bats'
+    bats_content = f"""#!/usr/bin/env bats
+
+# Auto-generated integration tests for file-creation-based test matrices
+# Each test runs main.py in test mode and validates output files against the expected matrix
+
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-support/load.bash"
+load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-assert/load.bash"
+
+"""
+    for testname, description in test_cases:
+        bats_content += f"""
+@test "{testname}: {description} (output files match matrix)" {{
+    # Run main.py in test mode for this test
+    run python3 ${{BATS_TEST_DIRNAME}}/../../main.py --test-mode --test-name {testname}
+    [ "$status" -eq 0 ]
+    # Validate output files against the matrix
+    run python3 ${{BATS_TEST_DIRNAME}}/../scripts/validate_test_outputs.py {testname}
+    [ "$status" -eq 0 ]
+}}
+"""
+    with open(output_path, 'w') as f:
+        f.write(bats_content)
+    os.chmod(output_path, 0o755)
+    print(f"Generated file-creation matrix BATS tests in {output_path}")
+
 def normalize_name_with_config(name: str, config_path: Path) -> str:
     """
     Normalize a name string using the allowed separators from config/components.yaml.
@@ -367,18 +407,24 @@ def run_integration_test():
 
 if __name__ == '__main__':
     import sys
-    parser = argparse.ArgumentParser(description="Generate BATS tests for name, date, combined, or run integration test.")
-    parser.add_argument('test_type', nargs='?', choices=['name', 'date', 'combined', 'integration'], help="The type of tests to generate ('name', 'date', 'combined', 'integration'). If omitted, all will be generated.")
+    parser = argparse.ArgumentParser(description="Generate BATS tests for name, date, combined, file-creation, or run integration test.")
+    parser.add_argument('test_type', nargs='?', choices=['name', 'date', 'combined', 'integration', 'file-creation'], help="The type of tests to generate ('name', 'date', 'combined', 'integration', 'file-creation'). If omitted, all will be generated.")
     args = parser.parse_args()
     if args.test_type == 'integration':
         run_integration_test()
+    elif args.test_type == 'file-creation':
+        generate_file_creation_bats_tests()
     elif args.test_type:
         generate_bats_tests(args.test_type) 
     else:
-        print("No test_type specified. Generating all test types: name, date, combined.\n")
+        print("No test_type specified. Generating all test types: name, date, combined, file-creation.\n")
         for t in ['name', 'date', 'combined']:
             try:
                 generate_bats_tests(t)
             except Exception as e:
                 print(f"Error generating {t} tests: {e}")
+        try:
+            generate_file_creation_bats_tests()
+        except Exception as e:
+            print(f"Error generating file-creation tests: {e}")
         print("\nAll test types generated.") 

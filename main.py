@@ -269,13 +269,14 @@ class FileMigrationRenamer:
         try:
             # Get normalized name
             normalized_name = components['extracted_name'].replace(',', ' ') if components['extracted_name'] else ""
+            # Do NOT skip the name if user_id is missing; always include the name (directory name)
             # Get file extension
             original_ext = Path(components['filename']).suffix
             # Clean remainder without extension
             remainder = components['cleaned_remainder'] or ""
             if remainder.endswith(original_ext):
                 remainder = remainder[:-len(original_ext)]
-            # Format using the template from config (should be {id}_{name}_{remainder}_{date})
+            # Format using the template from config (should be {id}_{name}_{remainder}_{date}_{category})
             formatted = format_filename_with_id(
                 user_id=components['user_id'] or "",
                 name=normalized_name,
@@ -467,16 +468,18 @@ class FileMigrationRenamer:
         
         return results
     
-    def process_test_files(self, dry_run: bool = False, person_filter: Optional[str] = None, test_name: str = "basic") -> List[Dict]:
+    def process_test_files(self, duplicate: bool = False, person_filter: Optional[str] = None, test_name: str = "basic") -> List[Dict]:
         """
         Process files using the tests/test-files structure with multi-level support.
         Args:
-            dry_run: If True, don't actually process files
+            duplicate: If True, duplicate (copy) the file before renaming; if False, move/rename the original.
             person_filter: If specified, only process files for this person
             test_name: Name of the test (determines input directory: from-<test_name> and output directory: to-<test_name>)
         Returns:
             List of processing results
         """
+        import shutil
+        import os
         results = []
         test_files_dir = Path(__file__).parent / 'tests' / 'test-files'
         from_dir = test_files_dir / f'from-{test_name}'
@@ -491,8 +494,7 @@ class FileMigrationRenamer:
             person_name = person_dir.name
             self.logger.info(f"Processing person: {person_name}")
             output_person_dir = to_dir / person_name
-            if not dry_run:
-                output_person_dir.mkdir(parents=True, exist_ok=True)
+            output_person_dir.mkdir(parents=True, exist_ok=True)
             files_with_info = self.directory_processor.get_files_recursive(person_dir)
             for filepath, folder_info in files_with_info:
                 filename = filepath.name
@@ -510,19 +512,25 @@ class FileMigrationRenamer:
                     'success': True,
                     'test_name': test_name
                 }
-                if not dry_run:
-                    try:
-                        new_filepath = output_person_dir / new_filename
+                try:
+                    new_filepath = output_person_dir / new_filename
+                    orig_stat = filepath.stat()
+                    orig_mtime = orig_stat.st_mtime
+                    orig_atime = orig_stat.st_atime
+                    if duplicate:
                         shutil.copy2(filepath, new_filepath)
                         result['copied'] = True
                         self.logger.info(f"Copied: {person_name}/{filepath.relative_to(person_dir)} -> {test_name}/{person_name}/{new_filename}")
-                    except Exception as e:
-                        result['error'] = f"Failed to copy {filename}: {e}"
-                        result['success'] = False
-                        self.logger.error(result['error'])
-                else:
-                    result['copied'] = False
-                    self.logger.info(f"DRY RUN - Would copy: {person_name}/{filepath.relative_to(person_dir)} -> {test_name}/{person_name}/{new_filename}")
+                    else:
+                        filepath.rename(new_filepath)
+                        result['moved'] = True
+                        self.logger.info(f"Moved: {person_name}/{filepath.relative_to(person_dir)} -> {test_name}/{person_name}/{new_filename}")
+                    # Restore original times on the new file
+                    os.utime(new_filepath, (orig_atime, orig_mtime))
+                except Exception as e:
+                    result['error'] = f"Failed to process {filename}: {e}"
+                    result['success'] = False
+                    self.logger.error(result['error'])
                 results.append(result)
         return results
     
@@ -611,6 +619,11 @@ def main():
         action='store_true',
         help='Enable verbose logging'
     )
+    parser.add_argument(
+        '--duplicate',
+        action='store_true',
+        help='Duplicate (copy) the file before renaming; if not set, move/rename the original.'
+    )
     args = parser.parse_args()
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -620,7 +633,7 @@ def main():
         print(f"Test name: {args.test_name}")
         if args.person:
             print(f"Filtering to person: {args.person}")
-        results = renamer.process_test_files(args.dry_run, args.person, args.test_name)
+        results = renamer.process_test_files(duplicate=args.duplicate, person_filter=args.person, test_name=args.test_name)
         renamer.print_summary(results)
     elif args.input_dir and args.output_dir:
         name_mapping = {}

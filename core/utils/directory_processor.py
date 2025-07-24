@@ -313,32 +313,28 @@ class DirectoryProcessor:
                          modified_date: Optional[datetime], created_date: Optional[datetime]) -> Optional[datetime]:
         """
         Get the priority date based on configuration.
-        
         Args:
             folder_date: Date from folder structure.
             filename_date: Date extracted from filename.
             modified_date: File modification date.
             created_date: File creation date.
-            
         Returns:
             datetime: Priority date, or None if no date available.
         """
-        priority_order = self.date_folder_config.get('date_priority', [
-            'folder_date', 'filename_date', 'modified_date', 'created_date'
+        # Use the new config location and keys
+        priority_order = self.config.get('Date', {}).get('date_priority_order', [
+            'filename', 'foldername', 'modified', 'created'
         ])
-        
         date_map = {
-            'folder_date': folder_date,
-            'filename_date': filename_date,
-            'modified_date': modified_date,
-            'created_date': created_date
+            'filename': filename_date,
+            'foldername': folder_date,
+            'modified': modified_date,
+            'created': created_date
         }
-        
         for priority in priority_order:
             date_value = date_map.get(priority)
             if date_value is not None:
                 return date_value
-        
         return None
     
     def process_folder_remainder(self, folder_string: str, person_name: str, category_name: str = None) -> str:
