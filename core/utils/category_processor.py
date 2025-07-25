@@ -51,7 +51,8 @@ class CategoryProcessor:
         mapping_path = project_root / mapping_file
         
         if not mapping_path.exists():
-            print(f"Warning: Category mapping file not found: {mapping_path}")
+            print(f"Warning: Category mapping file not found: {mapping_path}", file=sys.stderr)
+            sys.stderr.flush()
             return
         
         try:
@@ -65,10 +66,12 @@ class CategoryProcessor:
                         key = category_name.lower() if self.category_settings.get('case_insensitive', True) else category_name
                         self.category_mapping[key] = category_id
             
-            print(f"Loaded {len(self.category_mapping)} category mappings")
+            print(f"Loaded {len(self.category_mapping)} category mappings", file=sys.stderr)
+            sys.stderr.flush()
             
         except Exception as e:
-            print(f"Error loading category mapping: {e}")
+            print(f"Error loading category mapping: {e}", file=sys.stderr)
+            sys.stderr.flush()
     
     def detect_category_from_path(self, folder_info: Dict) -> Optional[str]:
         """
@@ -219,14 +222,12 @@ def main():
     """Test the category processor."""
     # Load config
     import yaml
-    
+    import sys
     config_path = Path(__file__).parent.parent.parent / 'config' / 'components.yaml'
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
-    
     # Create processor
     processor = CategoryProcessor(config)
-    
     # Test category detection
     test_cases = [
         {'folder_only_string': 'John Doe/WHS/2023/Incidents'},
@@ -235,23 +236,113 @@ def main():
         {'folder_only_string': 'John Doe/whs/2023/Incidents'},  # Case insensitive
         {'folder_only_string': 'John Doe/Support Plans/2024'},
     ]
-    
-    print("Category Detection Test")
-    print("=" * 40)
-    
+    print("Category Detection Test", file=sys.stderr)
+    sys.stderr.flush()
+    print("=" * 40, file=sys.stderr)
+    sys.stderr.flush()
     for i, test_case in enumerate(test_cases, 1):
         category_id = processor.detect_category_from_path(test_case)
-        print(f"Test {i}: {test_case['folder_only_string']}")
-        print(f"  Category ID: {category_id}")
-        
+        print(f"Test {i}: {test_case['folder_only_string']}", file=sys.stderr)
+        sys.stderr.flush()
+        print(f"  Category ID: {category_id}", file=sys.stderr)
+        sys.stderr.flush()
         if category_id:
             formatted = processor.format_filename_with_category(
                 "1001_John Doe_2023 Incidents_2023-06-01.pdf", 
                 category_id
             )
-            print(f"  Formatted: {formatted}")
-        print()
+            print(f"  Formatted: {formatted}", file=sys.stderr)
+            sys.stderr.flush()
+        print(file=sys.stderr)
+        sys.stderr.flush()
 
+
+def extract_category_from_path_cli(input_path: str, config: dict):
+    """
+    CLI entrypoint for extracting category from a path.
+    Outputs: extracted_category|raw_category|cleaned_category|raw_remainder|cleaned_remainder|error_status
+    """
+    processor = CategoryProcessor(config)
+    import os
+    import re
+    path_parts = Path(input_path).parts
+    if len(path_parts) < 3:
+        # No category
+        print(f"|||{input_path}|{input_path}|no_category")
+        return
+    person_dir = path_parts[0]
+    candidate = path_parts[1]
+    # Normalize function: lowercase, replace underscores/hyphens/& with spaces, remove non-alphanum except spaces, collapse spaces
+    def normalize(s):
+        s = s.lower()
+        s = re.sub(r'[\-_&]', ' ', s)
+        s = re.sub(r'[^a-z0-9 ]', '', s)
+        s = re.sub(r'\s+', ' ', s)
+        return s.strip()
+    norm_candidate = normalize(candidate)
+    # Load mapping file for robust matching
+    mapping_file = processor.category_settings.get('mapping_test_file', 'config/category_mapping.csv')
+    project_root = Path(__file__).parent.parent.parent
+    mapping_path = project_root / mapping_file
+    mapped_name_csv = None
+    mapped_id = None
+    if mapping_path.exists():
+        import csv
+        with open(mapping_path, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                norm_map = normalize(row['category_name'])
+                # Prefer exact match, then partial
+                if norm_candidate == norm_map:
+                    mapped_name_csv = row['category_name']
+                    mapped_id = row['category_id']
+                    break
+            if not mapped_name_csv:
+                f.seek(0)
+                next(reader)  # skip header
+                for row in reader:
+                    norm_map = normalize(row['category_name'])
+                    if norm_map in norm_candidate or norm_candidate in norm_map:
+                        mapped_name_csv = row['category_name']
+                        mapped_id = row['category_id']
+                        break
+    if mapped_name_csv:
+        raw_category = candidate
+        cleaned_category = mapped_name_csv
+        extracted_category = mapped_name_csv
+        raw_remainder = os.path.join(person_dir, *path_parts[2:])
+        # Use universal cleaner for cleaned_remainder
+        import subprocess
+        cleaned_remainder = subprocess.check_output([
+            'python3',
+            str(project_root / 'core/utils/name_matcher.py'),
+            '--clean-filename',
+            raw_remainder
+        ], text=True).strip()
+        print(f"{extracted_category}|{raw_category}|{cleaned_category}|{raw_remainder}|{cleaned_remainder}||")
+    else:
+        # Unmapped category, treat as directory
+        if candidate:
+            raw_remainder = os.path.join(person_dir, *path_parts[2:])
+            import subprocess
+            cleaned_remainder = subprocess.check_output([
+                'python3',
+                str(project_root / 'core/utils/name_matcher.py'),
+                '--clean-filename',
+                raw_remainder
+            ], text=True).strip()
+            print(f"{candidate}|{candidate}|{candidate}|{raw_remainder}|{cleaned_remainder}|unmapped")
+        else:
+            # No category
+            print(f"|||{input_path}|{input_path}|no_category")
 
 if __name__ == "__main__":
-    main() 
+    import yaml
+    import sys
+    config_path = Path(__file__).parent.parent.parent / 'config' / 'components.yaml'
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    if len(sys.argv) == 2:
+        extract_category_from_path_cli(sys.argv[1], config)
+    else:
+        main() 

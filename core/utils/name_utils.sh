@@ -34,24 +34,24 @@ filename_contains_name() {
     # Generate and check each permutation
     while IFS= read -r name_perm; do
         # For full names, allow any non-alphanumeric characters between parts
-        if [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]+[^A-Za-zÀ-ÿ0-9]+[A-Za-zÀ-ÿ0-9]+$ ]]; then
-            if [[ "$filename" =~ [^A-Za-zÀ-ÿ0-9]${name_perm}[^A-Za-zÀ-ÿ0-9] ]]; then
+        if [[ "$name_perm" =~ ^[A-Za-z0-9]+[^A-Za-z0-9]+[A-Za-z0-9]+$ ]]; then
+            if [[ "$filename" =~ [^A-Za-z0-9]${name_perm}[^A-Za-z0-9] ]]; then
                 return 0
             fi
         # For both initials (JD), must have separators around them
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9]{2}$ ]]; then
-            if [[ "$filename" =~ [^A-Za-zÀ-ÿ0-9]${name_perm}[^A-Za-zÀ-ÿ0-9] ]]; then
+        elif [[ "$name_perm" =~ ^[A-Za-z0-9]{2}$ ]]; then
+            if [[ "$filename" =~ [^A-Za-z0-9]${name_perm}[^A-Za-z0-9] ]]; then
                 return 0
             fi
         # For first initial + last name (jdoe) or first name + last initial (johnD),
         # no separators needed
-        elif [[ "$name_perm" =~ ^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9]+$ ]]; then
+        elif [[ "$name_perm" =~ ^[A-Za-z0-9][A-Za-z0-9]+$ ]]; then
             if [[ "$filename" =~ ${name_perm} ]]; then
                 return 0
             fi
         # For single names, must be whole words
         else
-            if [[ "$filename" =~ [^A-Za-zÀ-ÿ0-9]${name_perm}[^A-Za-zÀ-ÿ0-9] ]]; then
+            if [[ "$filename" =~ [^A-Za-z0-9]${name_perm}[^A-Za-z0-9] ]]; then
                 return 0
             fi
         fi
@@ -64,7 +64,6 @@ filename_contains_name() {
 # Now delegates to Python for YAML-driven separator order
 clean_filename_remainder() {
     local remainder="$1"
-    
     # Call the Python cleaner, which uses YAML-driven separator order
     python3 "${BATS_TEST_DIRNAME:-.}/../../core/utils/name_matcher.py" --clean-filename "$remainder"
 }

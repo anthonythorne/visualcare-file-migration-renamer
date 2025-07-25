@@ -56,23 +56,23 @@ source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"
   assert_equal "$cleaned_remainder" "Medical Reports Smith Jane Smith Jane Report.pdf"
 }
 
-@test "extract_date_from_path - 2023/Temp Person/Temp Person File.txt" {
+@test "2023 Temp Person Temp Person File.txt - 2023/Temp Person/Temp Person File.txt" {
   cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "2023/Temp Person/Temp Person File.txt")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: No full date match (partial year only)" >&2
-  echo "function: extract_date_from_path" >&2
+  echo "Comment: extract_date_from_path" >&2
+  echo "function: 2023 Temp Person Temp Person File.txt" >&2
   echo "full_path: 2023/Temp Person/Temp Person File.txt" >&2
   echo "date to match: 2023-05-05" >&2
   echo "expected_match: false" >&2
   echo "raw remainder expected: " >&2
   echo "raw remainder matched: " >&2
-  echo "cleaned remainder expected: 2023 Temp Person Temp Person File.txt" >&2
+  echo "cleaned remainder expected: 2023/Temp Person/Temp Person File.txt" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_date expected: " >&2
   echo "extracted_date matched: " >&2
   echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$cleaned_remainder" "2023 Temp Person Temp Person File.txt"
+  assert_equal "$cleaned_remainder" "2023/Temp Person/Temp Person File.txt"
 }
 
 @test "extract_date_from_path - NDIS/Incidents 2022-12-31/John D/John D - Summary 2022-12-31.pdf" {
@@ -99,21 +99,21 @@ source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"
   assert_equal "$cleaned_remainder" "NDIS Incidents John D John D Summary.pdf"
 }
 
-@test "extract_date_from_path - Unknown/2020/file.pdf" {
+@test "Unknown 2020 file.pdf - Unknown/2020/file.pdf" {
   cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "Unknown/2020/file.pdf")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: No match anywhere in path " >&2
-  echo "function: extract_date_from_path" >&2
+  echo "Comment: extract_date_from_path" >&2
+  echo "function: Unknown 2020 file.pdf" >&2
   echo "full_path: Unknown/2020/file.pdf" >&2
   echo "date to match: 2021-01-01" >&2
   echo "expected_match: false" >&2
   echo "raw remainder expected: " >&2
   echo "raw remainder matched: " >&2
-  echo "cleaned remainder expected: Unknown 2020 file.pdf" >&2
+  echo "cleaned remainder expected: Unknown/2020/file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_date expected: " >&2
   echo "extracted_date matched: " >&2
   echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$cleaned_remainder" "Unknown 2020 file.pdf"
+  assert_equal "$cleaned_remainder" "Unknown/2020/file.pdf"
 }

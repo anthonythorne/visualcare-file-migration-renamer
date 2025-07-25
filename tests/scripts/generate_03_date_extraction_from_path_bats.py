@@ -10,16 +10,18 @@ from pathlib import Path
 bats_file = Path(__file__).parent.parent / 'unit' / '03_date_extraction_from_path_matrix_tests.bats'
 matrix_file = Path(__file__).parent.parent / 'fixtures' / '03_date_extraction_from_path_cases.csv'
 
+bats_file.parent.mkdir(parents=True, exist_ok=True)
+
 with open(matrix_file, newline='') as csvfile:
     reader = csv.DictReader(csvfile, delimiter='|')
     tests = []
     for i, row in enumerate(reader):
         test_name = f"{row['matcher_function']} - {row['full_path']}"
         if row['expected_match'].strip().lower() == 'false':
-            # For no-match cases, just check cleaned remainder
+            # For no-match cases, just check cleaned remainder using the universal cleaner
             bats_test = f"""
 @test "{test_name}" {{
-  cleaned_remainder=$(clean_date_filename_remainder "{row['full_path']}")
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "{row['full_path']}")
   echo "----- TEST CASE -----" >&2
   echo "Comment: {row['use_case']}" >&2
   echo "function: {row['matcher_function']}" >&2
@@ -43,7 +45,7 @@ with open(matrix_file, newline='') as csvfile:
   run {row['matcher_function']} "{row['full_path']}" "{row['date_to_match']}"
   [ "$status" -eq 0 ]
   IFS='|' read -r extracted_date raw_remainder matched <<< "$output"
-  cleaned_remainder=$(clean_date_filename_remainder "$raw_remainder")
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
   echo "----- TEST CASE -----" >&2
   echo "Comment: {row['use_case']}" >&2
   echo "function: {row['matcher_function']}" >&2

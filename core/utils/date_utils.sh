@@ -34,21 +34,7 @@ extract_date_from_filename() {
     echo "$result"
 }
 
-clean_date_filename_remainder() {
-    local remainder="$1"
-
-    # 1. Remove leading and trailing separators (hyphen, underscore, space, dot)
-    remainder=$(echo "$remainder" | sed -E 's/^[-_ .]+//')
-    remainder=$(echo "$remainder" | sed -E 's/[-_ .]+$//')
-
-    # 2. Collapse multiple consecutive separators to a single one of the same type
-    remainder=$(echo "$remainder" | sed -E 's/([-_ .])\1+/\1/g')
-
-    # 3. Remove a separator (hyphen, underscore, space) immediately before a file extension (dot + 2-4 letters)
-    remainder=$(echo "$remainder" | sed -E 's/[-_ ]+(\.[a-zA-Z0-9]{2,4})$/\1/')
-
-    echo "$remainder"
-}
+# Removed clean_date_filename_remainder: use universal cleaner in name_matcher.py
 
 # Extract date from full path (folders and filename)
 # Usage: extract_date_from_path <full_path> <date_to_match>
@@ -61,6 +47,5 @@ extract_date_from_path() {
     python3 "$utils_dir/date_matcher.py" "$full_path" "$date_to_match" "extract_date_from_path"
 }
 
-export -f extract_date_from_filename
-export -f clean_date_filename_remainder 
+export -f extract_date_from_filename 
 export -f extract_date_from_path 

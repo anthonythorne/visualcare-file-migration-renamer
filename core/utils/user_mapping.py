@@ -57,7 +57,7 @@ def load_user_mapping() -> Dict[str, str]:
     config = load_config()
     user_config = config.get('UserMapping', {})
     
-    mapping_file = user_config.get('mapping_file', 'config/user_mapping.csv')
+    mapping_file = user_config.get('mapping_test_file', 'config/user_mapping.csv')
     id_column = user_config.get('id_column', 'user_id')
     name_column = user_config.get('name_column', 'full_name')
     
@@ -232,20 +232,25 @@ def format_filename_with_id(user_id: str, name: str, date: str, remainder: str,
 
 
 if __name__ == "__main__":
-    # Test the functionality
     import sys
+    from pathlib import Path
+    import subprocess
+    if len(sys.argv) == 2:
+        input_name = sys.argv[1]
+        user_id = get_user_id_by_name(input_name) or ""
+        full_name = get_name_by_user_id(user_id) if user_id else ""
+        raw_name = input_name
+        # Use universal cleaner for cleaned_name
+        project_root = Path(__file__).parent.parent.parent
+        cleaned_name = subprocess.check_output([
+            'python3',
+            str(project_root / 'core/utils/name_matcher.py'),
+            '--clean-filename',
+            input_name
+        ], text=True).strip()
+        print(f"{user_id}|{full_name}|{raw_name}|{cleaned_name}")
     
-    if len(sys.argv) < 2:
-        print("Usage: user_mapping.py <command> [args]")
-        print("Commands:")
-        print("  get_id <name> - Get user ID by name")
-        print("  get_name <id> - Get name by user ID")
-        print("  extract_id <filename> <name> - Extract user ID from filename")
-        sys.exit(1)
-    
-    command = sys.argv[1]
-    
-    if command == "get_id" and len(sys.argv) >= 3:
+    elif command == "get_id" and len(sys.argv) >= 3:
         name = sys.argv[2]
         user_id = get_user_id_by_name(name)
         print(f"User ID for '{name}': {user_id}")

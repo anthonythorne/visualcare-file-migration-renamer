@@ -52,4 +52,8 @@ else
   bats tests/unit/03_date_extraction_from_path_matrix_tests.bats
 fi
 
+# 04: Category extraction matrix test
+python3 tests/scripts/generate_category_extraction_bats.py
+bats --show-output-of-passing-tests tests/unit/04_category_extraction_matrix_tests.bats
+
 echo "All core extraction tests passed!" 

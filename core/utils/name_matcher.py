@@ -49,24 +49,20 @@ def load_config():
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
-def load_separators_for_searching():
+def load_global_separators():
     config = load_config()
-    return config['Name']['allowed_separators_when_searching']
+    return config['Global']['separators']['input']
 
-def load_allowed_separators_for_name():
+def get_normalized_separator():
     config = load_config()
-    return config['Name']['allowed_separators']
-
-def load_remainder_allowed_separators():
-    config = load_config()
-    return config['Remainder']['allowed_separators']
+    return config['Global']['separators']['normalized']
 
 def separator_regex_for_searching():
-    seps = load_separators_for_searching()
+    seps = load_global_separators()
     return '(?:' + '|'.join(re.escape(sep) for sep in seps) + ')'
 
 def separator_char_class_for_remainder():
-    seps = load_remainder_allowed_separators()
+    seps = load_global_separators()
     return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
 def _generate_fuzzy_regex(part):
@@ -299,7 +295,7 @@ def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clea
 
 def separator_char_class():
     """Return a regex character class for all separators from YAML config."""
-    seps = load_separators_for_searching()
+    seps = load_global_separators()
     return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
 def extract_initials_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
@@ -344,49 +340,28 @@ def extract_initials_from_filename(filename: str, name_to_match: str, clean_file
 
 def clean_filename_remainder_py(remainder):
     """
-    Clean a filename remainder by collapsing runs of consecutive allowed separators to the most preferred one (from YAML order),
-    and replacing reserved/component separators (e.g., underscores) with the configured remainder_separator.
+    Clean a filename remainder by replacing all input separators with the normalized separator,
+    collapsing runs of separators, and trimming leading/trailing separators.
     """
     if not remainder:
         return remainder
-        
     # Split extension to preserve it
     if '.' in remainder:
         base, ext = remainder.rsplit('.', 1)
         ext = '.' + ext
     else:
         base, ext = remainder, ''
-    
-    # Step 0: Replace forward slashes with spaces (for folder separators)
-    base = base.replace('/', ' ')
-    
-    # Load separators in order (most preferred first)
-    seps = load_remainder_allowed_separators()
-    # Load the configured remainder separator
-    config = load_config()
-    remainder_sep = config.get('Remainder', {}).get('remainder_separator', ' ')
-    # Replace underscores and any reserved/component separators with the configured remainder separator
-    reserved_seps = ['_']  # Add more if needed
-    for sep in reserved_seps:
-        base = base.replace(sep, remainder_sep)
-    # Build regex to match any run of 2+ separators
-    sep_class = ''.join(re.escape(s) for s in seps)
-    def replace_run(match):
-        """Replace a run of separators with the most preferred one."""
-        run = match.group(0)
-        for sep in seps:  # seps is already in preference order
-            if sep in run:
-                return sep
-        return run[0]
-    # Step 1: Collapse runs of 2+ separators to the most preferred
-    cleaned = re.sub(rf'[{sep_class}]{{2,}}', replace_run, base)
-    # Step 2: Remove leading separators (least preferred first)
-    for sep in reversed(seps):  # Start with least preferred
-        cleaned = cleaned.lstrip(sep)
-    # Step 3: Remove trailing separators (least preferred first)
-    for sep in reversed(seps):  # Start with least preferred
-        cleaned = cleaned.rstrip(sep)
-    result = cleaned + ext
+    # Replace all input separators with the normalized separator
+    input_seps = load_global_separators()
+    norm_sep = get_normalized_separator()
+    for sep in input_seps:
+        base = base.replace(sep, norm_sep)
+    # Collapse runs of normalized separator
+    import re
+    base = re.sub(re.escape(norm_sep) + r'{2,}', norm_sep, base)
+    # Remove leading/trailing normalized separator
+    base = base.strip(norm_sep)
+    result = base + ext
     return result
 
 def extract_name_and_date_from_filename(filename: str, name_to_match: str) -> str:
