@@ -1,0 +1,6 @@
+full_path|name_to_match|expected_match|extracted_name|raw_remainder|cleaned_remainder|matcher_function|use_case
+WHS - John Doe/2025/Docs John Doe/Report Notes for John Doe Incidents.pdf|John Doe|true|John,John,John,Doe|WHS -  Doe/2025/Docs  Doe/Report Notes for   Incidents.pdf|WHS Doe 2025 Docs Doe Report Notes for Incidents.pdf|extract_name_from_path|Name appears multiple times in folders and filename
+Medical/2024/Smith Jane/Smith Jane Report for Jane.pdf|Jane Smith|true|Jane,Jane,Smith,Smith|Medical/2024/ Jane/  Report for .pdf|Medical 2024 Jane Report for.pdf|extract_name_from_path|Name appears in two folders and filename
+2023/Temp Person/Temp Person File.txt|Temp Person|true|Person|2023/Temp Person/Temp  File.txt|2023 Temp Person Temp File.txt|extract_name_from_path|Name appears in folder and filename
+NDIS/2022/John D/John D - Summary John D.pdf|John D|true|John D,D|NDIS/2022/John D/John  - Summary .pdf|NDIS 2022 John D John Summary.pdf|extract_name_from_path|Name appears in folder and filename, with separator
+Unknown/2020/file.pdf|John Doe|false||Unknown/2020/file.pdf|Unknown 2020 file.pdf|extract_name_from_path|No match anywhere in path 

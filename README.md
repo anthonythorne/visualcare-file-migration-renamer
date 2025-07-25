@@ -146,6 +146,31 @@ python3 main.py --test-mode --test-name userid
 python3 main.py --test-mode --test-name management
 ```
 
+## Running the Test Suite
+
+The main test suite will always regenerate (scaffold) all BATS tests from the latest fixture matrices before running them. This ensures all tests are up-to-date and reproducible.
+
+To run all core extraction tests (filename and path-based):
+
+```bash
+bash tests/run_tests.sh
+```
+
+- By default, only errors (failures) will show detailed debug output.
+- To see full debug output for every test (including passing tests), use:
+
+```bash
+bash tests/run_tests.sh --verbose=all
+```
+
+### Included Test Suites
+- Name extraction from filename
+- Date extraction from filename
+- Name extraction from any folder/file path (nested directories)
+- Date extraction from any folder/file path (nested directories)
+
+Each test suite is always regenerated before running, so you never need to manually clean or rebuild BATS files.
+
 ## 📚 Documentation
 
 ### For Users

@@ -14,6 +14,7 @@ File Path: core/utils/name_matcher.py
 @since   1.0.0
 
 Algorithms:
+- Extraction order is now fully configurable via config/components.yaml (Name.extraction_order)
 - Full name extraction with fuzzy character substitution
 - Initials detection (grouped and separated)
 - Shorthand patterns (j-doe, john-d)
@@ -22,7 +23,7 @@ Algorithms:
 - Remainder cleaning and normalization
 
 Configuration:
-- Loads separators from config/components.yaml
+- Loads separators and extraction order from config/components.yaml
 - Supports fuzzy character substitutions
 - Configurable separator precedence for cleaning
 - Extension preservation during processing
@@ -103,93 +104,71 @@ def match_both_initials(filename, first_initial, last_initial):
         return filename[start:end], filename[:start] + filename[end:]
     return None
 
+def get_extraction_order():
+    config = load_config()
+    return config.get('Name', {}).get('extraction_order', [
+        'shorthand', 'initials', 'first_name', 'last_name'
+    ])
+
 def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     """
-    Extract all name matches from filename using the new type-based processing algorithm.
-    
-    Processing order:
-    1. Find all shorthand patterns first (prevents incorrect splitting)
-    2. Find all remaining initials patterns
-    3. Find all remaining first name matches
-    4. Find all remaining last name matches
-    5. Clean remainder using separator precedence from config
-    
+    Extract all name matches from filename using the config-driven extraction order.
     Returns: extracted_names|raw_remainder|match_status
     """
-    # debug_print(f"START: Processing filename: '{filename}' with name: '{name_to_match}'")
     name_parts = [p for p in name_to_match.split() if p]
     if not name_parts:
+        # Even if no match, run the file cleanup on the original string
+        cleaned = clean_filename_remainder_py(filename)
         return f"|{filename}|false"
-    
     extracted_pieces = []
     work_filename = filename
-    
-    # Step 1: Find all shorthand patterns first
-    # debug_print("Step 1: Finding all shorthand patterns")
-    shorthand_matches = []
-    while True:
-        result = extract_shorthand_name_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        shorthand_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found shorthand: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(shorthand_matches)
-    
-    # Step 2: Find all remaining initials patterns
-    # debug_print("Step 2: Finding all initials patterns")
-    initials_matches = []
-    while True:
-        result = extract_initials_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        initials_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found initials: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(initials_matches)
-    
-    # Step 3: Find all remaining first name matches
-    # debug_print("Step 3: Finding all first name matches")
-    first_name_matches = []
-    while True:
-        result = extract_first_name_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        first_name_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found first name: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(first_name_matches)
-    
-    # Step 4: Find all remaining last name matches
-    # debug_print("Step 4: Finding all last name matches")
-    last_name_matches = []
-    while True:
-        result = extract_last_name_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        last_name_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found last name: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(last_name_matches)
-    
+    extraction_order = get_extraction_order()
+    for method in extraction_order:
+        if method == 'shorthand':
+            while True:
+                result = extract_shorthand_name_from_filename(work_filename, name_to_match, clean_filename=False)
+                if result.startswith('|') or result.split('|')[2] != 'true':
+                    break
+                extracted, remainder, _ = result.split('|')
+                extracted_pieces.append(extracted)
+                if work_filename == remainder:
+                    break
+                work_filename = remainder
+        elif method == 'initials':
+            while True:
+                result = extract_initials_from_filename(work_filename, name_to_match, clean_filename=False)
+                if result.startswith('|') or result.split('|')[2] != 'true':
+                    break
+                extracted, remainder, _ = result.split('|')
+                extracted_pieces.append(extracted)
+                if work_filename == remainder:
+                    break
+                work_filename = remainder
+        elif method == 'first_name':
+            while True:
+                result = extract_first_name_from_filename(work_filename, name_to_match, clean_filename=False)
+                if result.startswith('|') or result.split('|')[2] != 'true':
+                    break
+                extracted, remainder, _ = result.split('|')
+                extracted_pieces.append(extracted)
+                if work_filename == remainder:
+                    break
+                work_filename = remainder
+        elif method == 'last_name':
+            while True:
+                result = extract_last_name_from_filename(work_filename, name_to_match, clean_filename=False)
+                if result.startswith('|') or result.split('|')[2] != 'true':
+                    break
+                extracted, remainder, _ = result.split('|')
+                extracted_pieces.append(extracted)
+                if work_filename == remainder:
+                    break
+                work_filename = remainder
     if not extracted_pieces:
+        # Even if no match, run the file cleanup on the original string
+        cleaned = clean_filename_remainder_py(filename)
         return f"|{filename}|false"
-    
-    # Return the raw remainder (before cleaning) as expected by tests
     final_extracted = ','.join(extracted_pieces)
-    # debug_print(f"FINAL: Extracted: '{final_extracted}', Raw remainder: '{work_filename}'")
     return f"{final_extracted}|{work_filename}|true"
 
 def match_both_initials(filename, name_parts):
@@ -370,7 +349,7 @@ def clean_filename_remainder_py(remainder):
     """
     if not remainder:
         return remainder
-    
+        
     # Split extension to preserve it
     if '.' in remainder:
         base, ext = remainder.rsplit('.', 1)
@@ -433,6 +412,13 @@ def extract_name_and_date_from_filename(filename: str, name_to_match: str) -> st
     # Return the raw remainder (uncleaned) as the third field
     return f"{extracted_name}|{extracted_date}|{date_remainder}|{name_matched}|{date_matched}"
 
+def extract_name_from_path(full_path: str, name_to_match: str) -> str:
+    """
+    Treat the full path as a single string and extract all name matches using the config-driven extraction order.
+    Returns: extracted_names|raw_remainder|matched
+    """
+    return extract_all_name_matches(full_path, name_to_match)
+
 def main():
     """Main function to process command line arguments."""
     if len(sys.argv) > 1 and sys.argv[1] == '--clean-filename':
@@ -464,6 +450,9 @@ def main():
     if function_name in ["extract_first_name_from_filename", "extract_last_name_from_filename", "extract_initials_from_filename", "extract_shorthand_name_from_filename"]:
         result = matcher_function(filename, target_name, clean_filename=False)
         print(result)  # Only print the result to stdout
+    elif function_name == "extract_name_from_path":
+        result = extract_name_from_path(filename, target_name)
+        print(result)
     else:
         result = matcher_function(filename, target_name)
         print(result)  # Only print the result to stdout

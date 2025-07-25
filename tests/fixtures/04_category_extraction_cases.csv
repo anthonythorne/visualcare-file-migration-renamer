@@ -1,0 +1,11 @@
+input_path|expected_category_name|expected_category_id|raw_category|cleaned_category|matcher_function|description
+John Doe/WHS/file.pdf|WHS|1|WHS|WHS|extract_category_from_path|Mapped category (WHS)
+John Doe/Medical/2023/file.pdf|Medical|2|Medical|Medical|extract_category_from_path|Multi-level mapped category
+John Doe/UnknownCategory/file.pdf|||UnknownCategory||extract_category_from_path|Unmapped category
+John Doe/file.pdf|||||extract_category_from_path|No category
+John Doe/Support Plans/2022/plan.pdf|Support Plans|4|Support Plans|Support Plans|extract_category_from_path|Mapped category with spaces
+John Doe/whs/file.pdf|WHS|1|whs|WHS|extract_category_from_path|Case-insensitive mapped category
+John Doe/Mealtime-Management/file.pdf|Mealtime Management|10|Mealtime-Management|Mealtime Management|extract_category_from_path|Mapped category with hyphen
+John Doe/Photos & Videos/file.jpg|Photos|14|Photos & Videos|Photos|extract_category_from_path|Mapped category with special character (should map to Photos)
+John Doe/Receipts_2023/file.pdf|Receipts|16|Receipts_2023|Receipts|extract_category_from_path|Mapped category with underscore and year
+John Doe/!@#$/file.pdf|||||extract_category_from_path|Edge case: only special characters 

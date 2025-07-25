@@ -116,6 +116,17 @@ extract_name_and_date_from_filename() {
     python3 "$utils_dir/name_matcher.py" "$filename" "$name_to_match" "extract_name_and_date_from_filename"
 }
 
+# Extract name from full path (folders and filename)
+# Usage: extract_name_from_path <full_path> <name_to_match>
+# Output: extracted_names|raw_remainder|matched
+extract_name_from_path() {
+    local full_path="$1"
+    local name_to_match="$2"
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    python3 "$utils_dir/name_matcher.py" "$full_path" "$name_to_match" "extract_name_from_path"
+}
+
 # Main script
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # If script is run directly, process command line arguments
@@ -139,3 +150,10 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         clean_filename_remainder "$filename"
     fi
 fi 
+
+export -f generate_name_permutations
+export -f filename_contains_name
+export -f clean_filename_remainder
+export -f extract_name_from_filename
+export -f extract_name_and_date_from_filename 
+export -f extract_name_from_path 

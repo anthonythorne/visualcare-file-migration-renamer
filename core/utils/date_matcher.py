@@ -123,8 +123,40 @@ def extract_date_matches(filename):
     else:
         return f"|{filename}|false"
 
+def extract_date_from_path(full_path: str, date_to_match: str) -> str:
+    """
+    Extract all occurrences of the full date from all components of a path (folders and filename).
+    Returns: extracted_dates|raw_remainder|matched
+    """
+    import re
+    # Accept only full dates (YYYY-MM-DD)
+    date_pattern = re.compile(r'\b' + re.escape(date_to_match) + r'\b')
+    path_components = [p for p in full_path.split('/') if p]
+    extracted_dates = []
+    new_components = []
+    for part in path_components:
+        matches = list(date_pattern.finditer(part))
+        if matches:
+            extracted_dates.extend([date_to_match] * len(matches))
+            # Remove all occurrences of the date
+            remainder = date_pattern.sub('', part)
+            new_components.append(remainder)
+        else:
+            new_components.append(part)
+    raw_remainder = '/'.join(new_components)
+    matched = 'true' if extracted_dates else 'false'
+    return f"{','.join(extracted_dates)}|{raw_remainder}|{matched}"
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        filename = sys.argv[1]
-        result = extract_date_matches(filename)
-        print(result) 
+        if len(sys.argv) == 2:
+            filename = sys.argv[1]
+            result = extract_date_matches(filename)
+            print(result)
+        elif len(sys.argv) == 4 and sys.argv[3] == 'extract_date_from_path':
+            full_path = sys.argv[1]
+            date_to_match = sys.argv[2]
+            result = extract_date_from_path(full_path, date_to_match)
+            print(result)
+        else:
+            print('Usage: date_matcher.py <filename> [date_to_match] [function_name]') 

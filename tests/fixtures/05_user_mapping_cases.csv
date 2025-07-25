@@ -1,0 +1,12 @@
+input_name|expected_user_id|expected_full_name|raw_name|cleaned_name|matcher_function|description
+John Doe|1001|John Doe|John Doe|John Doe|get_user_id_by_name|Mapped user (full name)
+Jane Smith|1002|Jane Smith|Jane Smith|Jane Smith|get_user_id_by_name|Mapped user (full name)
+Temp Person|||Temp Person|Temp Person|get_user_id_by_name|Unmapped user
+J.D.|||J.D.|John Doe|get_user_id_by_name|Initials (should map to full name if possible)
+JD|||JD|John Doe|get_user_id_by_name|Initials, no punctuation
+john doe|1001|John Doe|john doe|John Doe|get_user_id_by_name|Case-insensitive mapped user
+Jöhn Döe|||Jöhn Döe|John Doe|get_user_id_by_name|Accented name, should map to John Doe
+John|||John|John Doe|get_user_id_by_name|Partial name (first name)
+Doe|||Doe|John Doe|get_user_id_by_name|Partial name (last name)
+J0hn D03|||J0hn D03|John Doe|get_user_id_by_name|Name with numbers/letter substitution
+!@#$|||!@#$||get_user_id_by_name|Edge case: only special characters 

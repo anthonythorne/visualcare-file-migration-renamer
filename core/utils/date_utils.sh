@@ -48,4 +48,19 @@ clean_date_filename_remainder() {
     remainder=$(echo "$remainder" | sed -E 's/[-_ ]+(\.[a-zA-Z0-9]{2,4})$/\1/')
 
     echo "$remainder"
-} 
+}
+
+# Extract date from full path (folders and filename)
+# Usage: extract_date_from_path <full_path> <date_to_match>
+# Output: extracted_dates|raw_remainder|matched
+extract_date_from_path() {
+    local full_path="$1"
+    local date_to_match="$2"
+    local utils_dir
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    python3 "$utils_dir/date_matcher.py" "$full_path" "$date_to_match" "extract_date_from_path"
+}
+
+export -f extract_date_from_filename
+export -f clean_date_filename_remainder 
+export -f extract_date_from_path 

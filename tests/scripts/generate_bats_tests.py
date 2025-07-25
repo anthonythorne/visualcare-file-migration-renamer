@@ -9,34 +9,25 @@ import time
 import yaml
 import re
 
+# Remove old/archived matrix references and update to only use current test matrices
 def generate_bats_tests(test_type):
-    # Get the project root directory (3 levels up from this script)
-    project_root = Path(__file__).parent.parent.parent.absolute()
-    
-    if test_type == 'name':
-        csv_path = project_root / 'tests' / 'fixtures' / 'name_extraction_cases.csv'
-        output_path = project_root / 'tests' / 'unit' / 'name_utils_table_test.bats'
-        source_script = "name_utils.sh"
-        id_col = 'name_to_match'
-        extracted_col = 'extracted_name'
-        function_call_template = 'extract_name_from_filename "{filename}" "{id_val}"'
-        clean_function = 'clean_filename_remainder'
+    """Generate BATS tests for the specified test type using the current minimal matrix."""
+    project_root = Path(__file__).parent.parent.parent
+    if test_type == 'basic':
+        csv_path = project_root / 'tests' / 'fixtures' / 'basic_test_cases.csv'
+    elif test_type == 'category':
+        csv_path = project_root / 'tests' / 'fixtures' / 'category_test_cases.csv'
     elif test_type == 'date':
         csv_path = project_root / 'tests' / 'fixtures' / 'date_extraction_cases.csv'
-        output_path = project_root / 'tests' / 'unit' / 'date_utils_table_test.bats'
-        source_script = "date_utils.sh"
-        id_col = 'date_to_match'
-        extracted_col = 'extracted_date'
-        function_call_template = 'extract_date_from_filename "{filename}"'
-        clean_function = 'clean_date_filename_remainder'
-    elif test_type == 'combined':
-        csv_path = project_root / 'tests' / 'fixtures' / 'combined_extraction_cases.csv'
-        output_path = project_root / 'tests' / 'unit' / 'combined_utils_table_test.bats'
-        source_script = None  # We'll source both name_utils.sh and date_utils.sh
+    elif test_type == 'multi_level':
+        csv_path = project_root / 'tests' / 'fixtures' / 'multi_level_directory_cases.csv'
+    elif test_type == 'complete':
+        csv_path = project_root / 'tests' / 'fixtures' / 'complete_test_cases.csv'
     else:
-        raise ValueError("Invalid test type specified. Must be 'name', 'date', or 'combined'.")
+        raise ValueError(f"Unknown test type: {test_type}")
     
     # Ensure the output directory exists
+    output_path = project_root / 'tests' / 'unit' / f"{test_type}_utils_table_test.bats"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     # Read the CSV file - both name and date now use pipe delimiter

@@ -44,6 +44,7 @@ def main():
         ("tests/fixtures/multi_level_directory_cases.csv", "multi-level", "tests/unit/output_validation_multi_level.bats"),
         ("tests/fixtures/category_test_cases.csv", "category", "tests/unit/output_validation_category.bats"),
         ("tests/fixtures/basic_test_cases.csv", "basic", "tests/unit/output_validation_basic.bats"),
+        ("tests/fixtures/complete_test_cases.csv", "complete", "tests/unit/output_validation_complete.bats"),
     ]
     for matrix_csv, test_name, output_bats in configs:
         if Path(matrix_csv).exists():

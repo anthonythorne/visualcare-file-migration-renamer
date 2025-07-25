@@ -1,0 +1,6 @@
+full_path|date_to_match|expected_match|extracted_date|raw_remainder|cleaned_remainder|matcher_function|use_case
+WHS/2025-07-15/Docs/Report_2025-07-15.pdf|2025-07-15|true|2025-07-15|WHS//Docs/Report_2025-07-15.pdf|WHS//Docs/Report_2025-07-15.pdf|extract_date_from_path|Date appears in both folder and filename
+Medical/2024-01-01 Reports/Smith Jane/Smith Jane Report 2024-01-01.pdf|2024-01-01|true|2024-01-01,2024-01-01|Medical/ Reports/Smith Jane/Smith Jane Report .pdf|Medical/ Reports/Smith Jane/Smith Jane Report.pdf|extract_date_from_path|Date in folder with extra text and in filename
+2023/Temp Person/Temp Person File.txt|2023-05-05|false|||2023/Temp Person/Temp Person File.txt|2023/Temp Person/Temp Person File.txt|extract_date_from_path|No full date match (partial year only)
+NDIS/Incidents 2022-12-31/John D/John D - Summary 2022-12-31.pdf|2022-12-31|true|2022-12-31,2022-12-31|NDIS/Incidents /John D/John D - Summary .pdf|NDIS/Incidents /John D/John D - Summary.pdf|extract_date_from_path|Date in folder with extra text and in filename
+Unknown/2020/file.pdf|2021-01-01|false|||Unknown/2020/file.pdf|Unknown/2020/file.pdf|extract_date_from_path|No match anywhere in path 

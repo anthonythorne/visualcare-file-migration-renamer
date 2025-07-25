@@ -188,6 +188,14 @@ ManagementFlag:
   placement: "suffix"
 
 Name:
+  # Extraction order for all name tests (including path-based):
+  # This order is used for all name extraction, both in filenames and in path-based extraction.
+  # The test matrices and BATS tests must match this extraction order for expected results.
+  extraction_order:
+    - shorthand      # Shorthand patterns (e.g., j-doe, john-d, jdoe, john d)
+    - initials       # Initials (grouped or separated, e.g., jd, j d, j-d)
+    - first_name     # First name (all occurrences)
+    - last_name      # Last name (all occurrences)
   # Allowed separators to have in the name portion when searching for name parts.
   allowed_separators_when_searching:
     - " "  # space

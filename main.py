@@ -494,7 +494,7 @@ class FileMigrationRenamer:
             person_name = person_dir.name
             self.logger.info(f"Processing person: {person_name}")
             output_person_dir = to_dir / person_name
-            output_person_dir.mkdir(parents=True, exist_ok=True)
+                output_person_dir.mkdir(parents=True, exist_ok=True)
             files_with_info = self.directory_processor.get_files_recursive(person_dir)
             for filepath, folder_info in files_with_info:
                 filename = filepath.name
@@ -512,8 +512,8 @@ class FileMigrationRenamer:
                     'success': True,
                     'test_name': test_name
                 }
-                try:
-                    new_filepath = output_person_dir / new_filename
+                    try:
+                        new_filepath = output_person_dir / new_filename
                     orig_stat = filepath.stat()
                     orig_mtime = orig_stat.st_mtime
                     orig_atime = orig_stat.st_atime
@@ -527,10 +527,10 @@ class FileMigrationRenamer:
                         self.logger.info(f"Moved: {person_name}/{filepath.relative_to(person_dir)} -> {test_name}/{person_name}/{new_filename}")
                     # Restore original times on the new file
                     os.utime(new_filepath, (orig_atime, orig_mtime))
-                except Exception as e:
+                    except Exception as e:
                     result['error'] = f"Failed to process {filename}: {e}"
-                    result['success'] = False
-                    self.logger.error(result['error'])
+                        result['success'] = False
+                        self.logger.error(result['error'])
                 results.append(result)
         return results
     
