@@ -4,8 +4,8 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-support/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
-# Auto-generated BATS tests for date extraction from filename
-source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"
+# Auto-generated BATS tests for date extraction
+source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
 
 
 @test "extract_date_from_filename - report-2023-01-15.pdf" {

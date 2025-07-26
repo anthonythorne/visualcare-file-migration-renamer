@@ -6,7 +6,7 @@
 extract_category_from_path() {
     local input_path="$1"
     local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../core/utils" && pwd)"
     python3 "$utils_dir/category_processor.py" "$input_path" 2>/dev/null
 }
 

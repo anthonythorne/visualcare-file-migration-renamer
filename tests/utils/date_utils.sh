@@ -24,7 +24,7 @@
 extract_date_from_filename() {
     local filename="$1"
     local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../core/utils" && pwd)"
 
     # Call the Python matcher and return the full result
     local result
@@ -43,7 +43,7 @@ extract_date_from_path() {
     local full_path="$1"
     local date_to_match="$2"
     local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../core/utils" && pwd)"
     python3 "$utils_dir/date_matcher.py" "$full_path" "$date_to_match" "extract_date_from_path"
 }
 

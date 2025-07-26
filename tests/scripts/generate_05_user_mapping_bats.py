@@ -1,58 +1,108 @@
 #!/usr/bin/env python3
+
 """
-Generate BATS tests for user name mapping (ID <-> name) from the matrix.
+Generate BATS tests for user mapping from CSV matrix.
+
+This script reads the user mapping test matrix and generates BATS test files
+that test user ID mapping functionality with full path extraction.
+
+File Path: tests/scripts/generate_05_user_mapping_bats.py
+
+@package VisualCare\\FileMigration\\Tests
+@since   1.0.0
 """
+
 import csv
+import sys
+import subprocess
 from pathlib import Path
 
-bats_file = Path(__file__).parent.parent / 'unit' / '05_user_mapping_matrix_tests.bats'
-matrix_file = Path(__file__).parent.parent / 'fixtures' / '05_user_mapping_cases.csv'
 
-bats_file.parent.mkdir(parents=True, exist_ok=True)
+def generate_bats_tests():
+    """Generate BATS tests from the user mapping matrix."""
+    
+    # Read the test matrix
+    matrix_path = Path(__file__).parent.parent / 'fixtures' / '05_user_mapping_cases.csv'
+    
+    if not matrix_path.exists():
+        print(f"Error: Matrix file not found: {matrix_path}")
+        sys.exit(1)
+    
+    # Generate BATS file
+    bats_file = Path(__file__).parent.parent / 'unit' / '05_user_mapping_matrix_tests.bats'
+    bats_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    with open(bats_file, 'w') as f:
+        # Write BATS file header
+        f.write("#!/usr/bin/env bats\n\n")
+        f.write("# User Mapping Matrix Tests\n")
+        f.write("# Generated from tests/fixtures/05_user_mapping_cases.csv\n\n")
+        
+        # Source the utility script
+        project_root = Path(__file__).parent.parent.parent
+        f.write(f"source {project_root}/tests/utils/user_mapping.sh\n\n")
+        
+        # Read matrix and generate tests
+        with open(matrix_path, 'r') as matrix_file:
+            reader = csv.DictReader(matrix_file, delimiter='|')
+            
+            for row in reader:
+                input_path = row['input_path']
+                expected_user_id = row['expected_user_id']
+                expected_full_name = row['expected_full_name']
+                expected_raw_name = row['raw_name']
+                expected_cleaned_name = row['cleaned_name']
+                expected_raw_remainder = row['raw_remainder']
+                expected_cleaned_remainder = row['cleaned_remainder']
+                description = row['description']
+                
+                # Create test name
+                test_name = f"extract_user_from_path - {input_path}"
+                test_name = test_name.replace('/', '_').replace(' ', '_').replace('-', '_')
+                
+                f.write(f"@test \"{test_name}\" {{\n")
+                f.write(f"    # {description}\n")
+                f.write(f"    result=\"$(extract_user_from_path \"{input_path}\")\"\n")
+                f.write(f"    \n")
+                f.write(f"    # Parse result components\n")
+                f.write(f"    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< \"$result\"\n")
+                f.write(f"    \n")
+                f.write(f"    # Get normalized filename using real function\n")
+                f.write(f"    normalized_filename=\"$(python3 {project_root}/tests/utils/normalize_test.py \"{input_path}\")\"\n")
+                f.write(f"    \n")
+                f.write(f"    # Debug output\n")
+                f.write(f"    echo \"----- TEST CASE -----\"\n")
+                f.write(f"    echo \"Comment: {description}\"\n")
+                f.write(f"    echo \"function: extract_user_from_path\"\n")
+                f.write(f"    echo \"input_path: {input_path}\"\n")
+                f.write(f"    echo \"expected_user_id: {expected_user_id}\"\n")
+                f.write(f"    echo \"expected_full_name: {expected_full_name}\"\n")
+                f.write(f"    echo \"raw_name expected: {expected_raw_name}\"\n")
+                f.write(f"    echo \"raw_name matched: $raw_name\"\n")
+                f.write(f"    echo \"cleaned_name expected: {expected_cleaned_name}\"\n")
+                f.write(f"    echo \"cleaned_name matched: $cleaned_name\"\n")
+                f.write(f"    echo \"raw_remainder expected: {expected_raw_remainder}\"\n")
+                f.write(f"    echo \"raw_remainder matched: $raw_remainder\"\n")
+                f.write(f"    echo \"cleaned_remainder expected: {expected_cleaned_remainder}\"\n")
+                f.write(f"    echo \"cleaned_remainder matched: $cleaned_remainder\"\n")
+                f.write(f"    echo \"user_id expected: {expected_user_id}\"\n")
+                f.write(f"    echo \"user_id matched: $user_id\"\n")
+                f.write(f"    echo \"full_name expected: {expected_full_name}\"\n")
+                f.write(f"    echo \"full_name matched: $full_name\"\n")
+                f.write(f"    echo \"normalized filename: $normalized_filename\"\n")
+                f.write(f"    echo \"---------------------\"\n")
+                f.write(f"    \n")
+                f.write(f"    # Assertions\n")
+                f.write(f"    [ \"$user_id\" = \"{expected_user_id}\" ]\n")
+                f.write(f"    [ \"$full_name\" = \"{expected_full_name}\" ]\n")
+                f.write(f"    [ \"$raw_name\" = \"{expected_raw_name}\" ]\n")
+                f.write(f"    [ \"$cleaned_name\" = \"{expected_cleaned_name}\" ]\n")
+                f.write(f"    [ \"$raw_remainder\" = \"{expected_raw_remainder}\" ]\n")
+                f.write(f"    [ \"$cleaned_remainder\" = \"{expected_cleaned_remainder}\" ]\n")
+                f.write(f"}}\n\n")
+    
+    print(f"Generated BATS tests: {bats_file}")
 
-with open(matrix_file, newline='') as csvfile:
-    reader = csv.DictReader(csvfile, delimiter='|')
-    tests = []
-    for i, row in enumerate(reader):
-        test_name = f"{row['matcher_function']} - {row['input_name']}"
-        bats_test = f"""
-@test "{test_name}" {{
-  run {row['matcher_function']} "{row['input_name']}"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: {row['description']}" >&2
-  echo "function: {row['matcher_function']}" >&2
-  echo "input_name: {row['input_name']}" >&2
-  echo "expected_user_id: {row['expected_user_id']}" >&2
-  echo "expected_full_name: {row['expected_full_name']}" >&2
-  echo "raw_name expected: {row['raw_name']}" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: {row['cleaned_name']}" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: {row['expected_user_id']}" >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: {row['expected_full_name']}" >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" "{row['expected_user_id']}"
-  assert_equal "$full_name" "{row['expected_full_name']}"
-  assert_equal "$raw_name" "{row['raw_name']}"
-  assert_equal "$cleaned_name" "{row['cleaned_name']}"
-}}
-"""
-        tests.append(bats_test)
 
-with open(bats_file, 'w') as f:
-    f.write("""#!/usr/bin/env bats
-
-load "${BATS_TEST_DIRNAME}/../test-helper/bats-support/load.bash"
-load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
-load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
-
-# Auto-generated BATS tests for user name mapping
-source "${BATS_TEST_DIRNAME}/../../core/utils/user_mapping.sh"
-
-""")
-    for t in tests:
-        f.write(t) 
+if __name__ == "__main__":
+    generate_bats_tests() 

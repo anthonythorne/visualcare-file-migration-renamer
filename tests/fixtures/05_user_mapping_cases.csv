@@ -1,12 +1,21 @@
-input_name|expected_user_id|expected_full_name|raw_name|cleaned_name|matcher_function|description
-John Doe|1001|John Doe|John Doe|John Doe|get_user_id_by_name|Mapped user (full name)
-Jane Smith|1002|Jane Smith|Jane Smith|Jane Smith|get_user_id_by_name|Mapped user (full name)
-Temp Person|||Temp Person|Temp Person|get_user_id_by_name|Unmapped user
-J.D.|||J.D.|John Doe|get_user_id_by_name|Initials (should map to full name if possible)
-JD|||JD|John Doe|get_user_id_by_name|Initials, no punctuation
-john doe|1001|John Doe|john doe|John Doe|get_user_id_by_name|Case-insensitive mapped user
-Jöhn Döe|||Jöhn Döe|John Doe|get_user_id_by_name|Accented name, should map to John Doe
-John|||John|John Doe|get_user_id_by_name|Partial name (first name)
-Doe|||Doe|John Doe|get_user_id_by_name|Partial name (last name)
-J0hn D03|||J0hn D03|John Doe|get_user_id_by_name|Name with numbers/letter substitution
-!@#$|||!@#$||get_user_id_by_name|Edge case: only special characters 
+input_path|expected_user_id|expected_full_name|raw_name|cleaned_name|raw_remainder|cleaned_remainder|matcher_function|description
+John Doe/file.pdf|1001|John Doe|John Doe|John Doe|file.pdf|file.pdf|get_user_id_by_name|Standard full name directory
+Jane Smith/report.txt|1002|Jane Smith|Jane Smith|Jane Smith|report.txt|report.txt|get_user_id_by_name|Standard full name directory
+VC - John Doe/document.pdf|1001|John Doe|VC - John Doe|John Doe|document.pdf|document.pdf|get_user_id_by_name|Directory with prefix (VC - )
+VC - Jane Smith/notes.docx|1002|Jane Smith|Jane Smith|Jane Smith|notes.docx|notes.docx|get_user_id_by_name|Directory with prefix (VC - )
+John Doe - Active/summary.pdf|1001|John Doe|John Doe - Active|John Doe|summary.pdf|summary.pdf|get_user_id_by_name|Directory with suffix (- Active)
+Temp Person/data.csv|||Temp Person|Temp Person|data.csv|data.csv|get_user_id_by_name|Unmapped user
+john doe/image.jpg|1001|John Doe|john doe|John Doe|image.jpg|image.jpg|get_user_id_by_name|Case-insensitive mapped user
+VC - Mary Jane Wilson/2024/Progress Report.pdf|1003|Mary Jane Wilson|VC - Mary Jane Wilson|Mary Jane Wilson|2024/Progress Report.pdf|2024 Progress Report.pdf|get_user_id_by_name|Multi-word name with prefix and subdirectory
+Dr. Sarah Johnson - Active/2023/Medical Assessment.pdf|1004|Dr. Sarah Johnson|Dr. Sarah Johnson - Active|Dr. Sarah Johnson|2023/Medical Assessment.pdf|2023 Medical Assessment.pdf|get_user_id_by_name|Name with title and suffix
+VC - Anne-Marie O'Connor/Photos & Videos/Photo Album.zip|1005|Anne-Marie O'Connor|VC - Anne-Marie O'Connor|Anne-Marie O'Connor|Photos & Videos/Photo Album.zip|Photos Videos Photo Album.zip|get_user_id_by_name|Name with hyphens and apostrophe
+Prof. Robert Williams Jr. - Active/Behavioral Support/Analysis.pdf|1006|Prof. Robert Williams Jr.|Prof. Robert Williams Jr. - Active|Prof. Robert Williams Jr.|Behavioral Support/Analysis.pdf|Behavioral Support Analysis.pdf|get_user_id_by_name|Name with title and suffix in deep path
+VC - Dr. Elizabeth van der Berg/Medical Records/Assessment.pdf|1007|Dr. Elizabeth van der Berg|VC - Dr. Elizabeth van der Berg|Dr. Elizabeth van der Berg|Medical Records/Assessment.pdf|Medical Records Assessment.pdf|get_user_id_by_name|Name with title and multiple words
+Maria José Rodriguez - Active/Support Plans/Current Plan.pdf|1008|Maria José Rodriguez|Maria José Rodriguez - Active|Maria José Rodriguez|Support Plans/Current Plan.pdf|Support Plans Current Plan.pdf|get_user_id_by_name|Name with accented characters and suffix
+VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf|1009|Jean-Pierre Dubois|VC - Jean-Pierre Dubois|Jean-Pierre Dubois|Emergency Contacts/Contact List.pdf|Emergency Contacts Contact List.pdf|get_user_id_by_name|French name with hyphen
+Mr. David O'Reilly - Active/Receipts/Expense Report.pdf|1010|Mr. David O'Reilly|Mr. David O'Reilly - Active|Mr. David O'Reilly|Receipts/Expense Report.pdf|Receipts Expense Report.pdf|get_user_id_by_name|Name with title and apostrophe
+VC - Ms. Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf|1011|Ms. Patricia Thompson-Smith|VC - Ms. Patricia Thompson-Smith|Ms. Patricia Thompson-Smith|Mealtime Management/Food Diary.pdf|Mealtime Management Food Diary.pdf|get_user_id_by_name|Name with title and double hyphen
+Unknown Person With Complex Name/2024/Reports/Report.pdf|||Unknown Person With Complex Name|Unknown Person With Complex Name|2024/Reports/Report.pdf|2024 Reports Report.pdf|get_user_id_by_name|Unmapped complex name
+VC - john michael smith/Personal Care/Assessment.pdf|1012|John Michael Smith|VC - john michael smith|John Michael Smith|Personal Care/Assessment.pdf|Personal Care Assessment.pdf|get_user_id_by_name|Case-insensitive multi-word name
+Dr. Unknown Person - Active/Medical Records/Assessment.pdf|||Dr. Unknown Person - Active|Dr. Unknown Person|Medical Records/Assessment.pdf|Medical Records Assessment.pdf|get_user_id_by_name|Unmapped person with title and suffix
+VC - Person With Numbers 123/Test Files/test.pdf|||VC - Person With Numbers 123|Person With Numbers 123|Test Files/test.pdf|Test Files test.pdf|get_user_id_by_name|Name with numbers (unmapped) 

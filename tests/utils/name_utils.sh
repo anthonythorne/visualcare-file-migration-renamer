@@ -76,7 +76,7 @@ extract_name_from_filename() {
 
     # Compute absolute path to core/utils
     local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../core/utils" && pwd)"
 
     # Call the Python matcher and capture the output
     local result
@@ -111,7 +111,7 @@ extract_name_and_date_from_filename() {
     local filename="$1"
     local name_to_match="$2"
     local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../core/utils" && pwd)"
     python3 "$utils_dir/name_matcher.py" "$filename" "$name_to_match" "extract_name_and_date_from_filename"
 }
 
@@ -122,7 +122,7 @@ extract_name_from_path() {
     local full_path="$1"
     local name_to_match="$2"
     local utils_dir
-    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../core/utils" && pwd)"
     python3 "$utils_dir/name_matcher.py" "$full_path" "$name_to_match" "extract_name_from_path"
 }
 

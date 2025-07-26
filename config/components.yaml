@@ -5,6 +5,13 @@ Global:
     preserve: false  # Always normalize to the above
   case_normalization: "titlecase"  # Options: lowercase, uppercase, titlecase
   allow_multiple_separators: false
+  component_order:
+    - id
+    - name
+    - remainder
+    - date
+    - category
+  component_separator: "_"  # Separator between components in final filename
 
 Name:
   use_global_separators: true
@@ -16,7 +23,22 @@ Name:
 
 Date:
   use_global_separators: true
-  format: "%Y-%m-%d"
+  allowed_formats:
+    - "%Y-%m-%d"      # 2023-05-15
+    - "%d-%m-%Y"      # 15-05-2023
+    - "%m-%d-%Y"      # 05-15-2023
+    - "%Y%m%d"        # 20230515
+    - "%d%m%Y"        # 15052023
+    - "%m%d%Y"        # 05152023
+    - "%d-%b-%Y"      # 15-May-2023
+    - "%b-%d-%Y"      # May-15-2023
+    - "%d %b %Y"      # 15 May 2023
+    - "%B %d, %Y"     # May 15, 2023
+    - "%Y.%m.%d"      # 2023.05.15
+    - "%d %B %Y"      # 15 May 2023
+    - "%d-%B-%Y"      # 15-May-2023
+    - "%d/%m/%Y"      # 15/05/2023
+    - "%Y/%m/%d"      # 2023/05/15
   date_priority_order:
     - filename
     - foldername
@@ -38,4 +60,6 @@ UserMapping:
   id_column: user_id
   name_column: full_name
   case_insensitive: true
-  create_if_missing: false 
+  create_if_missing: false
+  prefix: "VC - "  # Optional prefix to remove from directory names
+  suffix: " - Active"  # Optional suffix to remove from directory names 

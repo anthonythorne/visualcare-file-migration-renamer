@@ -4,8 +4,8 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-support/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
-# Auto-generated BATS tests for category extraction from path
-source "${BATS_TEST_DIRNAME}/../../core/utils/category_utils.sh"
+# Auto-generated BATS tests for category extraction and mapping from path
+source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
 
 
 @test "extract_category_from_path - John Doe/WHS/file.pdf" {

@@ -108,14 +108,9 @@ def get_extraction_order():
 
 def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     """
-    Extract all name matches from filename using the config-driven extraction order.
-    Returns: extracted_names|raw_remainder|match_status
+    Extract all possible name matches from filename using configured extraction order.
+    Returns: matched_name|remainder|matched
     """
-    name_parts = [p for p in name_to_match.split() if p]
-    if not name_parts:
-        # Even if no match, run the file cleanup on the original string
-        cleaned = clean_filename_remainder_py(filename)
-        return f"|{filename}|false"
     extracted_pieces = []
     work_filename = filename
     extraction_order = get_extraction_order()

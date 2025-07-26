@@ -5,7 +5,7 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 # Auto-generated BATS tests for name extraction from path
-source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
+source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
 
 
 @test "extract_name_from_path - WHS - John Doe/2025/Docs John Doe/Report Notes for John Doe Incidents.pdf" {
@@ -107,7 +107,7 @@ source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
 @test "extract_name_from_path - Unknown/2020/file.pdf" {
   cleaned_remainder=$(clean_filename_remainder "Unknown/2020/file.pdf")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: No match anywhere in path " >&2
+  echo "Comment: No match anywhere in path" >&2
   echo "function: extract_name_from_path" >&2
   echo "full_path: Unknown/2020/file.pdf" >&2
   echo "name to match: John Doe" >&2
@@ -121,4 +121,244 @@ source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
   echo "expected match: false" >&2
   echo "---------------------" >&2
   assert_equal "$cleaned_remainder" "Unknown 2020 file.pdf"
+}
+
+@test "extract_name_from_path - Client Files/2024/Support Plans/Mary Jane Wilson/Mary Jane Wilson Progress Report.pdf" {
+  run extract_name_from_path "Client Files/2024/Support Plans/Mary Jane Wilson/Mary Jane Wilson Progress Report.pdf" "Mary Jane Wilson"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Multi-word name in deep nesting" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Client Files/2024/Support Plans/Mary Jane Wilson/Mary Jane Wilson Progress Report.pdf" >&2
+  echo "name to match: Mary Jane Wilson" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Client Files/2024/Support Plans//  Progress Report.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Client Files 2024 Support Plans Progress Report.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Mary Jane Wilson,Mary Jane Wilson,Mary Jane Wilson" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Mary Jane Wilson,Mary Jane Wilson,Mary Jane Wilson"
+  assert_equal "$raw_remainder" "Client Files/2024/Support Plans//  Progress Report.pdf"
+  assert_equal "$cleaned_remainder" "Client Files 2024 Support Plans Progress Report.pdf"
+}
+
+@test "extract_name_from_path - Documents/Personal Care/John Michael Smith/John Michael Smith Assessment 2024.pdf" {
+  run extract_name_from_path "Documents/Personal Care/John Michael Smith/John Michael Smith Assessment 2024.pdf" "John Michael Smith"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Three-word name with spaces" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Documents/Personal Care/John Michael Smith/John Michael Smith Assessment 2024.pdf" >&2
+  echo "name to match: John Michael Smith" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Documents/Personal Care//  Assessment 2024.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Documents Personal Care Assessment 2024.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: John Michael Smith,John Michael Smith,John Michael Smith" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "John Michael Smith,John Michael Smith,John Michael Smith"
+  assert_equal "$raw_remainder" "Documents/Personal Care//  Assessment 2024.pdf"
+  assert_equal "$cleaned_remainder" "Documents Personal Care Assessment 2024.pdf"
+}
+
+@test "extract_name_from_path - Archive/2023/Incident Reports/Dr. Sarah Johnson/Dr. Sarah Johnson Incident Report.pdf" {
+  run extract_name_from_path "Archive/2023/Incident Reports/Dr. Sarah Johnson/Dr. Sarah Johnson Incident Report.pdf" "Dr. Sarah Johnson"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with title and deep nesting" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Archive/2023/Incident Reports/Dr. Sarah Johnson/Dr. Sarah Johnson Incident Report.pdf" >&2
+  echo "name to match: Dr. Sarah Johnson" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Archive/2023/Incident Reports//  Incident Report.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Archive 2023 Incident Reports Incident Report.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Dr. Sarah Johnson,Dr. Sarah Johnson,Dr. Sarah Johnson" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Dr. Sarah Johnson,Dr. Sarah Johnson,Dr. Sarah Johnson"
+  assert_equal "$raw_remainder" "Archive/2023/Incident Reports//  Incident Report.pdf"
+  assert_equal "$cleaned_remainder" "Archive 2023 Incident Reports Incident Report.pdf"
+}
+
+@test "extract_name_from_path - Photos & Videos/2024/Client Photos/Anne-Marie O'Connor/Anne-Marie O'Connor Photo Album.zip" {
+  run extract_name_from_path "Photos & Videos/2024/Client Photos/Anne-Marie O'Connor/Anne-Marie O'Connor Photo Album.zip" "Anne-Marie O'Connor"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with hyphens and apostrophe" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Photos & Videos/2024/Client Photos/Anne-Marie O'Connor/Anne-Marie O'Connor Photo Album.zip" >&2
+  echo "name to match: Anne-Marie O'Connor" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Photos & Videos/2024/Client Photos//  Photo Album.zip" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Photos Videos 2024 Client Photos Photo Album.zip" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Anne-Marie O'Connor,Anne-Marie O'Connor,Anne-Marie O'Connor" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Anne-Marie O'Connor,Anne-Marie O'Connor,Anne-Marie O'Connor"
+  assert_equal "$raw_remainder" "Photos & Videos/2024/Client Photos//  Photo Album.zip"
+  assert_equal "$cleaned_remainder" "Photos Videos 2024 Client Photos Photo Album.zip"
+}
+
+@test "extract_name_from_path - Behavioral Support/2023/Reports/Prof. Robert Williams Jr./Prof. Robert Williams Jr. Behavioral Analysis.pdf" {
+  run extract_name_from_path "Behavioral Support/2023/Reports/Prof. Robert Williams Jr./Prof. Robert Williams Jr. Behavioral Analysis.pdf" "Prof. Robert Williams Jr."
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with title and suffix" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Behavioral Support/2023/Reports/Prof. Robert Williams Jr./Prof. Robert Williams Jr. Behavioral Analysis.pdf" >&2
+  echo "name to match: Prof. Robert Williams Jr." >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Behavioral Support/2023/Reports//  Behavioral Analysis.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Behavioral Support 2023 Reports Behavioral Analysis.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Prof. Robert Williams Jr.,Prof. Robert Williams Jr.,Prof. Robert Williams Jr." >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Prof. Robert Williams Jr.,Prof. Robert Williams Jr.,Prof. Robert Williams Jr."
+  assert_equal "$raw_remainder" "Behavioral Support/2023/Reports//  Behavioral Analysis.pdf"
+  assert_equal "$cleaned_remainder" "Behavioral Support 2023 Reports Behavioral Analysis.pdf"
+}
+
+@test "extract_name_from_path - Medical Records/2024/Assessments/Dr. Elizabeth van der Berg/Dr. Elizabeth van der Berg Medical Assessment.pdf" {
+  run extract_name_from_path "Medical Records/2024/Assessments/Dr. Elizabeth van der Berg/Dr. Elizabeth van der Berg Medical Assessment.pdf" "Dr. Elizabeth van der Berg"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with title and multiple words" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Medical Records/2024/Assessments/Dr. Elizabeth van der Berg/Dr. Elizabeth van der Berg Medical Assessment.pdf" >&2
+  echo "name to match: Dr. Elizabeth van der Berg" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Medical Records/2024/Assessments//  Medical Assessment.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Medical Records 2024 Assessments Medical Assessment.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Dr. Elizabeth van der Berg,Dr. Elizabeth van der Berg,Dr. Elizabeth van der Berg" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Dr. Elizabeth van der Berg,Dr. Elizabeth van der Berg,Dr. Elizabeth van der Berg"
+  assert_equal "$raw_remainder" "Medical Records/2024/Assessments//  Medical Assessment.pdf"
+  assert_equal "$cleaned_remainder" "Medical Records 2024 Assessments Medical Assessment.pdf"
+}
+
+@test "extract_name_from_path - Support Plans/2023/Active Plans/Maria José Rodriguez/Maria José Rodriguez Support Plan.pdf" {
+  run extract_name_from_path "Support Plans/2023/Active Plans/Maria José Rodriguez/Maria José Rodriguez Support Plan.pdf" "Maria José Rodriguez"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with accented characters" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Support Plans/2023/Active Plans/Maria José Rodriguez/Maria José Rodriguez Support Plan.pdf" >&2
+  echo "name to match: Maria José Rodriguez" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Support Plans/2023/Active Plans//  Support Plan.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Support Plans 2023 Active Plans Support Plan.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Maria José Rodriguez,Maria José Rodriguez,Maria José Rodriguez" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Maria José Rodriguez,Maria José Rodriguez,Maria José Rodriguez"
+  assert_equal "$raw_remainder" "Support Plans/2023/Active Plans//  Support Plan.pdf"
+  assert_equal "$cleaned_remainder" "Support Plans 2023 Active Plans Support Plan.pdf"
+}
+
+@test "extract_name_from_path - Emergency Contacts/2024/Updated Contacts/Jean-Pierre Dubois/Jean-Pierre Dubois Contact Details.pdf" {
+  run extract_name_from_path "Emergency Contacts/2024/Updated Contacts/Jean-Pierre Dubois/Jean-Pierre Dubois Contact Details.pdf" "Jean-Pierre Dubois"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with hyphen and French name" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Emergency Contacts/2024/Updated Contacts/Jean-Pierre Dubois/Jean-Pierre Dubois Contact Details.pdf" >&2
+  echo "name to match: Jean-Pierre Dubois" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Emergency Contacts/2024/Updated Contacts//  Contact Details.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Emergency Contacts 2024 Updated Contacts Contact Details.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Jean-Pierre Dubois,Jean-Pierre Dubois,Jean-Pierre Dubois" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Jean-Pierre Dubois,Jean-Pierre Dubois,Jean-Pierre Dubois"
+  assert_equal "$raw_remainder" "Emergency Contacts/2024/Updated Contacts//  Contact Details.pdf"
+  assert_equal "$cleaned_remainder" "Emergency Contacts 2024 Updated Contacts Contact Details.pdf"
+}
+
+@test "extract_name_from_path - Receipts/2023/Expense Reports/Mr. David O'Reilly/Mr. David O'Reilly Expense Report.pdf" {
+  run extract_name_from_path "Receipts/2023/Expense Reports/Mr. David O'Reilly/Mr. David O'Reilly Expense Report.pdf" "Mr. David O'Reilly"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with title and apostrophe" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Receipts/2023/Expense Reports/Mr. David O'Reilly/Mr. David O'Reilly Expense Report.pdf" >&2
+  echo "name to match: Mr. David O'Reilly" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Receipts/2023/Expense Reports//  Expense Report.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Receipts 2023 Expense Reports Expense Report.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Mr. David O'Reilly,Mr. David O'Reilly,Mr. David O'Reilly" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Mr. David O'Reilly,Mr. David O'Reilly,Mr. David O'Reilly"
+  assert_equal "$raw_remainder" "Receipts/2023/Expense Reports//  Expense Report.pdf"
+  assert_equal "$cleaned_remainder" "Receipts 2023 Expense Reports Expense Report.pdf"
+}
+
+@test "extract_name_from_path - Mealtime Management/2024/Diary Records/Ms. Patricia Thompson-Smith/Ms. Patricia Thompson-Smith Food Diary.pdf" {
+  run extract_name_from_path "Mealtime Management/2024/Diary Records/Ms. Patricia Thompson-Smith/Ms. Patricia Thompson-Smith Food Diary.pdf" "Ms. Patricia Thompson-Smith"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Name with title and double hyphen " >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: Mealtime Management/2024/Diary Records/Ms. Patricia Thompson-Smith/Ms. Patricia Thompson-Smith Food Diary.pdf" >&2
+  echo "name to match: Ms. Patricia Thompson-Smith" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Mealtime Management/2024/Diary Records//  Food Diary.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Mealtime Management 2024 Diary Records Food Diary.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Ms. Patricia Thompson-Smith,Ms. Patricia Thompson-Smith,Ms. Patricia Thompson-Smith" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Ms. Patricia Thompson-Smith,Ms. Patricia Thompson-Smith,Ms. Patricia Thompson-Smith"
+  assert_equal "$raw_remainder" "Mealtime Management/2024/Diary Records//  Food Diary.pdf"
+  assert_equal "$cleaned_remainder" "Mealtime Management 2024 Diary Records Food Diary.pdf"
 }

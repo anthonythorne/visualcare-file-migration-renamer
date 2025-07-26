@@ -75,7 +75,7 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 # Auto-generated BATS tests for name extraction from path
-source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
+source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
 
 """)
     for t in tests:

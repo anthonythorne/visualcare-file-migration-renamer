@@ -46,8 +46,8 @@ load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-support/load.bash"
 load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-assert/load.bash"
 load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-file/load.bash"
 
-source "${{BATS_TEST_DIRNAME}}/../../core/utils/name_utils.sh"
-source "${{BATS_TEST_DIRNAME}}/../../core/utils/date_utils.sh"
+source "${{BATS_TEST_DIRNAME}}/../utils/name_utils.sh"
+source "${{BATS_TEST_DIRNAME}}/../utils/date_utils.sh"
 
 """
         for i, case in enumerate(test_cases, 1):
@@ -106,7 +106,7 @@ load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-assert/load.bash"
 load "${{BATS_TEST_DIRNAME}}/../test-helper/bats-file/load.bash"
 
 # Source the function to test
-source "${{BATS_TEST_DIRNAME}}/../../core/utils/{source_script}"
+source "${{BATS_TEST_DIRNAME}}/../utils/{source_script}"
 
 # Override the main python script call to allow specifying the function
 extract_name_from_filename() {{

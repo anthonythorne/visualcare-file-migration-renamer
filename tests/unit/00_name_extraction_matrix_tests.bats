@@ -5,7 +5,7 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 # Auto-generated BATS tests for name extraction
-source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
+source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
 
 # Define a single shell function to call the Python matcher with the matcher_function as the third argument
 extract_name_from_filename() {

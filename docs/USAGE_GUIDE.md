@@ -6,37 +6,92 @@ This comprehensive guide covers how to use the VisualCare File Migration Renamer
 
 ### Basic Usage
 ```bash
-# Test mode (recommended for testing)
+# Process directory with optional mapping files
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output
+
+# With user mapping file
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --user-mapping users.csv
+
+# With both user and category mapping files
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --user-mapping users.csv --category-mapping categories.csv
+
+# Test mode (for testing with built-in files)
 python3 main.py --test-mode --test-name my-test
-
-# Process CSV mapping
-python3 main.py --csv mapping.csv
-
-# Process directory with name mapping
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
 ```
 
 ## Command Line Options
 
-### Core Options
-- `--csv <file>`: Process files using a CSV mapping file
+### Core Options (Required for Directory Processing)
 - `--input-dir <path>`: Input directory containing files to process
 - `--output-dir <path>`: Output directory for processed files
-- `--test-mode`: Use the built-in test files structure (`tests/test-files`)
-- `--dry-run`: Preview changes without making them (recommended)
+
+### Optional Mapping Files
+- `--user-mapping <file>`: CSV file with user ID to name mappings (optional)
+- `--category-mapping <file>`: CSV file with category mappings (optional)
+
+### Processing Options
+- `--duplicate`: Copy files instead of moving them (default: move/rename)
+- `--dry-run`: Preview changes without making them (recommended for testing)
 - `--verbose, -v`: Enable detailed logging
 
 ### Test Mode Options
+- `--test-mode`: Use the built-in test files structure (`tests/test-files`)
 - `--test-name <name>`: Name for the test (creates `to-<name>` output directory)
-- `--person <name>`: Filter to specific person only
-
-### Configuration Options
-- `--config <file>`: Path to configuration file (default: `config/components.yaml`)
-- `--name-mapping <file>`: CSV file with filename to name mappings (for directory processing)
+- `--person-filter <name>`: Filter to specific person only
 
 ## Usage Scenarios
 
-### 1. Test Mode (Recommended for Testing)
+### 1. Directory Processing (Primary Use Case)
+
+The main purpose of this tool is to process all files in an input directory, normalize their names using the global configuration, and move or copy them to an output directory.
+
+#### Basic Directory Processing
+```bash
+# Process all files in input directory to output directory
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output
+
+# Preview changes first (recommended)
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --dry-run
+
+# Copy files instead of moving them
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --duplicate
+```
+
+#### With User Mapping
+```bash
+# Process with user ID mapping
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --user-mapping users.csv
+
+# Preview with user mapping
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --user-mapping users.csv --dry-run
+```
+
+**User Mapping CSV Format:**
+```csv
+user_id,full_name
+1001,John Doe
+1002,Jane Smith
+1003,Bob Johnson
+```
+
+#### With Category Mapping
+```bash
+# Process with category mapping
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --category-mapping categories.csv
+
+# With both user and category mapping
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --user-mapping users.csv --category-mapping categories.csv
+```
+
+**Category Mapping CSV Format:**
+```csv
+category_id,category_name
+WHS,Workplace Health and Safety
+HR,Human Resources
+IT,Information Technology
+```
+
+### 2. Test Mode (For Testing and Development)
 
 Test mode uses the built-in `tests/test-files` structure for safe testing:
 
@@ -45,7 +100,7 @@ Test mode uses the built-in `tests/test-files` structure for safe testing:
 python3 main.py --test-mode --test-name basic
 
 # Test with specific person
-python3 main.py --test-mode --test-name person-test --person "John Doe"
+python3 main.py --test-mode --test-name person-test --person-filter "John Doe"
 
 # Test with verbose output
 python3 main.py --test-mode --test-name debug --verbose
@@ -66,46 +121,39 @@ tests/test-files/
 └── to-<test-name>/         # Custom test output directories
 ```
 
-### 2. CSV Mapping Processing
+## How It Works
 
-Process files using a CSV file that maps old filenames to new filenames:
+### Default Processing Flow
 
-```bash
-# Preview changes
-python3 main.py --csv mapping.csv
+1. **Input Directory**: The tool processes all files in the specified input directory
+2. **Name Extraction**: Extracts person names from directory names and filenames using configurable algorithms
+3. **User Mapping**: If `--user-mapping` is provided, maps extracted names to user IDs
+4. **Category Detection**: If `--category-mapping` is provided, detects categories from directory structure
+5. **Date Extraction**: Extracts dates from filenames, directory names, or file metadata
+6. **Filename Normalization**: Creates normalized filenames using the global component order and separator
+7. **File Operations**: Moves or copies files to the output directory with normalized names
 
-# Apply changes
-python3 main.py --csv mapping.csv
+### Component Processing
 
-# With verbose output
-python3 main.py --csv mapping.csv --verbose
+The tool processes these components based on the global configuration:
+
+- **User ID**: From user mapping file (if provided)
+- **Name**: Extracted from directory names or filenames
+- **Remainder**: Remaining filename parts after extraction
+- **Date**: Extracted from filename, directory, or file metadata
+- **Category**: From category mapping file (if provided)
+
+### Filename Format
+
+The final filename format is determined by the global configuration in `config/components.yaml`:
+
+```yaml
+Global:
+  component_order: [id, name, remainder, date, category]
+  component_separator: "_"
 ```
 
-**CSV Format:**
-```csv
-filename,name_to_match,new_filename
-old_file.pdf,John Doe,new_file.pdf
-another_file.docx,Jane Smith,renamed_file.docx
-```
-
-### 3. Directory Processing
-
-Process all files in a directory using a name mapping file:
-
-```bash
-# Preview changes
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
-
-# Apply changes
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
-```
-
-**Name Mapping CSV Format:**
-```csv
-filename,name_to_match
-file1.pdf,John Doe
-file2.docx,Jane Smith
-```
+Example output: `1001_John Doe_report_2024-01-15_WHS.pdf`
 
 ## Configuration
 
@@ -114,127 +162,57 @@ file2.docx,Jane Smith
 The system uses a comprehensive YAML configuration file for all settings:
 
 ```yaml
-# Name extraction settings
-Name:
-  allowed_separators_when_searching:
-    - " "  # space
-    - "-"  # hyphen
-    - "_"  # underscore
-    - "."  # period
-
-# Date extraction settings
-Date:
-  formats:
-    - "%Y-%m-%d"  # ISO format
-    - "%Y%m%d"    # Compact format
-    - "%m-%d-%Y"  # US format
-
-# Filename format configuration
-FilenameFormat:
-  template: "{id}_{name}_{remainder}_{date}"
+Global:
+  separators:
+    input: [" ", "-", "_", ".", "/", "*", "@", "#", "$", "%", "&", "+", "=", "~", "|"]
+    normalized: " "
+    preserve: false
+  case_normalization: "titlecase"
+  allow_multiple_separators: false
+  component_order: [id, name, remainder, date, category]
   component_separator: "_"
-  skip_empty_components: true
-  cleanup_separators: true
 
-# User ID mapping
-UserMapping:
-  mapping_file: "config/user_mapping.csv"
-  id_column: "user_id"
-  name_column: "full_name"
-  create_if_missing: true
-  missing_id_behavior: "error"
+Name:
+  use_global_separators: true
+  extraction_order: [shorthand, initials, first_name, last_name]
 
-# Category support (future-ready)
+Date:
+  use_global_separators: true
+  format: "%Y-%m-%d"
+  date_priority_order: [filename, foldername, modified, created]
+
 Category:
-  enabled: false
-  default_category: "general"
-  folder_mapping:
-    "Hazard & Risk Reports": "hazard"
-    "Management": "management"
-
-# Management flag detection
-ManagementFlag:
+  mapping_test_file: tests/fixtures/04_category_mapping.csv
+  id_column: category_id
+  name_column: category_name
+  case_insensitive: true
   enabled: true
-  keywords:
-    - "management"
-    - "admin"
-    - "supervisor"
-  flag: "MGMT"
-  placement: "suffix"
+  first_level_only: true
+  append_to_filename: true
+  placement: suffix
+
+UserMapping:
+  mapping_test_file: tests/fixtures/05_user_mapping.csv
+  id_column: user_id
+  name_column: full_name
+  case_insensitive: true
+  create_if_missing: false
+  prefix: "VC - "
+  suffix: " - Active"
 ```
-
-### User ID Mapping (`config/user_mapping.csv`)
-
-Map user IDs to full names for consistent filename generation:
-
-```csv
-user_id,full_name
-1001,John Doe
-1002,Jane Smith
-1003,Bob Johnson
-1001,John Doe
-1005,Michael Brown
-```
-
-## Filename Format Templates
-
-The system supports configurable filename formats using placeholders:
-
-### Available Placeholders
-- `{id}`: User ID from mapping
-- `{name}`: Extracted person name
-- `{date}`: Extracted date (ISO format)
-- `{remainder}`: Remaining filename parts
-- `{category}`: Category code (future feature)
-- `{management_flag}`: Management flag if detected
-
-### Example Templates
-```yaml
-# Basic format
-template: "{id}_{name}_{remainder}_{date}"
-
-# With management flag
-template: "{id}_{name}_{remainder}_{date}_{management_flag}"
-
-# Category-based format
-template: "{id}_{name}_{category}_{remainder}_{date}"
-```
-
-### Example Transformations
-
-**Input:** `F016 John Support Plan 16.04.23 - v5.0.docx`
-- Client ID: 1001
-- Client Name: John Doe
-- Date: 16.04.23 → 2023-04-16
-- **Output:** `1001_John Doe_F016JohnSupportPlanV5.0_2023-04-16.docx`
-
-**Input:** `Hazard Report - Crates under legs of lounge - John Doe.pdf`
-- Client ID: 1001
-- Client Name: John Doe
-- Date: From file metadata → 2023-05-12
-- **Output:** `1001_John Doe_HazardReportCratesUnderLegsofLounge_2023-05-12.pdf`
 
 ## Advanced Features
 
-### Person Filtering
+### Person Filtering (Test Mode Only)
 
 Filter processing to specific people only:
 
 ```bash
 # Process only John Doe's files
-python3 main.py --test-mode --test-name john-only --person "John Doe"
+python3 main.py --test-mode --test-name john-only --person-filter "John Doe"
 
 # Case-insensitive filtering
-python3 main.py --test-mode --test-name jane-only --person "jane smith"
-```
-
-### Management Flag Detection
-
-The system automatically detects management-related files:
-
-```bash
-# Files containing "management", "admin", or "supervisor" get flagged
-python3 main.py --test-mode --test-name management
+python3 main.py --test-mode --test-name jane-only --person-filter "jane smith"
 ```
 
 ### Verbose Logging
@@ -242,31 +220,30 @@ python3 main.py --test-mode --test-name management
 Get detailed information about the processing:
 
 ```bash
-python3 main.py --test-mode --test-name debug --verbose
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --verbose
 ```
 
 **Verbose Output Example:**
 ```
-Processing test files using tests/test-files structure
-Test name: debug
+Processing directory: /path/to/input -> /path/to/output
 2025-07-19 10:20:53,847 - INFO - Processing person: Jane Smith
-2025-07-19 10:20:53,880 - INFO - DRY RUN - Would copy: Jane Smith/file1.pdf -> debug/Jane Smith/1002_jane smith_file1_2023-11-30.pdf
+2025-07-19 10:20:53,880 - INFO - DRY RUN - Would move: Jane Smith/file1.pdf -> output/1002_Jane Smith_file1_2023-11-30.pdf
 ```
 
 ## Error Handling
 
 ### Common Issues and Solutions
 
-**1. "Test files directory not found"**
+**1. "Input directory not found"**
 ```bash
-# Ensure the test files structure exists
-ls -la tests/test-files/from/
+# Ensure the input directory exists
+ls -la /path/to/input/
 ```
 
 **2. "User ID not found in mapping"**
 ```bash
 # Check the user mapping file
-cat config/user_mapping.csv
+cat users.csv
 ```
 
 **3. "Configuration file not found"**
@@ -281,7 +258,7 @@ The system provides detailed error reporting:
 
 ```bash
 # Check for errors in dry-run mode
-python3 main.py --test-mode --test-name error-check
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --dry-run
 
 # Review error summary
 === Processing Summary ===
@@ -299,7 +276,7 @@ Errors: 2
 ### 1. Always Use Dry-Run First
 ```bash
 # Always preview changes before applying
-python3 main.py --csv mapping.csv
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --dry-run
 ```
 
 ### 2. Use Test Mode for Development
@@ -317,35 +294,18 @@ cp -r /path/to/input /path/to/backup
 ### 4. Use Verbose Logging for Debugging
 ```bash
 # Get detailed processing information
-python3 main.py --test-mode --test-name debug --verbose
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --verbose
 ```
 
 ### 5. Test with Small Batches
 ```bash
 # Test with specific person first
-python3 main.py --test-mode --test-name small-batch --person "John Doe"
+python3 main.py --test-mode --test-name small-batch --person-filter "John Doe"
 ```
 
 ## Integration Examples
 
-### Batch Processing Script
-```bash
-#!/bin/bash
-# Process multiple test scenarios
-
-echo "Running basic test..."
-python3 main.py --test-mode --test-name basic
-
-echo "Running user ID test..."
-python3 main.py --test-mode --test-name userid
-
-echo "Running management test..."
-python3 main.py --test-mode --test-name management
-
-echo "All tests completed!"
-```
-
-### Production Processing
+### Production Processing Script
 ```bash
 #!/bin/bash
 # Production file processing
@@ -353,10 +313,27 @@ echo "All tests completed!"
 # Backup original files
 cp -r /path/to/input /path/to/backup/$(date +%Y%m%d_%H%M%S)
 
-# Process with verbose logging
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv --verbose
+# Preview changes
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --user-mapping users.csv --dry-run
+
+# Apply changes
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --user-mapping users.csv --verbose
 
 echo "Processing completed!"
+```
+
+### Batch Processing with Different Configurations
+```bash
+#!/bin/bash
+# Process multiple directories with different configurations
+
+echo "Processing HR files..."
+python3 main.py --input-dir /path/to/hr --output-dir /path/to/output/hr --user-mapping users.csv --category-mapping hr_categories.csv
+
+echo "Processing IT files..."
+python3 main.py --input-dir /path/to/it --output-dir /path/to/output/it --user-mapping users.csv --category-mapping it_categories.csv
+
+echo "All processing completed!"
 ```
 
 ## Troubleshooting
@@ -388,7 +365,7 @@ python3 tests/scripts/generate_bats_tests.py combined
 For more detailed information, see:
 - [Testing Guide](TESTING.md)
 - [Naming Conventions](NAMING_CONVENTIONS.md)
-- [Filename Conventions](FILENAME_CONVENTIONS.md) 
+- [Filename Conventions](FILENAME_CONVENTIONS.md)
 
 ## File Date Handling and Extraction
 
@@ -405,7 +382,7 @@ For more detailed information, see:
   - If `created` is included in the priority order, the tool will attempt to use the file's creation/birth time. Note: On some filesystems (especially Linux/WSL2), creation time may not be settable or available.
 
 - **Consistency:**
-  - This approach ensures that both test and real runs are consistent and reliable. 
+  - This approach ensures that both test and real runs are consistent and reliable.
 
 ## Known Pitfalls and Limitations
 

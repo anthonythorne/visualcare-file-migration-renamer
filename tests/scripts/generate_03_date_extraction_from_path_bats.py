@@ -75,7 +75,7 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 # Auto-generated BATS tests for date extraction from path
-source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"
+source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
 
 """)
     for t in tests:

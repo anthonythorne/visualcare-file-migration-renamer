@@ -7,8 +7,8 @@ Note: For full debug output, use `bats --verbose-run ...` (not --verbose) with y
 import csv
 from pathlib import Path
 
-bats_file = Path(__file__).parent.parent / 'unit' / '04_category_extraction_matrix_tests.bats'
-matrix_file = Path(__file__).parent.parent / 'fixtures' / '04_category_extraction_cases.csv'
+bats_file = Path(__file__).parent.parent / 'unit' / '04_category_extraction_and_mapping_matrix_tests.bats'
+matrix_file = Path(__file__).parent.parent / 'fixtures' / '04_category_extraction_and_mapping_cases.csv'
 
 bats_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -85,8 +85,8 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-support/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
-# Auto-generated BATS tests for category extraction from path
-source "${BATS_TEST_DIRNAME}/../../core/utils/category_utils.sh"
+# Auto-generated BATS tests for category extraction and mapping from path
+source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
 
 """)
     for t in tests:

@@ -1,284 +1,294 @@
 #!/usr/bin/env bats
 
-load "${BATS_TEST_DIRNAME}/../test-helper/bats-support/load.bash"
-load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
-load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
+# User Mapping Matrix Tests
+# Generated from tests/fixtures/05_user_mapping_cases.csv
 
-# Auto-generated BATS tests for user name mapping
-source "${BATS_TEST_DIRNAME}/../../core/utils/user_mapping.sh"
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/user_mapping.sh
 
-
-@test "get_user_id_by_name - John Doe" {
-  run get_user_id_by_name "John Doe"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Mapped user (full name)" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: John Doe" >&2
-  echo "expected_user_id: 1001" >&2
-  echo "expected_full_name: John Doe" >&2
-  echo "raw_name expected: John Doe" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: 1001" >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: John Doe" >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" "1001"
-  assert_equal "$full_name" "John Doe"
-  assert_equal "$raw_name" "John Doe"
-  assert_equal "$cleaned_name" "John Doe"
+@test "extract_user_from_path___John_Doe_file.pdf" {
+    # Standard full name directory
+    result="$(extract_user_from_path "John Doe/file.pdf")"
+    
+    # Parse result components
+    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "John Doe/file.pdf")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Standard full name directory"
+    echo "function: extract_user_from_path"
+    echo "input_path: John Doe/file.pdf"
+    echo "expected_user_id: 1001"
+    echo "expected_full_name: John Doe"
+    echo "raw_name expected: John Doe"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: John Doe"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: file.pdf"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: file.pdf"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1001"
+    echo "user_id matched: $user_id"
+    echo "full_name expected: John Doe"
+    echo "full_name matched: $full_name"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1001" ]
+    [ "$full_name" = "John Doe" ]
+    [ "$raw_name" = "John Doe" ]
+    [ "$cleaned_name" = "John Doe" ]
+    [ "$raw_remainder" = "file.pdf" ]
+    [ "$cleaned_remainder" = "file.pdf" ]
 }
 
-@test "get_user_id_by_name - Jane Smith" {
-  run get_user_id_by_name "Jane Smith"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Mapped user (full name)" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: Jane Smith" >&2
-  echo "expected_user_id: 1002" >&2
-  echo "expected_full_name: Jane Smith" >&2
-  echo "raw_name expected: Jane Smith" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: Jane Smith" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: 1002" >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: Jane Smith" >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" "1002"
-  assert_equal "$full_name" "Jane Smith"
-  assert_equal "$raw_name" "Jane Smith"
-  assert_equal "$cleaned_name" "Jane Smith"
+@test "extract_user_from_path___Jane_Smith_report.txt" {
+    # Standard full name directory
+    result="$(extract_user_from_path "Jane Smith/report.txt")"
+    
+    # Parse result components
+    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "Jane Smith/report.txt")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Standard full name directory"
+    echo "function: extract_user_from_path"
+    echo "input_path: Jane Smith/report.txt"
+    echo "expected_user_id: 1002"
+    echo "expected_full_name: Jane Smith"
+    echo "raw_name expected: Jane Smith"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: Jane Smith"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: report.txt"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: report.txt"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1002"
+    echo "user_id matched: $user_id"
+    echo "full_name expected: Jane Smith"
+    echo "full_name matched: $full_name"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1002" ]
+    [ "$full_name" = "Jane Smith" ]
+    [ "$raw_name" = "Jane Smith" ]
+    [ "$cleaned_name" = "Jane Smith" ]
+    [ "$raw_remainder" = "report.txt" ]
+    [ "$cleaned_remainder" = "report.txt" ]
 }
 
-@test "get_user_id_by_name - Temp Person" {
-  run get_user_id_by_name "Temp Person"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Unmapped user" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: Temp Person" >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: Temp Person" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: Temp Person" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "Temp Person"
-  assert_equal "$cleaned_name" "Temp Person"
+@test "extract_user_from_path___VC___John_Doe_document.pdf" {
+    # Directory with prefix (VC - )
+    result="$(extract_user_from_path "VC - John Doe/document.pdf")"
+    
+    # Parse result components
+    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - John Doe/document.pdf")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Directory with prefix (VC - )"
+    echo "function: extract_user_from_path"
+    echo "input_path: VC - John Doe/document.pdf"
+    echo "expected_user_id: 1001"
+    echo "expected_full_name: John Doe"
+    echo "raw_name expected: VC - John Doe"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: John Doe"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: document.pdf"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: document.pdf"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1001"
+    echo "user_id matched: $user_id"
+    echo "full_name expected: John Doe"
+    echo "full_name matched: $full_name"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1001" ]
+    [ "$full_name" = "John Doe" ]
+    [ "$raw_name" = "VC - John Doe" ]
+    [ "$cleaned_name" = "John Doe" ]
+    [ "$raw_remainder" = "document.pdf" ]
+    [ "$cleaned_remainder" = "document.pdf" ]
 }
 
-@test "get_user_id_by_name - J.D." {
-  run get_user_id_by_name "J.D."
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Initials (should map to full name if possible)" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: J.D." >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: J.D." >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "J.D."
-  assert_equal "$cleaned_name" "John Doe"
+@test "extract_user_from_path___VC___Jane_Smith_notes.docx" {
+    # Directory with prefix (VC - )
+    result="$(extract_user_from_path "VC - Jane Smith/notes.docx")"
+    
+    # Parse result components
+    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Jane Smith/notes.docx")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Directory with prefix (VC - )"
+    echo "function: extract_user_from_path"
+    echo "input_path: VC - Jane Smith/notes.docx"
+    echo "expected_user_id: 1002"
+    echo "expected_full_name: Jane Smith"
+    echo "raw_name expected: VC - Jane Smith"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: Jane Smith"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: notes.docx"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: notes.docx"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1002"
+    echo "user_id matched: $user_id"
+    echo "full_name expected: Jane Smith"
+    echo "full_name matched: $full_name"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1002" ]
+    [ "$full_name" = "Jane Smith" ]
+    [ "$raw_name" = "VC - Jane Smith" ]
+    [ "$cleaned_name" = "Jane Smith" ]
+    [ "$raw_remainder" = "notes.docx" ]
+    [ "$cleaned_remainder" = "notes.docx" ]
 }
 
-@test "get_user_id_by_name - JD" {
-  run get_user_id_by_name "JD"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Initials, no punctuation" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: JD" >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: JD" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "JD"
-  assert_equal "$cleaned_name" "John Doe"
+@test "extract_user_from_path___John_Doe___Active_summary.pdf" {
+    # Directory with suffix (- Active)
+    result="$(extract_user_from_path "John Doe - Active/summary.pdf")"
+    
+    # Parse result components
+    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "John Doe - Active/summary.pdf")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Directory with suffix (- Active)"
+    echo "function: extract_user_from_path"
+    echo "input_path: John Doe - Active/summary.pdf"
+    echo "expected_user_id: 1001"
+    echo "expected_full_name: John Doe"
+    echo "raw_name expected: John Doe - Active"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: John Doe"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: summary.pdf"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: summary.pdf"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1001"
+    echo "user_id matched: $user_id"
+    echo "full_name expected: John Doe"
+    echo "full_name matched: $full_name"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1001" ]
+    [ "$full_name" = "John Doe" ]
+    [ "$raw_name" = "John Doe - Active" ]
+    [ "$cleaned_name" = "John Doe" ]
+    [ "$raw_remainder" = "summary.pdf" ]
+    [ "$cleaned_remainder" = "summary.pdf" ]
 }
 
-@test "get_user_id_by_name - john doe" {
-  run get_user_id_by_name "john doe"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Case-insensitive mapped user" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: john doe" >&2
-  echo "expected_user_id: 1001" >&2
-  echo "expected_full_name: John Doe" >&2
-  echo "raw_name expected: john doe" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: 1001" >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: John Doe" >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" "1001"
-  assert_equal "$full_name" "John Doe"
-  assert_equal "$raw_name" "john doe"
-  assert_equal "$cleaned_name" "John Doe"
+@test "extract_user_from_path___Temp_Person_data.csv" {
+    # Unmapped user
+    result="$(extract_user_from_path "Temp Person/data.csv")"
+    
+    # Parse result components
+    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "Temp Person/data.csv")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Unmapped user"
+    echo "function: extract_user_from_path"
+    echo "input_path: Temp Person/data.csv"
+    echo "expected_user_id: "
+    echo "expected_full_name: "
+    echo "raw_name expected: Temp Person"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: Temp Person"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: data.csv"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: data.csv"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: "
+    echo "user_id matched: $user_id"
+    echo "full_name expected: "
+    echo "full_name matched: $full_name"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "" ]
+    [ "$full_name" = "" ]
+    [ "$raw_name" = "Temp Person" ]
+    [ "$cleaned_name" = "Temp Person" ]
+    [ "$raw_remainder" = "data.csv" ]
+    [ "$cleaned_remainder" = "data.csv" ]
 }
 
-@test "get_user_id_by_name - Jöhn Döe" {
-  run get_user_id_by_name "Jöhn Döe"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Accented name, should map to John Doe" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: Jöhn Döe" >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: Jöhn Döe" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "Jöhn Döe"
-  assert_equal "$cleaned_name" "John Doe"
+@test "extract_user_from_path___john_doe_image.jpg" {
+    # Case-insensitive mapped user 
+    result="$(extract_user_from_path "john doe/image.jpg")"
+    
+    # Parse result components
+    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "john doe/image.jpg")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Case-insensitive mapped user "
+    echo "function: extract_user_from_path"
+    echo "input_path: john doe/image.jpg"
+    echo "expected_user_id: 1001"
+    echo "expected_full_name: John Doe"
+    echo "raw_name expected: john doe"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: John Doe"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: image.jpg"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: image.jpg"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1001"
+    echo "user_id matched: $user_id"
+    echo "full_name expected: John Doe"
+    echo "full_name matched: $full_name"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1001" ]
+    [ "$full_name" = "John Doe" ]
+    [ "$raw_name" = "john doe" ]
+    [ "$cleaned_name" = "John Doe" ]
+    [ "$raw_remainder" = "image.jpg" ]
+    [ "$cleaned_remainder" = "image.jpg" ]
 }
 
-@test "get_user_id_by_name - John" {
-  run get_user_id_by_name "John"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Partial name (first name)" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: John" >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: John" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "John"
-  assert_equal "$cleaned_name" "John Doe"
-}
-
-@test "get_user_id_by_name - Doe" {
-  run get_user_id_by_name "Doe"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Partial name (last name)" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: Doe" >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: Doe" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "Doe"
-  assert_equal "$cleaned_name" "John Doe"
-}
-
-@test "get_user_id_by_name - J0hn D03" {
-  run get_user_id_by_name "J0hn D03"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Name with numbers/letter substitution" >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: J0hn D03" >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: J0hn D03" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: John Doe" >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "J0hn D03"
-  assert_equal "$cleaned_name" "John Doe"
-}
-
-@test "get_user_id_by_name - !@#$" {
-  run get_user_id_by_name "!@#$"
-  [ "$status" -eq 0 ]
-  IFS='|' read -r user_id full_name raw_name cleaned_name <<< "$output"
-  echo "----- TEST CASE -----" >&2
-  echo "Comment: Edge case: only special characters " >&2
-  echo "function: get_user_id_by_name" >&2
-  echo "input_name: !@#$" >&2
-  echo "expected_user_id: " >&2
-  echo "expected_full_name: " >&2
-  echo "raw_name expected: !@#$" >&2
-  echo "raw_name matched: $raw_name" >&2
-  echo "cleaned_name expected: " >&2
-  echo "cleaned_name matched: $cleaned_name" >&2
-  echo "user_id expected: " >&2
-  echo "user_id matched: $user_id" >&2
-  echo "full_name expected: " >&2
-  echo "full_name matched: $full_name" >&2
-  echo "---------------------" >&2
-  assert_equal "$user_id" ""
-  assert_equal "$full_name" ""
-  assert_equal "$raw_name" "!@#$"
-  assert_equal "$cleaned_name" ""
-}

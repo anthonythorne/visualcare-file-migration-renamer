@@ -7,7 +7,7 @@ and provides fallback mechanisms for date extraction.
 
 File Path: core/utils/date_matcher.py
 
-@package VisualCare\\FileMigration\\Utils
+@package VisualCare\\FileMigration\\Core
 @since   1.0.0
 
 Supported Date Formats:
@@ -15,52 +15,147 @@ Supported Date Formats:
 - DD-MM-YYYY (European format)
 - MM-DD-YYYY (US format)
 - YYYYMMDD (compact format)
-- DDMMYYYY (European compact)
-- MMDDYYYY (US compact)
+- DDMMYYYY (compact format)
+- MMDDYYYY (compact format)
 - Month name formats (e.g., "15th Mar 2023")
 
-Features:
+Key Features:
 - Multiple date pattern recognition
-- Separator preservation during extraction
+- Configurable allowed formats
 - Invalid date validation and handling
-- Extension preservation
-- Configurable separator handling
+- Separator preservation
 
-Returns:
+Output Format:
 - Pipe-separated strings: extracted_dates|remainder|matched
 - Multiple dates joined by commas if found
-- Preserves original filename structure in remainder
+- Raw remainder with preserved separators
+- Boolean match indicator
 
-Algorithm:
-- Iterative pattern matching with best-match selection
+Processing Logic:
 - Separator preservation before and after dates
 - Invalid date filtering with datetime validation
-- Extension-aware processing
+- Multiple date extraction from single filename
 """
 
 import re
 import sys
+import yaml
 from datetime import datetime
+from pathlib import Path
+
+
+def load_config():
+    """Load configuration from components.yaml."""
+    config_path = Path(__file__).parent.parent.parent / 'config' / 'components.yaml'
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
+def build_date_patterns(allowed_formats):
+    """
+    Build regex patterns for allowed date formats.
+    
+    @param allowed_formats: List of datetime format strings from config
+    @return: List of (pattern, format_name) tuples
+    """
+    patterns = []
+    sep_regex = r'[-\._\s]'
+    
+    # Month name mappings for abbreviated and full month names
+    month_abbr = r'(?P<month>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
+    month_full = r'(?P<month>January|February|March|April|May|June|July|August|September|October|November|December)'
+    
+    for fmt in allowed_formats:
+        if fmt == "%Y-%m-%d":
+            patterns.append((
+                rf'(?P<year>\d{{4}}){sep_regex}(?P<month>0[1-9]|1[0-2]){sep_regex}(?P<day>0[1-9]|[12]\d|3[01])',
+                'YMD'
+            ))
+        elif fmt == "%d-%m-%Y":
+            patterns.append((
+                rf'(?P<day>0[1-9]|[12]\d|3[01]){sep_regex}(?P<month>0[1-9]|1[0-2]){sep_regex}(?P<year>\d{{4}})',
+                'DMY'
+            ))
+        elif fmt == "%m-%d-%Y":
+            patterns.append((
+                rf'(?P<month>0[1-9]|1[0-2]){sep_regex}(?P<day>0[1-9]|[12]\d|3[01]){sep_regex}(?P<year>\d{{4}})',
+                'MDY'
+            ))
+        elif fmt == "%Y%m%d":
+            patterns.append((
+                rf'(?P<year>\d{{4}})(?P<month>0[1-9]|1[0-2])(?P<day>0[1-9]|[12]\d|3[01])',
+                'YMD_nosep'
+            ))
+        elif fmt == "%d%m%Y":
+            patterns.append((
+                rf'(?P<day>0[1-9]|[12]\d|3[01])(?P<month>0[1-9]|1[0-2])(?P<year>\d{{4}})',
+                'DMY_nosep'
+            ))
+        elif fmt == "%m%d%Y":
+            patterns.append((
+                rf'(?P<month>0[1-9]|1[0-2])(?P<day>0[1-9]|[12]\d|3[01])(?P<year>\d{{4}})',
+                'MDY_nosep'
+            ))
+        elif fmt == "%d-%b-%Y":
+            patterns.append((
+                rf'(?P<day>\d{{1,2}})(st|nd|rd|th)?[-\. ]*{month_abbr}[-\. ]*(?P<year>\d{{4}})',
+                'DayMonthAbbr'
+            ))
+        elif fmt == "%b-%d-%Y":
+            patterns.append((
+                rf'{month_abbr}[-\. ]*(?P<day>\d{{1,2}})(st|nd|rd|th)?[-\. ]*(?P<year>\d{{4}})',
+                'MonthAbbrDay'
+            ))
+        elif fmt == "%d %b %Y":
+            patterns.append((
+                rf'(?P<day>\d{{1,2}})(st|nd|rd|th)?\s+{month_abbr}\s+(?P<year>\d{{4}})',
+                'DayMonthAbbr'
+            ))
+        elif fmt == "%B %d, %Y":
+            patterns.append((
+                rf'{month_full}\s+(?P<day>\d{{1,2}})(st|nd|rd|th)?,\s+(?P<year>\d{{4}})',
+                'MonthFullDay'
+            ))
+        elif fmt == "%Y.%m.%d":
+            patterns.append((
+                rf'(?P<year>\d{{4}})\.(?P<month>0[1-9]|1[0-2])\.(?P<day>0[1-9]|[12]\d|3[01])',
+                'YMD_dot'
+            ))
+        elif fmt == "%d %B %Y":
+            patterns.append((
+                rf'(?P<day>\d{{1,2}})(st|nd|rd|th)?\s+{month_full}\s+(?P<year>\d{{4}})',
+                'DayMonthFull'
+            ))
+        elif fmt == "%d-%B-%Y":
+            patterns.append((
+                rf'(?P<day>\d{{1,2}})(st|nd|rd|th)?[-\. ]*{month_full}[-\. ]*(?P<year>\d{{4}})',
+                'DayMonthFull'
+            ))
+        elif fmt == "%d/%m/%Y":
+            patterns.append((
+                rf'(?P<day>0[1-9]|[12]\d|3[01])/(?P<month>0[1-9]|1[0-2])/(?P<year>\d{{4}})',
+                'DMY_slash'
+            ))
+        elif fmt == "%Y/%m/%d":
+            patterns.append((
+                rf'(?P<year>\d{{4}})/(?P<month>0[1-9]|1[0-2])/(?P<day>0[1-9]|[12]\d|3[01])',
+                'YMD_slash'
+            ))
+    
+    return patterns
+
 
 def extract_date_matches(filename):
-    sep_regex = r'[-\._\s]'
-    date_patterns = [
-        # YYYY-MM-DD - match only the date portion
-        (rf'(?P<year>\d{{4}}){sep_regex}(?P<month>0[1-9]|1[0-2]){sep_regex}(?P<day>0[1-9]|[12]\d|3[01])', 'YMD'),
-        # DD-MM-YYYY - match only the date portion
-        (rf'(?P<day>0[1-9]|[12]\d|3[01]){sep_regex}(?P<month>0[1-9]|1[0-2]){sep_regex}(?P<year>\d{{4}})', 'DMY'),
-        # MM-DD-YYYY - match only the date portion
-        (rf'(?P<month>0[1-9]|1[0-2]){sep_regex}(?P<day>0[1-9]|[12]\d|3[01]){sep_regex}(?P<year>\d{{4}})', 'MDY'),
-        # YYYYMMDD - no separators
-        (rf'(?P<year>\d{{4}})(?P<month>0[1-9]|1[0-2])(?P<day>0[1-9]|[12]\d|3[01])', 'YMD_nosep'),
-        # DDMMYYYY - no separators
-        (rf'(?P<day>0[1-9]|[12]\d|3[01])(?P<month>0[1-9]|1[0-2])(?P<year>\d{{4}})', 'DMY_nosep'),
-        # MMDDYYYY - no separators
-        (rf'(?P<month>0[1-9]|1[0-2])(?P<day>0[1-9]|[12]\d|3[01])(?P<year>\d{{4}})', 'MDY_nosep'),
-        # Month name formats - match only the date portion
-        (rf'(?P<day>\d{{1,2}})(st|nd|rd|th)?[-\. ]*(?P<month>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[-\. ]*(?P<year>\d{{4}})', 'MonthName'),
-    ]
-
+    """
+    Extract dates from filename using configurable allowed formats.
+    
+    @param filename: The filename to extract dates from
+    @return: Pipe-separated string: extracted_dates|remainder|matched
+    """
+    config = load_config()
+    allowed_formats = config.get('Date', {}).get('allowed_formats', ['%Y-%m-%d'])
+    date_patterns = build_date_patterns(allowed_formats)
+    
     found_dates = []
     raw_remainder = filename
     
@@ -78,10 +173,15 @@ def extract_date_matches(filename):
         match, date_format = best_match_info
         
         year, month, day = 0, 0, 0
-        if date_format == 'MonthName':
+        if 'Month' in date_format:
             day = int(match.group('day'))
             month_str = match.group('month')
-            month_map = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6, 'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
+            month_map = {
+                'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+                'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+                'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+                'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
+            }
             month = month_map[month_str.lower()]
             year = int(match.group('year'))
         else:
@@ -123,6 +223,7 @@ def extract_date_matches(filename):
     else:
         return f"|{filename}|false"
 
+
 def extract_date_from_path(full_path: str, date_to_match: str) -> str:
     """
     Extract all occurrences of the full date from all components of a path (folders and filename).
@@ -143,20 +244,21 @@ def extract_date_from_path(full_path: str, date_to_match: str) -> str:
             new_components.append(remainder)
         else:
             new_components.append(part)
+    
     raw_remainder = '/'.join(new_components)
     matched = 'true' if extracted_dates else 'false'
     return f"{','.join(extracted_dates)}|{raw_remainder}|{matched}"
 
-if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        if len(sys.argv) == 2:
-            filename = sys.argv[1]
-            result = extract_date_matches(filename)
-            print(result)
-        elif len(sys.argv) == 4 and sys.argv[3] == 'extract_date_from_path':
-            full_path = sys.argv[1]
-            date_to_match = sys.argv[2]
-            result = extract_date_from_path(full_path, date_to_match)
-            print(result)
-        else:
-            print('Usage: date_matcher.py <filename> [date_to_match] [function_name]') 
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        filename = sys.argv[1]
+        result = extract_date_matches(filename)
+        print(result)
+    elif len(sys.argv) == 4 and sys.argv[3] == 'extract_date_from_path':
+        full_path = sys.argv[1]
+        date_to_match = sys.argv[2]
+        result = extract_date_from_path(full_path, date_to_match)
+        print(result)
+    else:
+        print('Usage: date_matcher.py <filename> [date_to_match] [function_name]') 
