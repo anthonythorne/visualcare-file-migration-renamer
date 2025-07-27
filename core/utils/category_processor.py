@@ -286,7 +286,7 @@ def extract_category_from_path_cli(input_path: str, config: dict):
     mapping_path = project_root / mapping_file
     mapped_name_csv = None
     mapped_id = None
-    if mapping_path.exists():
+    if mapping_path.exists() and norm_candidate:  # Only try to match if normalized candidate is not empty
         import csv
         with open(mapping_path, 'r') as f:
             reader = csv.DictReader(f)

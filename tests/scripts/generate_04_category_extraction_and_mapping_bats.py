@@ -18,10 +18,12 @@ with open(matrix_file, newline='') as csvfile:
     for i, row in enumerate(reader):
         test_name = f"{row['matcher_function']} - {row['input_path']}"
         if row['expected_match'].strip().lower() == 'false':
-            # For no-match cases, just check cleaned remainder using the universal cleaner
+            # For no-match cases, call the category processor to get proper remainder
             bats_test = f"""
 @test \"{test_name}\" {{
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename \"{row['input_path']}\")
+  run {row['matcher_function']} \"{row['input_path']}\"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
   echo \"----- TEST CASE -----\" >&2
   echo \"Comment: {row['description']}\" >&2
   echo \"function: {row['matcher_function']}\" >&2
@@ -29,14 +31,19 @@ with open(matrix_file, newline='') as csvfile:
   echo \"input_category: {row['input_category']}\" >&2
   echo \"expected_match: {row['expected_match']}\" >&2
   echo \"raw remainder expected: {row['raw_remainder']}\" >&2
-  echo \"raw remainder matched: {row['raw_remainder']}\" >&2
+  echo \"raw remainder matched: $raw_remainder\" >&2
   echo \"cleaned remainder expected: {row['cleaned_remainder']}\" >&2
   echo \"cleaned remainder matched: $cleaned_remainder\" >&2
   echo \"extracted_category expected: {row['expected_category_name']}\" >&2
-  echo \"extracted_category matched: \" >&2
+  echo \"extracted_category matched: $extracted_category\" >&2
   echo \"expected match: false\" >&2
   echo \"---------------------\" >&2
+  assert_equal "$extracted_category" ""
+  assert_equal "$raw_category" "{row['input_category']}"
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "{row['raw_remainder']}"
   assert_equal "$cleaned_remainder" "{row['cleaned_remainder']}"
+  assert_equal "$error_status" "{row['error_status']}"
 }}
 """
         else:

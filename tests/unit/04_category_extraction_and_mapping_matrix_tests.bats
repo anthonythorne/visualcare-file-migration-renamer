@@ -79,26 +79,35 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
 }
 
 @test "extract_category_from_path - John Doe/UnknownCategory/file.pdf" {
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "John Doe/UnknownCategory/file.pdf")
+  run extract_category_from_path "John Doe/UnknownCategory/file.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
   echo "----- TEST CASE -----" >&2
   echo "Comment: Unmapped category" >&2
   echo "function: extract_category_from_path" >&2
   echo "input_path: John Doe/UnknownCategory/file.pdf" >&2
   echo "input_category: UnknownCategory" >&2
   echo "expected_match: false" >&2
-  echo "raw remainder expected: John Doe/UnknownCategory/file.pdf" >&2
-  echo "raw remainder matched: John Doe/UnknownCategory/file.pdf" >&2
-  echo "cleaned remainder expected: John Doe UnknownCategory file.pdf" >&2
+  echo "raw remainder expected: John Doe/file.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: John Doe file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: UnknownCategory" >&2
-  echo "extracted_category matched: " >&2
+  echo "extracted_category matched: $extracted_category" >&2
   echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$cleaned_remainder" "John Doe UnknownCategory file.pdf"
+  assert_equal "$extracted_category" ""
+  assert_equal "$raw_category" "UnknownCategory"
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$error_status" "unmapped"
 }
 
 @test "extract_category_from_path - John Doe/file.pdf" {
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "John Doe/file.pdf")
+  run extract_category_from_path "John Doe/file.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
   echo "----- TEST CASE -----" >&2
   echo "Comment: No category" >&2
   echo "function: extract_category_from_path" >&2
@@ -106,14 +115,19 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_category: " >&2
   echo "expected_match: false" >&2
   echo "raw remainder expected: John Doe/file.pdf" >&2
-  echo "raw remainder matched: John Doe/file.pdf" >&2
-  echo "cleaned remainder expected: John Doe file.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: John Doe/file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: " >&2
-  echo "extracted_category matched: " >&2
+  echo "extracted_category matched: $extracted_category" >&2
   echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$extracted_category" ""
+  assert_equal "$raw_category" ""
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe/file.pdf"
+  assert_equal "$error_status" "no_category"
 }
 
 @test "extract_category_from_path - John Doe/Support Plans/2022/plan.pdf" {
@@ -292,7 +306,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
 }
 
 @test "extract_category_from_path - John Doe/!@#$/file.pdf" {
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "John Doe/!@#$/file.pdf")
+  run extract_category_from_path "John Doe/!@#$/file.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
   echo "----- TEST CASE -----" >&2
   echo "Comment: Edge case: only special characters " >&2
   echo "function: extract_category_from_path" >&2
@@ -300,14 +316,19 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_category: !@#$" >&2
   echo "expected_match: false" >&2
   echo "raw remainder expected: John Doe/file.pdf" >&2
-  echo "raw remainder matched: John Doe/file.pdf" >&2
-  echo "cleaned remainder expected: John Doe ! file.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: John Doe file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: !@#$" >&2
-  echo "extracted_category matched: " >&2
+  echo "extracted_category matched: $extracted_category" >&2
   echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$cleaned_remainder" "John Doe ! file.pdf"
+  assert_equal "$extracted_category" ""
+  assert_equal "$raw_category" "!@#$"
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$error_status" "unmapped"
 }
 
 @test "extract_category_from_path - John Doe/Personal Care/2024/Assessments/assessment.pdf" {
@@ -661,7 +682,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
 }
 
 @test "extract_category_from_path - John Doe/Unknown_Category_With_Underscores/file.pdf" {
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "John Doe/Unknown_Category_With_Underscores/file.pdf")
+  run extract_category_from_path "John Doe/Unknown_Category_With_Underscores/file.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
   echo "----- TEST CASE -----" >&2
   echo "Comment: Unmapped category with underscores" >&2
   echo "function: extract_category_from_path" >&2
@@ -669,18 +692,25 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_category: Unknown_Category_With_Underscores" >&2
   echo "expected_match: false" >&2
   echo "raw remainder expected: John Doe/file.pdf" >&2
-  echo "raw remainder matched: John Doe/file.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: John Doe file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: Unknown_Category_With_Underscores" >&2
-  echo "extracted_category matched: " >&2
+  echo "extracted_category matched: $extracted_category" >&2
   echo "expected match: false" >&2
   echo "---------------------" >&2
+  assert_equal "$extracted_category" ""
+  assert_equal "$raw_category" "Unknown_Category_With_Underscores"
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/file.pdf"
   assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$error_status" "unmapped"
 }
 
 @test "extract_category_from_path - John Doe/Category-With-Multiple-Hyphens/file.pdf" {
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "John Doe/Category-With-Multiple-Hyphens/file.pdf")
+  run extract_category_from_path "John Doe/Category-With-Multiple-Hyphens/file.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
   echo "----- TEST CASE -----" >&2
   echo "Comment: Unmapped category with multiple hyphens " >&2
   echo "function: extract_category_from_path" >&2
@@ -688,12 +718,17 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_category: Category-With-Multiple-Hyphens" >&2
   echo "expected_match: false" >&2
   echo "raw remainder expected: John Doe/file.pdf" >&2
-  echo "raw remainder matched: John Doe/file.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: John Doe file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: Category-With-Multiple-Hyphens" >&2
-  echo "extracted_category matched: " >&2
+  echo "extracted_category matched: $extracted_category" >&2
   echo "expected match: false" >&2
   echo "---------------------" >&2
+  assert_equal "$extracted_category" ""
+  assert_equal "$raw_category" "Category-With-Multiple-Hyphens"
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/file.pdf"
   assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$error_status" "unmapped"
 }
