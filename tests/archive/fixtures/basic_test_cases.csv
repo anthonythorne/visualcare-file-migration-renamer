@@ -1,7 +1,0 @@
-full_path,person_name,expected_filename,expected_user_id,expected_name,expected_remainder,expected_date,description
-John Doe/John_Doe_Report.pdf,John Doe,1001_John Doe_Report_2023-03-01.pdf,1001,John Doe,Report,2023-03-01,Full name in filename
-John Doe/J_Doe_Report.pdf,John Doe,1001_John Doe_Report_2023-03-02.pdf,1001,John Doe,Report,2023-03-02,Initials in filename
-John Doe/John_Report.pdf,John Doe,1001_John Doe_Report_2023-03-03.pdf,1001,John Doe,Report,2023-03-03,First name only
-John Doe/Doe_Report.pdf,John Doe,1001_John Doe_Report_2023-03-04.pdf,1001,John Doe,Report,2023-03-04,Last name only
-John Doe/JD_Report.pdf,John Doe,1001_John Doe_Report_2023-03-05.pdf,1001,John Doe,Report,2023-03-05,Shorthand
-John Doe/Report.pdf,John Doe,1001_John Doe_Report_2023-03-06.pdf,1001,John Doe,Report,2023-03-06,No name in filename 

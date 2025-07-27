@@ -1,5 +1,0 @@
-test_case,full_path,person_name,expected_user_id,expected_name,expected_remainder,expected_date,expected_category,expected_filename,description,folder_date,filename_date,modified_date,created_date,priority_date
-ml_1,John Doe/CategoryA/Dir1/Dir2/file.pdf,John Doe,1001,John Doe,Dir1 Dir2 file,2023-02-01,CategoryA,1001_John Doe_Dir1 Dir2 file_2023-02-01_CategoryA.pdf,Category, multi-level,,,2023-02-01,,filename_date
-ml_2,John Doe/Dir1/Dir2/file.pdf,John Doe,1001,John Doe,Dir1 Dir2 file,2023-02-02,,1001_John Doe_Dir1 Dir2 file_2023-02-02.pdf,No category, multi-level,,,2023-02-02,,filename_date
-ml_3,John Doe/CategoryA/file.pdf,John Doe,1001,John Doe,file,2023-02-03,CategoryA,1001_John Doe_file_2023-02-03_CategoryA.pdf,Category, single-level,,,2023-02-03,,filename_date
-ml_4,John Doe/file.pdf,John Doe,1001,John Doe,file,2023-02-04,,1001_John Doe_file_2023-02-04.pdf,No category, single-level,,,2023-02-04,,filename_date 

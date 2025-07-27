@@ -1,9 +1,0 @@
-filename|person_name|expected_filename|expected_user_id|expected_name|expected_remainder|expected_date|description
-Report_2023-05-15.pdf|John Doe|1001_John Doe_Report_2023-05-15.pdf|1001|John Doe|Report|2023-05-15|ISO date in filename
-Report_15-05-2023.pdf|John Doe|1001_John Doe_Report_2023-05-16.pdf|1001|John Doe|Report|2023-05-16|EU date in filename
-Report_05-15-2023.pdf|John Doe|1001_John Doe_Report_2023-05-17.pdf|1001|John Doe|Report|2023-05-17|US date in filename
-2023.05.18_Report.pdf|John Doe|1001_John Doe_Report_2023-05-18.pdf|1001|John Doe|Report|2023-05-18|Dot date in filename
-15.5.23_Report.pdf|John Doe|1001_John Doe_Report_2023-05-19.pdf|1001|John Doe|Report|2023-05-19|Short dot date in filename
-2023/Report.pdf|John Doe|1001_John Doe_Report_2023-05-20.pdf|1001|John Doe|Report|2023-05-20|Date from folder
-Report.pdf|John Doe|1001_John Doe_Report_2023-05-21.pdf|1001|John Doe|Report|2023-05-21|Date from modified date
-Report.pdf|John Doe|1001_John Doe_Report_today.pdf|1001|John Doe|Report|today|Date from created date (today) 

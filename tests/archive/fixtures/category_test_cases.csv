@@ -1,6 +1,0 @@
-test_case,full_path,person_name,expected_user_id,expected_name,expected_remainder,expected_date,expected_category,expected_filename,description,folder_date,filename_date,modified_date,created_date,priority_date
-cat_1,John Doe/CategoryA/file.pdf,John Doe,1001,John Doe,file,2023-01-01,,1001_John Doe_file_2023-01-01.pdf,Category match,,,2023-01-01,,filename_date
-cat_2,John Doe/CategoryB/file.pdf,John Doe,1001,John Doe,file,2023-01-02,,1001_John Doe_file_2023-01-02.pdf,Another category match,,,2023-01-02,,filename_date
-cat_3,John Doe/file.pdf,John Doe,1001,John Doe,file,2023-01-03,,1001_John Doe_file_2023-01-03.pdf,No category,,,2023-01-03,,filename_date
-cat_4,John Doe/CategoryA/Subfolder/file.pdf,John Doe,1001,John Doe,Subfolder file,2023-01-04,,1001_John Doe_Subfolder file_2023-01-04.pdf,Category with subfolder,,,2023-01-04,,filename_date
-cat_5,John Doe/UnknownCategory/file.pdf,John Doe,1001,John Doe,file,2023-01-05,,1001_John Doe_file_2023-01-05.pdf,Unknown category,,,2023-01-05,,filename_date 
