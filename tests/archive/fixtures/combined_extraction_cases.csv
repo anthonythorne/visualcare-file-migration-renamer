@@ -1,0 +1,31 @@
+filename|name_to_match|extracted_name|extracted_date|raw_remainder|cleaned_remainder|expected_match|use_case|matcher_function|expected_normalized_filename
+John_Doe_2023-05-15_Report.pdf|john doe|John,Doe|2023-05-15|___Report.pdf|Report.pdf|true|Name and date with report|extract_name_from_filename|John Doe_2023-05-15_Report.pdf
+john-doe-20240101-invoice.docx|john doe|john,doe|2024-01-01|---invoice.docx|invoice.docx|true|Name and compact date with invoice|extract_name_from_filename|John Doe_2024-01-01_invoice.docx
+2022-12-31_John_Doe_summary.txt|john doe|John,Doe|2022-12-31|___summary.txt|summary.txt|true|Date, name, and summary|extract_name_from_filename|John Doe_2022-12-31_summary.txt
+report-2023-01-15-jdoe.pdf|john doe|jdoe|2023-01-15|report--.pdf|report.pdf|true|Shorthand name and ISO date|extract_shorthand_name_from_filename|John Doe_2023-01-15_report.pdf
+John_Doe_15th-Mar-2023_notes.docx|john doe|John,Doe|2023-03-15|___notes.docx|notes.docx|true|Written month date and name|extract_name_from_filename|John Doe_2023-03-15_notes.docx
+john-doe-2023-01-15-report-final.pdf|john doe|john,doe|2023-01-15|---report-final.pdf|report-final.pdf|true|Name, ISO date, and extra text|extract_name_from_filename|John Doe_2023-01-15_report-final.pdf
+20230506 john doe receipt.pdf|john doe|john,doe|2023-05-06|   receipt.pdf|receipt.pdf|true|Compact date, name, and receipt|extract_name_from_filename|John Doe_2023-05-06_receipt.pdf
+john.doe.2023.01.15.invoice.pdf|john doe|john,doe|2023-01-15|...invoice.pdf|invoice.pdf|true|Name and dotted ISO date|extract_name_from_filename|John Doe_2023-01-15_invoice.pdf
+jdoe_contract_2023-08-20.pdf|john doe|jdoe|2023-08-20|_contract_.pdf|contract.pdf|true|Shorthand with underscore date|extract_shorthand_name_from_filename|John Doe_2023-08-20_contract.pdf
+john_doe_2023-12-25_christmas_report.pdf|john doe|john,doe|2023-12-25|___christmas_report.pdf|christmas_report.pdf|true|Name with descriptive text|extract_name_from_filename|John Doe_2023-12-25_christmas_report.pdf
+Jane_Smith_2023-06-20_contract.pdf|jane smith|Jane,Smith|2023-06-20|___contract.pdf|contract.pdf|true|Jane Smith contract with date|extract_name_from_filename|Jane Smith_2023-06-20_contract.pdf
+jane-smith-proposal.docx|jane smith|jane,smith||--proposal.docx|proposal.docx|true|Jane Smith proposal no date|extract_name_from_filename|Jane Smith_proposal.docx
+2023-08-15_Jane_Smith_presentation.pptx|jane smith|Jane,Smith|2023-08-15|___presentation.pptx|presentation.pptx|true|Jane Smith presentation with date|extract_name_from_filename|Jane Smith_2023-08-15_presentation.pptx
+jsmith-2023-09-10-report.pdf|jane smith|jsmith|2023-09-10|--report.pdf|report.pdf|true|Jane Smith shorthand with date|extract_shorthand_name_from_filename|Jane Smith_2023-09-10_report.pdf
+jane.smith.2023.11.30.budget.xlsx|jane smith|jane,smith|2023-11-30|...budget.xlsx|budget.xlsx|true|Jane Smith dotted format with budget|extract_name_from_filename|Jane Smith_2023-11-30_budget.xlsx
+20231201_jane_smith_meeting_notes.txt|jane smith|jane,smith|2023-12-01|___meeting_notes.txt|meeting_notes.txt|true|Jane Smith compact date with notes|extract_name_from_filename|Jane Smith_2023-12-01_meeting_notes.txt
+jsmith_final_report_2024-01-15.pdf|jane smith|jsmith|2024-01-15|_final_report_.pdf|final_report.pdf|true|Jane Smith shorthand with final report|extract_shorthand_name_from_filename|Jane Smith_2024-01-15_final_report.pdf
+jane-smith-2023-10-31-halloween-special.pdf|jane smith|jane,smith|2023-10-31|---halloween-special.pdf|halloween-special.pdf|true|Jane Smith with themed filename|extract_name_from_filename|Jane Smith_2023-10-31_halloween-special.pdf
+j.smith.2023.07.04.independence_day.pptx|jane smith|j.smith|2023-07-04|..independence_day.pptx|independence_day.pptx|true|Jane Smith initial format with holiday|extract_name_from_filename|Jane Smith_2023-07-04_independence_day.pptx
+jsmith_quarterly_review_2023-12-31.pdf|jane smith|jsmith|2023-12-31|_quarterly_review_.pdf|quarterly_review.pdf|true|Jane Smith shorthand with quarterly review|extract_shorthand_name_from_filename|Jane Smith_2023-12-31_quarterly_review.pdf
+Bob_Johnson_2023-07-12_invoice.pdf|bob johnson|Bob,Johnson|2023-07-12|___invoice.pdf|invoice.pdf|true|Bob Johnson invoice with date|extract_name_from_filename|Bob Johnson_2023-07-12_invoice.pdf
+bob.johnson.2023.10.05.receipt.pdf|bob johnson|bob,johnson|2023-10-05|...receipt.pdf|receipt.pdf|true|Bob Johnson dotted format|extract_name_from_filename|Bob Johnson_2023-10-05_receipt.pdf
+20231120_bob_johnson_summary.txt|bob johnson|bob,johnson|2023-11-20|___summary.txt|summary.txt|true|Bob Johnson compact date format|extract_name_from_filename|Bob Johnson_2023-11-20_summary.txt
+bjohnson-contract.docx|bob johnson|bjohnson||-contract.docx|contract.docx|true|Bob Johnson shorthand no date|extract_shorthand_name_from_filename|Bob Johnson_contract.docx
+bob-johnson-2023-09-15-project-plan.pdf|bob johnson|bob,johnson|2023-09-15|---project-plan.pdf|project-plan.pdf|true|Bob Johnson with project plan|extract_name_from_filename|Bob Johnson_2023-09-15_project-plan.pdf
+2023-06-30_Bob_Johnson_financial_report.xlsx|bob johnson|Bob,Johnson|2023-06-30|___financial_report.xlsx|financial_report.xlsx|true|Bob Johnson financial report|extract_name_from_filename|Bob Johnson_2023-06-30_financial_report.xlsx
+bjohnson_2023-08-14_client_meeting.pptx|bob johnson|bjohnson|2023-08-14|__client_meeting.pptx|client_meeting.pptx|true|Bob Johnson shorthand with client meeting|extract_shorthand_name_from_filename|Bob Johnson_2023-08-14_client_meeting.pptx
+bob.johnson.2023.12.25.christmas.bonus.pdf|bob johnson|bob,johnson|2023-12-25|...christmas.bonus.pdf|christmas.bonus.pdf|true|Bob Johnson with bonus document|extract_name_from_filename|Bob Johnson_2023-12-25_christmas.bonus.pdf
+20240101_bob_johnson_new_year_resolution.txt|bob johnson|bob,johnson|2024-01-01|___new_year_resolution.txt|new_year_resolution.txt|true|Bob Johnson new year document|extract_name_from_filename|Bob Johnson_2024-01-01_new_year_resolution.txt
+b.johnson_2023-11-23_thanksgiving_menu.docx|bob johnson|b.johnson|2023-11-23|__thanksgiving_menu.docx|thanksgiving_menu.docx|true|Bob Johnson initial format with holiday|extract_name_from_filename|Bob Johnson_2023-11-23_thanksgiving_menu.docx

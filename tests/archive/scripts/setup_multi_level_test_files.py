@@ -139,6 +139,16 @@ Date Information:
     with open(file_path, 'w') as f:
         f.write(content)
     
+    # Set modification/access time if specified
+    import os, time
+    modified_date = test_case.get('modified_date', '').strip()
+    if modified_date and modified_date.lower() != 'today':
+        try:
+            t = time.mktime(time.strptime(modified_date, '%Y-%m-%d'))
+            os.utime(file_path, (t, t))
+        except Exception as e:
+            print(f"Warning: Could not set file date for {file_path}: {e}")
+    # Creation date is always 'now' (today) if 'created_date' is 'today' or empty
     return file_path
 
 

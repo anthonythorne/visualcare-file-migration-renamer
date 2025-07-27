@@ -5,7 +5,6 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 # Auto-generated BATS tests for date extraction from path
-source "${BATS_TEST_DIRNAME}/../../core/utils/date_utils.sh"
 
 
 @test "extract_date_from_path - WHS/2025-07-15/Docs/Report_2025-07-15.pdf" {

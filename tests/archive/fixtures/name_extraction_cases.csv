@@ -1,0 +1,50 @@
+filename|name_to_match|expected_match|extracted_name|raw_remainder|cleaned_remainder|matcher_function|use_case
+john-doe-report.pdf|john doe|true|john|-doe-report.pdf|doe-report.pdf|extract_first_name_from_filename|First Name only
+John Doe 20240525 report.pdf|john doe|true|John| Doe 20240525 report.pdf|Doe 20240525 report.pdf|extract_first_name_from_filename|First Name only
+john-doe-report.pdf|john doe|true|doe|john--report.pdf|john-report.pdf|extract_last_name_from_filename|Last Name only
+John Doe 20240525 report.pdf|john doe|true|Doe|John  20240525 report.pdf|John 20240525 report.pdf|extract_last_name_from_filename|Last Name only
+j-d-report.pdf|john doe|true|j-d|-report.pdf|report.pdf|extract_initials_from_filename|Both Initials - Hyphen separator
+Home J.D report.pdf|john doe|true|J.D|Home  report.pdf|Home report.pdf|extract_initials_from_filename|Both Initials - Period separator
+File j d report.pdf|john doe|true|j d|File  report.pdf|File report.pdf|extract_initials_from_filename|Both Initials - Space separator
+j_d_report.pdf|john doe|true|j_d|_report.pdf|report.pdf|extract_initials_from_filename|Both Initials - Underscore separator
+File j_- d_report.pdf|john doe|true|j_- d|File _report.pdf|File report.pdf|extract_initials_from_filename|Both Initials - Underscore separator
+j-doe-report.pdf|john doe|true|j-doe|-report.pdf|report.pdf|extract_shorthand_name_from_filename|First Initial + Last Name - Hyphen separator
+j_doe_report.pdf|john doe|true|j_doe|_report.pdf|report.pdf|extract_shorthand_name_from_filename|First Initial + Last Name - Underscore separator
+j doe report.pdf|john doe|true|j doe| report.pdf|report.pdf|extract_shorthand_name_from_filename|First Initial + Last Name - Space separator
+j.doe.report.pdf|john doe|true|j.doe|.report.pdf|report.pdf|extract_shorthand_name_from_filename|First Initial + Last Name - Period separator
+john-d-report.pdf|john doe|true|john-d|-report.pdf|report.pdf|extract_shorthand_name_from_filename|First Name + Last Initial - Hyphen separator
+john_d_report.pdf|john doe|true|john_d|_report.pdf|report.pdf|extract_shorthand_name_from_filename|First Name + Last Initial - Underscore separator
+john d report.pdf|john doe|true|john d| report.pdf|report.pdf|extract_shorthand_name_from_filename|First Name + Last Initial - Space separator
+john.d.report.pdf|john doe|true|john.d|.report.pdf|report.pdf|extract_shorthand_name_from_filename|First Name + Last Initial - Period separator
+john-doe-report.pdf|john doe|true|john,doe|--report.pdf|report.pdf|extract_name_from_filename|First Name - Hyphen separator
+john_doe_report.pdf|john doe|true|john,doe|__report.pdf|report.pdf|extract_name_from_filename|First Name - Underscore separator
+john doe report.pdf|john doe|true|john,doe|  report.pdf|report.pdf|extract_name_from_filename|First Name - Space separator
+john.doe.report.pdf|john doe|true|john,doe|..report.pdf|report.pdf|extract_name_from_filename|First Name - Period separator
+doe-john-report.pdf|john doe|true|john,doe|--report.pdf|report.pdf|extract_name_from_filename|Last Name - Hyphen separator
+doe_john_report.pdf|john doe|true|john,doe|__report.pdf|report.pdf|extract_name_from_filename|Last Name - Underscore separator
+doe john report.pdf|john doe|true|john,doe|  report.pdf|report.pdf|extract_name_from_filename|Last Name - Space separator
+doe.john.report.pdf|john doe|true|john,doe|..report.pdf|report.pdf|extract_name_from_filename|Last Name - Period separator
+john*doe-report.pdf|john doe|true|john,doe|*-report.pdf|*-report.pdf|extract_name_from_filename|Non-standard separator (asterisk)
+john@doe-report.pdf|john doe|true|john,doe|@-report.pdf|@-report.pdf|extract_name_from_filename|Non-standard separator (at sign)
+john#doe-report.pdf|john doe|true|john,doe|#-report.pdf|#-report.pdf|extract_name_from_filename|Non-standard separator (hash)
+j0hn-d03-report.pdf|john doe|true|j0hn,d03|--report.pdf|report.pdf|extract_name_from_filename|Name with numbers/letter substitution
+jôn-döe-report.pdf|john doe|true|döe|jôn--report.pdf|jôn-report.pdf|extract_name_from_filename|Name with accents
+john-doe-john-doe-report.pdf|john doe|true|john,john,doe,doe|----report.pdf|report.pdf|extract_name_from_filename|Multiple matches (same name twice)
+john-doe-jdoe-report.pdf|john doe|true|jdoe,john,doe|---report.pdf|report.pdf|extract_name_from_filename|Multiple matches (full and initials)
+john-doe-jdoe-report-john.pdf|john doe|true|jdoe,john,john,doe|---report-.pdf|report.pdf|extract_name_from_filename|Multiple matches (full and initials)
+jdoe-john-doe-report.pdf|john doe|true|jdoe,john,doe|---report.pdf|report.pdf|extract_name_from_filename|Multiple matches (initials and full)
+.pdf|john doe|false||.pdf|.pdf|extract_name_from_filename|Edge case: empty filename
+JOHN-DOE-report.pdf|john doe|true|JOHN,DOE|--report.pdf|report.pdf|extract_name_from_filename|Case: all uppercase
+John-Doe-report.pdf|john doe|true|John,Doe|--report.pdf|report.pdf|extract_name_from_filename|Case: proper case
+john-DOE-report.pdf|john doe|true|john,DOE|--report.pdf|report.pdf|extract_name_from_filename|Case: mixed case
+john-doe-report-v1.0-2023.01.01.pdf|john doe|true|john,doe|--report-v1.0-2023.01.01.pdf|report-v1.0-2023.01.01.pdf|extract_name_from_filename|Complex version and date
+j0hn-d03-jôn-döe-report.pdf|john doe|true|j0hn,d03,döe|--jôn--report.pdf|jôn-report.pdf|extract_name_from_filename|Multiple matches: numbers and accents
+---.pdf|john doe|false||---.pdf|.pdf|extract_name_from_filename|Edge case: only separators
+123456.pdf|john doe|false||123456.pdf|123456.pdf|extract_name_from_filename|Edge case: only numbers
+!@#$%^&*().pdf|john doe|false||!@#$%^&*().pdf|!@#$%^&*().pdf|extract_name_from_filename|Edge case: only special characters
+john   doe   report.pdf|john doe|true|john,doe|      report.pdf|report.pdf|extract_name_from_filename|Multiple consecutive spaces
+john--doe__report.pdf|john doe|true|john,doe|--__report.pdf|report.pdf|extract_name_from_filename|Mixed consecutive separators
+john . doe - report.pdf|john doe|true|john,doe| .  - report.pdf|report.pdf|extract_name_from_filename|Mixed separators with spaces and punctuation
+ john doe report.pdf|john doe|true|john,doe|   report.pdf|report.pdf|extract_name_from_filename|Leading space
+john doe report .pdf|john doe|true|john,doe|  report .pdf|report.pdf|extract_name_from_filename|Trailing space before extension
+john-doe_report report.pdf|john doe|true|john,doe|-_report report.pdf|report report.pdf|extract_name_from_filename|Mixed separators (hyphen, underscore, space)

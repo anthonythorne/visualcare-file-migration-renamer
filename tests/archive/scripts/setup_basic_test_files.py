@@ -38,19 +38,21 @@ def setup_basic_test_files():
             person_name = row['person_name']
             description = row.get('description', '')
             expected_date = row.get('expected_date', '')
+            modified_date = row.get('modified_date', '').strip() if 'modified_date' in row else ''
+            created_date = row.get('created_date', '').strip() if 'created_date' in row else ''
             file_path = from_dir / full_path
             file_path.parent.mkdir(parents=True, exist_ok=True)
             with open(file_path, 'w') as f_out:
                 f_out.write(f"Test content for {full_path}\nPerson: {person_name}\nDescription: {description}\n")
-            # Set file modification and creation date if expected_date is provided
-            if expected_date:
-                import time
-                import os
+            # Set file modification and creation date if specified
+            import time, os
+            if modified_date and modified_date.lower() != 'today':
                 try:
-                    t = time.mktime(time.strptime(expected_date, '%Y-%m-%d'))
+                    t = time.mktime(time.strptime(modified_date, '%Y-%m-%d'))
                     os.utime(file_path, (t, t))
                 except Exception as e:
                     print(f"Warning: Could not set file date for {file_path}: {e}")
+            # Creation date is always 'now' (today) if 'created_date' is 'today' or empty
             test_files.append((person_name, full_path))
             print(f"✅ Created: {person_name}/{file_path.name}")
     print(f"\nCreated {len(test_files)} test files")

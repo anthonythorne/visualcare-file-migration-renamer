@@ -5,7 +5,6 @@ load "${BATS_TEST_DIRNAME}/../test-helper/bats-assert/load.bash"
 load "${BATS_TEST_DIRNAME}/../test-helper/bats-file/load.bash"
 
 # Auto-generated BATS tests for name extraction from path
-source "${BATS_TEST_DIRNAME}/../../core/utils/name_utils.sh"
 
 
 @test "extract_name_from_path - WHS - John Doe/2025/Docs John Doe/Report Notes for John Doe Incidents.pdf" {
