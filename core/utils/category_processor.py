@@ -331,7 +331,7 @@ def extract_category_from_path_cli(input_path: str, config: dict):
                 '--clean-filename',
                 raw_remainder
             ], text=True).strip()
-            print(f"{candidate}|{candidate}|{candidate}|{raw_remainder}|{cleaned_remainder}|unmapped")
+            print(f"|{candidate}||{raw_remainder}|{cleaned_remainder}|unmapped")
         else:
             # No category
             print(f"|||{input_path}|{input_path}|no_category")

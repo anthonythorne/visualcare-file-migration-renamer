@@ -48,14 +48,14 @@ class FileMigrationRenamer:
         """
         self.config = self._load_config(config_path)
         self.logger = self._setup_logging()
-    
+        
     def _load_config(self, config_path: Optional[str] = None) -> Dict:
         """
         Load configuration from YAML file.
         
         Args:
             config_path: Optional path to configuration file
-            
+        
         Returns:
             Dict: Configuration dictionary
         """

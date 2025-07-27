@@ -246,7 +246,7 @@ def extract_user_from_path(full_path: str) -> str:
         full_path: Full path like "John Doe/file.pdf" or "VC - John Doe/document.pdf"
         
     Returns:
-        user_id|full_name|raw_name|cleaned_name|raw_remainder|cleaned_remainder
+        user_id|raw_name|cleaned_name|raw_remainder|cleaned_remainder
     """
     from pathlib import Path
     import subprocess
@@ -257,12 +257,22 @@ def extract_user_from_path(full_path: str) -> str:
     
     # Split path into directory and filename
     path_obj = Path(full_path)
-    directory = path_obj.parent.name if path_obj.parent.name else path_obj.name
-    filename = path_obj.name if path_obj.parent.name else ""
+    path_parts = path_obj.parts
+    
+    # Get the top-level directory as the user directory
+    if len(path_parts) > 1:
+        directory = path_parts[0]  # Top-level directory
+        # Reconstruct the remainder path (everything after the top-level directory)
+        remainder_parts = path_parts[1:]
+        filename = remainder_parts[-1] if remainder_parts else ""
+        raw_remainder = "/".join(remainder_parts) if remainder_parts else ""
+    else:
+        directory = path_obj.name
+        filename = ""
+        raw_remainder = ""
     
     # Get user mapping info
     user_id = get_user_id_by_name(directory) or ""
-    full_name = get_name_by_user_id(user_id) if user_id else ""
     raw_name = directory
     
     # Get cleaned name (with prefix/suffix removed)
@@ -284,24 +294,23 @@ def extract_user_from_path(full_path: str) -> str:
     elif case_normalization == 'uppercase':
         cleaned_name = cleaned_name.upper()
     
-    # Get raw and cleaned remainder
-    raw_remainder = filename
+    # Get cleaned remainder
     cleaned_remainder = raw_remainder
     
-    # Use universal cleaner for cleaned remainder if filename exists
-    if filename:
+    # Use universal cleaner for cleaned remainder if remainder exists
+    if raw_remainder:
         project_root = Path(__file__).parent.parent.parent
         try:
             cleaned_remainder = subprocess.check_output([
                 'python3',
                 str(project_root / 'core/utils/name_matcher.py'),
                 '--clean-filename',
-                filename
+                raw_remainder
             ], text=True, stderr=subprocess.DEVNULL).strip()
         except:
             cleaned_remainder = raw_remainder
     
-    return f"{user_id}|{full_name}|{raw_name}|{cleaned_name}|{raw_remainder}|{cleaned_remainder}"
+    return f"{user_id}|{raw_name}|{cleaned_name}|{raw_remainder}|{cleaned_remainder}"
 
 
 if __name__ == "__main__":
@@ -346,7 +355,7 @@ if __name__ == "__main__":
             elif case_normalization == 'uppercase':
                 cleaned_name = cleaned_name.upper()
             
-            print(f"{user_id}|{full_name}|{raw_name}|{cleaned_name}")
+            print(f"{user_id}|{raw_name}|{cleaned_name}")
     
     elif len(sys.argv) >= 3:
         command = sys.argv[1]

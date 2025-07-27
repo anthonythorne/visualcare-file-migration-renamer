@@ -309,3 +309,391 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "---------------------" >&2
   assert_equal "$cleaned_remainder" "John Doe ! file.pdf"
 }
+
+@test "extract_category_from_path - John Doe/Personal Care/2024/Assessments/assessment.pdf" {
+  run extract_category_from_path "John Doe/Personal Care/2024/Assessments/assessment.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Deep nesting with category" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Personal Care/2024/Assessments/assessment.pdf" >&2
+  echo "input_category: Personal Care" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Personal Care" >&2
+  echo "expected_category_id: 3" >&2
+  echo "raw_category expected: Personal Care" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Personal Care" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2024/Assessments/assessment.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2024 Assessments assessment.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Personal Care" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Personal Care"
+  assert_equal "$raw_category" "Personal Care"
+  assert_equal "$cleaned_category" "Personal Care"
+  assert_equal "$raw_remainder" "John Doe/2024/Assessments/assessment.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2024 Assessments assessment.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Behavioral Support/2023/Reports/behavioral_analysis.pdf" {
+  run extract_category_from_path "John Doe/Behavioral Support/2023/Reports/behavioral_analysis.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Multi-word category in deep path" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Behavioral Support/2023/Reports/behavioral_analysis.pdf" >&2
+  echo "input_category: Behavioral Support" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Behavioral Support" >&2
+  echo "expected_category_id: 5" >&2
+  echo "raw_category expected: Behavioral Support" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Behavioral Support" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2023/Reports/behavioral_analysis.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2023 Reports behavioral analysis.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Behavioral Support" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Behavioral Support"
+  assert_equal "$raw_category" "Behavioral Support"
+  assert_equal "$cleaned_category" "Behavioral Support"
+  assert_equal "$raw_remainder" "John Doe/2023/Reports/behavioral_analysis.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2023 Reports behavioral analysis.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Incident Reports/2024/Emergency/incident_report.pdf" {
+  run extract_category_from_path "John Doe/Incident Reports/2024/Emergency/incident_report.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Category with spaces in complex path" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Incident Reports/2024/Emergency/incident_report.pdf" >&2
+  echo "input_category: Incident Reports" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Incident Reports" >&2
+  echo "expected_category_id: 6" >&2
+  echo "raw_category expected: Incident Reports" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Incident Reports" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2024/Emergency/incident_report.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2024 Emergency incident report.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Incident Reports" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Incident Reports"
+  assert_equal "$raw_category" "Incident Reports"
+  assert_equal "$cleaned_category" "Incident Reports"
+  assert_equal "$raw_remainder" "John Doe/2024/Emergency/incident_report.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2024 Emergency incident report.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Medical Records/2023/Assessments/Patient Data/medical_assessment.pdf" {
+  run extract_category_from_path "John Doe/Medical Records/2023/Assessments/Patient Data/medical_assessment.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Deep nesting with multi-word category" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Medical Records/2023/Assessments/Patient Data/medical_assessment.pdf" >&2
+  echo "input_category: Medical Records" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Medical Records" >&2
+  echo "expected_category_id: 7" >&2
+  echo "raw_category expected: Medical Records" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Medical Records" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2023/Assessments/Patient Data/medical_assessment.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2023 Assessments Patient Data medical assessment.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Medical Records" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Medical Records"
+  assert_equal "$raw_category" "Medical Records"
+  assert_equal "$cleaned_category" "Medical Records"
+  assert_equal "$raw_remainder" "John Doe/2023/Assessments/Patient Data/medical_assessment.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2023 Assessments Patient Data medical assessment.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Support Plans/2024/Active Plans/Current/plan.pdf" {
+  run extract_category_from_path "John Doe/Support Plans/2024/Active Plans/Current/plan.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Category with multiple subdirectories" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Support Plans/2024/Active Plans/Current/plan.pdf" >&2
+  echo "input_category: Support Plans" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Support Plans" >&2
+  echo "expected_category_id: 4" >&2
+  echo "raw_category expected: Support Plans" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Support Plans" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2024/Active Plans/Current/plan.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2024 Active Plans Current plan.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Support Plans" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Support Plans"
+  assert_equal "$raw_category" "Support Plans"
+  assert_equal "$cleaned_category" "Support Plans"
+  assert_equal "$raw_remainder" "John Doe/2024/Active Plans/Current/plan.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2024 Active Plans Current plan.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Photos & Videos/2023/Client Photos/Photo Album/album.zip" {
+  run extract_category_from_path "John Doe/Photos & Videos/2023/Client Photos/Photo Album/album.zip"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Category with ampersand in deep path" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Photos & Videos/2023/Client Photos/Photo Album/album.zip" >&2
+  echo "input_category: Photos & Videos" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Photos" >&2
+  echo "expected_category_id: 14" >&2
+  echo "raw_category expected: Photos & Videos" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Photos" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2023/Client Photos/Photo Album/album.zip" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2023 Client Photos Photo Album album.zip" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Photos" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Photos"
+  assert_equal "$raw_category" "Photos & Videos"
+  assert_equal "$cleaned_category" "Photos"
+  assert_equal "$raw_remainder" "John Doe/2023/Client Photos/Photo Album/album.zip"
+  assert_equal "$cleaned_remainder" "John Doe 2023 Client Photos Photo Album album.zip"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Emergency Contacts/2024/Updated Contacts/contact_list.pdf" {
+  run extract_category_from_path "John Doe/Emergency Contacts/2024/Updated Contacts/contact_list.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Multi-word category with subdirectories" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Emergency Contacts/2024/Updated Contacts/contact_list.pdf" >&2
+  echo "input_category: Emergency Contacts" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Emergency Contacts" >&2
+  echo "expected_category_id: 8" >&2
+  echo "raw_category expected: Emergency Contacts" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Emergency Contacts" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2024/Updated Contacts/contact_list.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2024 Updated Contacts contact list.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Emergency Contacts" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Emergency Contacts"
+  assert_equal "$raw_category" "Emergency Contacts"
+  assert_equal "$cleaned_category" "Emergency Contacts"
+  assert_equal "$raw_remainder" "John Doe/2024/Updated Contacts/contact_list.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2024 Updated Contacts contact list.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Receipts/2023/Expense Reports/Detailed/expense_report.pdf" {
+  run extract_category_from_path "John Doe/Receipts/2023/Expense Reports/Detailed/expense_report.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Simple category in very deep path" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Receipts/2023/Expense Reports/Detailed/expense_report.pdf" >&2
+  echo "input_category: Receipts" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Receipts" >&2
+  echo "expected_category_id: 16" >&2
+  echo "raw_category expected: Receipts" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Receipts" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2023/Expense Reports/Detailed/expense_report.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2023 Expense Reports Detailed expense report.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Receipts" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Receipts"
+  assert_equal "$raw_category" "Receipts"
+  assert_equal "$cleaned_category" "Receipts"
+  assert_equal "$raw_remainder" "John Doe/2023/Expense Reports/Detailed/expense_report.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2023 Expense Reports Detailed expense report.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Mealtime Management/2024/Diary Records/Food Preferences/food_diary.pdf" {
+  run extract_category_from_path "John Doe/Mealtime Management/2024/Diary Records/Food Preferences/food_diary.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Category with space in complex nested structure" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Mealtime Management/2024/Diary Records/Food Preferences/food_diary.pdf" >&2
+  echo "input_category: Mealtime Management" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Mealtime Management" >&2
+  echo "expected_category_id: 10" >&2
+  echo "raw_category expected: Mealtime Management" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Mealtime Management" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2024/Diary Records/Food Preferences/food_diary.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2024 Diary Records Food Preferences food diary.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Mealtime Management" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Mealtime Management"
+  assert_equal "$raw_category" "Mealtime Management"
+  assert_equal "$cleaned_category" "Mealtime Management"
+  assert_equal "$raw_remainder" "John Doe/2024/Diary Records/Food Preferences/food_diary.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2024 Diary Records Food Preferences food diary.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Personal Care/2023/Assessments/2023.05.15_Assessment/assessment.pdf" {
+  run extract_category_from_path "John Doe/Personal Care/2023/Assessments/2023.05.15_Assessment/assessment.pdf"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Category with date in subdirectory" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Personal Care/2023/Assessments/2023.05.15_Assessment/assessment.pdf" >&2
+  echo "input_category: Personal Care" >&2
+  echo "expected_match: true" >&2
+  echo "expected_category_name: Personal Care" >&2
+  echo "expected_category_id: 3" >&2
+  echo "raw_category expected: Personal Care" >&2
+  echo "raw_category matched: $raw_category" >&2
+  echo "cleaned_category expected: Personal Care" >&2
+  echo "cleaned_category matched: $cleaned_category" >&2
+  echo "raw_remainder expected: John Doe/2023/Assessments/2023.05.15_Assessment/assessment.pdf" >&2
+  echo "raw_remainder matched: $raw_remainder" >&2
+  echo "cleaned_remainder expected: John Doe 2023 Assessments 2023 05 15 Assessment assessment.pdf" >&2
+  echo "cleaned_remainder matched: $cleaned_remainder" >&2
+  echo "error_status expected: " >&2
+  echo "error_status matched: $error_status" >&2
+  echo "extracted_category expected: Personal Care" >&2
+  echo "extracted_category matched: $extracted_category" >&2
+  echo "expected match: true" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_category" "Personal Care"
+  assert_equal "$raw_category" "Personal Care"
+  assert_equal "$cleaned_category" "Personal Care"
+  assert_equal "$raw_remainder" "John Doe/2023/Assessments/2023.05.15_Assessment/assessment.pdf"
+  assert_equal "$cleaned_remainder" "John Doe 2023 Assessments 2023 05 15 Assessment assessment.pdf"
+  assert_equal "$error_status" ""
+}
+
+@test "extract_category_from_path - John Doe/Unknown_Category_With_Underscores/file.pdf" {
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "John Doe/Unknown_Category_With_Underscores/file.pdf")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Unmapped category with underscores" >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Unknown_Category_With_Underscores/file.pdf" >&2
+  echo "input_category: Unknown_Category_With_Underscores" >&2
+  echo "expected_match: false" >&2
+  echo "raw remainder expected: John Doe/file.pdf" >&2
+  echo "raw remainder matched: John Doe/file.pdf" >&2
+  echo "cleaned remainder expected: John Doe file.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_category expected: Unknown_Category_With_Underscores" >&2
+  echo "extracted_category matched: " >&2
+  echo "expected match: false" >&2
+  echo "---------------------" >&2
+  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+}
+
+@test "extract_category_from_path - John Doe/Category-With-Multiple-Hyphens/file.pdf" {
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "John Doe/Category-With-Multiple-Hyphens/file.pdf")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Unmapped category with multiple hyphens " >&2
+  echo "function: extract_category_from_path" >&2
+  echo "input_path: John Doe/Category-With-Multiple-Hyphens/file.pdf" >&2
+  echo "input_category: Category-With-Multiple-Hyphens" >&2
+  echo "expected_match: false" >&2
+  echo "raw remainder expected: John Doe/file.pdf" >&2
+  echo "raw remainder matched: John Doe/file.pdf" >&2
+  echo "cleaned remainder expected: John Doe file.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_category expected: Category-With-Multiple-Hyphens" >&2
+  echo "extracted_category matched: " >&2
+  echo "expected match: false" >&2
+  echo "---------------------" >&2
+  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+}

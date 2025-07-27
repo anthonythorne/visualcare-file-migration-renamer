@@ -49,7 +49,6 @@ def generate_bats_tests():
             for row in reader:
                 input_path = row['input_path']
                 expected_user_id = row['expected_user_id']
-                expected_full_name = row['expected_full_name']
                 expected_raw_name = row['raw_name']
                 expected_cleaned_name = row['cleaned_name']
                 expected_raw_remainder = row['raw_remainder']
@@ -65,7 +64,7 @@ def generate_bats_tests():
                 f.write(f"    result=\"$(extract_user_from_path \"{input_path}\")\"\n")
                 f.write(f"    \n")
                 f.write(f"    # Parse result components\n")
-                f.write(f"    IFS='|' read -r user_id full_name raw_name cleaned_name raw_remainder cleaned_remainder <<< \"$result\"\n")
+                f.write(f"    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< \"$result\"\n")
                 f.write(f"    \n")
                 f.write(f"    # Get normalized filename using real function\n")
                 f.write(f"    normalized_filename=\"$(python3 {project_root}/tests/utils/normalize_test.py \"{input_path}\")\"\n")
@@ -76,7 +75,6 @@ def generate_bats_tests():
                 f.write(f"    echo \"function: extract_user_from_path\"\n")
                 f.write(f"    echo \"input_path: {input_path}\"\n")
                 f.write(f"    echo \"expected_user_id: {expected_user_id}\"\n")
-                f.write(f"    echo \"expected_full_name: {expected_full_name}\"\n")
                 f.write(f"    echo \"raw_name expected: {expected_raw_name}\"\n")
                 f.write(f"    echo \"raw_name matched: $raw_name\"\n")
                 f.write(f"    echo \"cleaned_name expected: {expected_cleaned_name}\"\n")
@@ -87,14 +85,11 @@ def generate_bats_tests():
                 f.write(f"    echo \"cleaned_remainder matched: $cleaned_remainder\"\n")
                 f.write(f"    echo \"user_id expected: {expected_user_id}\"\n")
                 f.write(f"    echo \"user_id matched: $user_id\"\n")
-                f.write(f"    echo \"full_name expected: {expected_full_name}\"\n")
-                f.write(f"    echo \"full_name matched: $full_name\"\n")
                 f.write(f"    echo \"normalized filename: $normalized_filename\"\n")
                 f.write(f"    echo \"---------------------\"\n")
                 f.write(f"    \n")
                 f.write(f"    # Assertions\n")
                 f.write(f"    [ \"$user_id\" = \"{expected_user_id}\" ]\n")
-                f.write(f"    [ \"$full_name\" = \"{expected_full_name}\" ]\n")
                 f.write(f"    [ \"$raw_name\" = \"{expected_raw_name}\" ]\n")
                 f.write(f"    [ \"$cleaned_name\" = \"{expected_cleaned_name}\" ]\n")
                 f.write(f"    [ \"$raw_remainder\" = \"{expected_raw_remainder}\" ]\n")

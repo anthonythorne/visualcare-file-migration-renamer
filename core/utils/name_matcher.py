@@ -382,12 +382,70 @@ def extract_name_and_date_from_filename(filename: str, name_to_match: str) -> st
     # Return the raw remainder (uncleaned) as the third field
     return f"{extracted_name}|{extracted_date}|{date_remainder}|{name_matched}|{date_matched}"
 
+def extract_full_name_from_path(full_path: str, name_to_match: str) -> str:
+    """
+    Extract the full name from a path by matching it as a single unit.
+    This is specifically for path-based extraction where we want to match the complete name.
+    Returns: matched_name|raw_remainder|cleaned_remainder|matched
+    """
+    import re
+    sep = separator_regex_for_searching()
+    fuzzy_pattern = _generate_fuzzy_regex(name_to_match)
+    
+    # Create a pattern that matches the full name as a single unit
+    # Look for the name surrounded by separators or at the start/end
+    pattern = re.compile(rf"(^|{sep})({fuzzy_pattern})(?=$|{sep})", re.IGNORECASE)
+    
+    match = pattern.search(full_path)
+    if not match:
+        # No match found, return cleaned path
+        cleaned = clean_filename_remainder_py(full_path)
+        return f"|{full_path}|{cleaned}|false"
+    
+    matched_name = match.group(2)
+    
+    # Replace all occurrences of the matched name with empty string
+    # Use case-insensitive replacement with simple string operations
+    raw_remainder = full_path
+    # Split by separators and filter out the matched name
+    sep_chars = load_global_separators()
+    for sep_char in sep_chars:
+        raw_remainder = raw_remainder.replace(sep_char, ' ')
+    
+    # Split by spaces and filter out the matched name (case-insensitive)
+    parts = raw_remainder.split()
+    filtered_parts = []
+    name_parts = matched_name.split()
+    
+    i = 0
+    while i < len(parts):
+        # Check if we have a match for the full name starting at position i
+        if i + len(name_parts) <= len(parts):
+            match_found = True
+            for j, name_part in enumerate(name_parts):
+                if parts[i + j].lower() != name_part.lower():
+                    match_found = False
+                    break
+            if match_found:
+                i += len(name_parts)  # Skip the matched name parts
+                continue
+        filtered_parts.append(parts[i])
+        i += 1
+    
+    raw_remainder = ' '.join(filtered_parts)
+    
+    # Clean the remainder
+    cleaned_remainder = clean_filename_remainder_py(raw_remainder)
+    
+    return f"{matched_name}|{raw_remainder}|{cleaned_remainder}|true"
+
+
 def extract_name_from_path(full_path: str, name_to_match: str) -> str:
     """
-    Treat the full path as a single string and extract all name matches using the config-driven extraction order.
-    Returns: extracted_names|raw_remainder|matched
+    Extract the full name from a path by matching it as a single unit.
+    Returns: extracted_names|raw_remainder|cleaned_remainder|matched
     """
-    return extract_all_name_matches(full_path, name_to_match)
+    return extract_full_name_from_path(full_path, name_to_match)
 
 def main():
     """Main function to process command line arguments."""

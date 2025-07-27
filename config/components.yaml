@@ -43,7 +43,7 @@ Date:
     - filename
     - foldername
     - modified
-    - created 
+    - created
 
 Category:
   mapping_test_file: tests/fixtures/04_category_mapping.csv

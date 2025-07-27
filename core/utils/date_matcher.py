@@ -155,7 +155,7 @@ def extract_date_matches(filename):
     config = load_config()
     allowed_formats = config.get('Date', {}).get('allowed_formats', ['%Y-%m-%d'])
     date_patterns = build_date_patterns(allowed_formats)
-    
+
     found_dates = []
     raw_remainder = filename
     
@@ -226,26 +226,71 @@ def extract_date_matches(filename):
 
 def extract_date_from_path(full_path: str, date_to_match: str) -> str:
     """
-    Extract all occurrences of the full date from all components of a path (folders and filename).
+    Extract all occurrences of dates from all components of a path (folders and filename).
+    Uses the same pattern matching logic as extract_date_matches.
     Returns: extracted_dates|raw_remainder|matched
     """
-    import re
-    # Accept only full dates (YYYY-MM-DD)
-    date_pattern = re.compile(r'\b' + re.escape(date_to_match) + r'\b')
-    path_components = [p for p in full_path.split('/') if p]
-    extracted_dates = []
-    new_components = []
-    for part in path_components:
-        matches = list(date_pattern.finditer(part))
-        if matches:
-            extracted_dates.extend([date_to_match] * len(matches))
-            # Remove all occurrences of the date
-            remainder = date_pattern.sub('', part)
-            new_components.append(remainder)
-        else:
-            new_components.append(part)
+    # Load configuration and build patterns
+    config = load_config()
+    allowed_formats = config.get('Date', {}).get('allowed_formats', [])
+    patterns = build_date_patterns(allowed_formats)
     
-    raw_remainder = '/'.join(new_components)
+    extracted_dates = []
+    raw_remainder = full_path
+    
+    # Try each pattern until we find matches
+    for pattern, date_format in patterns:
+        while True:
+            match = re.search(pattern, raw_remainder, re.IGNORECASE)
+            if not match:
+                break
+            
+            year, month, day = 0, 0, 0
+            if 'Month' in date_format:
+                day = int(match.group('day'))
+                month_str = match.group('month')
+                month_map = {
+                    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+                    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+                    'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+                    'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
+                }
+                month = month_map[month_str.lower()]
+                year = int(match.group('year'))
+            else:
+                year = int(match.group('year'))
+                month = int(match.group('month'))
+                day = int(match.group('day'))
+            
+            try:
+                dt = datetime(year, month, day)
+                extracted_dates.append(dt.strftime('%Y-%m-%d'))
+                
+                # Remove the matched date portion and preserve separators
+                start, end = match.span()
+                
+                # Find separators before and after the date
+                sep_before = ""
+                sep_after = ""
+                
+                # Look for separator before the date
+                if start > 0 and raw_remainder[start-1] in '-._ ':
+                    sep_before = raw_remainder[start-1]
+                    start -= 1
+                
+                # Look for separator after the date
+                if end < len(raw_remainder) and raw_remainder[end] in '-._ ':
+                    sep_after = raw_remainder[end]
+                    end += 1
+                
+                # Reconstruct remainder with preserved separators
+                raw_remainder = raw_remainder[:start] + sep_before + sep_after + raw_remainder[end:]
+                
+            except ValueError:
+                # Mark the matched part as processed to avoid infinite loops on invalid dates
+                raw_remainder = raw_remainder.replace(match.group(0), '', 1)
+                continue
+    
     matched = 'true' if extracted_dates else 'false'
     return f"{','.join(extracted_dates)}|{raw_remainder}|{matched}"
 
@@ -254,7 +299,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         filename = sys.argv[1]
         result = extract_date_matches(filename)
-        print(result)
+        print(result) 
     elif len(sys.argv) == 4 and sys.argv[3] == 'extract_date_from_path':
         full_path = sys.argv[1]
         date_to_match = sys.argv[2]

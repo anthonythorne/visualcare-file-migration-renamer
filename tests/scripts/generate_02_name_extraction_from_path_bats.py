@@ -44,8 +44,7 @@ with open(matrix_file, newline='') as csvfile:
 @test "{test_name}" {{
   run {row['matcher_function']} "{row['full_path']}" "{row['name_to_match']}"
   [ "$status" -eq 0 ]
-  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
-  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  IFS='|' read -r extracted_name raw_remainder cleaned_remainder matched <<< "$output"
   echo "----- TEST CASE -----" >&2
   echo "Comment: {row['use_case']}" >&2
   echo "function: {row['matcher_function']}" >&2
