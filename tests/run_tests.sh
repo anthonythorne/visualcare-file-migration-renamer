@@ -71,4 +71,13 @@ else
   bats tests/unit/05_user_mapping_matrix_tests.bats
 fi
 
+# Rescaffold and run complete integration tests
+echo "[INFO] Generating and running complete integration BATS tests..."
+python3 tests/scripts/generate_06_complete_integration_bats.py
+if [ "$VERBOSE_MODE" = "all" ]; then
+  bats --show-output-of-passing-tests tests/unit/06_complete_integration_matrix_tests.bats
+else
+  bats tests/unit/06_complete_integration_matrix_tests.bats
+fi
+
 echo "All core extraction tests passed!" 
