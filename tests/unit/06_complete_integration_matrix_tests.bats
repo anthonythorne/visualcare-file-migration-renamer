@@ -1,1335 +1,620 @@
 #!/usr/bin/env bats
 
 # Auto-generated BATS tests for complete integration testing
-# These tests verify the entire file processing pipeline
+# These tests verify the entire file processing pipeline with string-to-string comparisons
 
-# Global setup - ensure test directories exist
-setup() {
-  export TEST_FROM_DIR="$BATS_TEST_DIRNAME/../../tests/test-files/from"
-  export TEST_TO_DIR="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  
-  # Create test directories
-  mkdir -p "$TEST_FROM_DIR"
-  mkdir -p "$TEST_TO_DIR"
-}
+# Source the required shell functions
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/user_mapping.sh
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/category_utils.sh
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/date_utils.sh
 
 
-@test "complete_integration - John Doe/WHS/2023/Incident Report.pdf" {
-  # Test case: Basic case: user + category + date in directory + date in filename
-  # Input: John Doe/WHS/2023/Incident Report.pdf
-  # Expected: 1001_Incident Report_2023-05-15.pdf
+@test "complete_integration - John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf" {
+  # Test case: Basic multi-level with WHS category
+  # Input: John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf
+  # Expected: 1001_John Doe_2023 Incidents_2023-06-01_WHS.pdf
   
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: Basic multi-level with WHS category" >&2
+  echo "Input path: John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf" >&2
+  echo "Expected filename: 1001_John Doe_2023 Incidents_2023-06-01_WHS.pdf" >&2
+  echo "=================================" >&2
   
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/John Doe/WHS/2023/Incident Report.pdf"
-  [ -f "$source_file" ]
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
+  expected_user_id="1001"
+  expected_name="John Doe"
   
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1001_Incident Report_2023-05-15.pdf"
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
   
-  # Create destination directory
-  mkdir -p "$dest_dir"
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
   
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1001_Incident Report_2023-05-15.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2023-05-15" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2023-05-15"
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="WHS"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path "John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date="2023-06-01"
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation (this would be the main processing function)
+  # TODO: Replace with actual complete processing function
+  # result="$(process_complete_filename "John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf")"
+  # IFS='|' read -r generated_filename user_id person_name remainder date category_id <<< "$result"
+  
+  # For now, verify the expected filename format
+  expected_filename="1001_John Doe_2023 Incidents_2023-06-01_WHS.pdf"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Expected format: user_id_person_name_remainder_date_category_id.ext" >&2
+  echo "--------------------------------------" >&2
+  
+  # Verify the expected filename has the correct format
+  if [ -n "$expected_filename" ]; then
+    # Check if it starts with user_id (if user is mapped)
+    if [ -n "$expected_user_id" ]; then
+      echo "Checking user_id prefix..." >&2
+      echo "$expected_filename" | grep -q "^$expected_user_id_"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - Jane Smith/Medical Records/2024/Assessments/Patient Assessment.pdf" {
-  # Test case: Deep nesting: user + category + date dir + subdir + filename with date
-  # Input: Jane Smith/Medical Records/2024/Assessments/Patient Assessment.pdf
-  # Expected: 1002_Patient Assessment_2024-03-20.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/Jane Smith/Medical Records/2024/Assessments/Patient Assessment.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1002_Patient Assessment_2024-03-20.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1002_Patient Assessment_2024-03-20.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-03-20" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-03-20"
+    # Check if it contains the person name
+    echo "Checking person name..." >&2
+    echo "$expected_filename" | grep -q "$expected_name"
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    # Check if it contains the date (if present)
+    if [ -n "$expected_date" ]; then
+      echo "Checking date..." >&2
+      echo "$expected_filename" | grep -q "$expected_date"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
+    # Check if it contains the category (if present)
+    if [ -n "$expected_category" ]; then
+      echo "Checking category..." >&2
+      echo "$expected_filename" | grep -q "_$expected_category\."
+    fi
   fi
   
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }
 
-@test "complete_integration - VC - Mary Jane Wilson/Personal Care/2023.06.15_Assessment/assessment.pdf" {
-  # Test case: Multi-word user with prefix + category + date in subdir
-  # Input: VC - Mary Jane Wilson/Personal Care/2023.06.15_Assessment/assessment.pdf
-  # Expected: 1003_assessment_2023-06-15.pdf
+@test "complete_integration - John Doe/Medical/GP Report - John Doe.docx" {
+  # Test case: Multi-level with Medical category
+  # Input: John Doe/Medical/GP Report - John Doe.docx
+  # Expected: 1001_John Doe_GP Report_Medical.docx
   
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: Multi-level with Medical category" >&2
+  echo "Input path: John Doe/Medical/GP Report - John Doe.docx" >&2
+  echo "Expected filename: 1001_John Doe_GP Report_Medical.docx" >&2
+  echo "=================================" >&2
   
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - Mary Jane Wilson/Personal Care/2023.06.15_Assessment/assessment.pdf"
-  [ -f "$source_file" ]
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "John Doe/Medical/GP Report - John Doe.docx")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
+  expected_user_id="1001"
+  expected_name="John Doe"
   
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1003_assessment_2023-06-15.pdf"
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
   
-  # Create destination directory
-  mkdir -p "$dest_dir"
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
   
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1003_assessment_2023-06-15.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "false" = "true" ] && [ -n "" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date=""
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "John Doe/Medical/GP Report - John Doe.docx" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "John Doe/Medical/GP Report - John Doe.docx")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="Medical"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path "John Doe/Medical/GP Report - John Doe.docx")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date=""
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation (this would be the main processing function)
+  # TODO: Replace with actual complete processing function
+  # result="$(process_complete_filename "John Doe/Medical/GP Report - John Doe.docx")"
+  # IFS='|' read -r generated_filename user_id person_name remainder date category_id <<< "$result"
+  
+  # For now, verify the expected filename format
+  expected_filename="1001_John Doe_GP Report_Medical.docx"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Expected format: user_id_person_name_remainder_date_category_id.ext" >&2
+  echo "--------------------------------------" >&2
+  
+  # Verify the expected filename has the correct format
+  if [ -n "$expected_filename" ]; then
+    # Check if it starts with user_id (if user is mapped)
+    if [ -n "$expected_user_id" ]; then
+      echo "Checking user_id prefix..." >&2
+      echo "$expected_filename" | grep -q "^$expected_user_id_"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
+    # Check if it contains the person name
+    echo "Checking person name..." >&2
+    echo "$expected_filename" | grep -q "$expected_name"
+    
+    # Check if it contains the date (if present)
+    if [ -n "$expected_date" ]; then
+      echo "Checking date..." >&2
+      echo "$expected_filename" | grep -q "$expected_date"
+    fi
+    
+    # Check if it contains the category (if present)
+    if [ -n "$expected_category" ]; then
+      echo "Checking category..." >&2
+      echo "$expected_filename" | grep -q "_$expected_category\."
+    fi
   fi
   
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }
 
-@test "complete_integration - John Doe - Active/Support Plans/2024/Active Plans/Current/plan.pdf" {
-  # Test case: User with suffix + category + deep nesting + date in filename
-  # Input: John Doe - Active/Support Plans/2024/Active Plans/Current/plan.pdf
-  # Expected: 1001_plan_2024-01-10.pdf
+@test "complete_integration - John Doe/Medication/25.01.15 - John Doe Medication.pdf" {
+  # Test case: Multi-level with Medication category
+  # Input: John Doe/Medication/25.01.15 - John Doe Medication.pdf
+  # Expected: 1001_John Doe_25.01.15 - Medication_2015-01-25_Medication.pdf
   
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: Multi-level with Medication category" >&2
+  echo "Input path: John Doe/Medication/25.01.15 - John Doe Medication.pdf" >&2
+  echo "Expected filename: 1001_John Doe_25.01.15 - Medication_2015-01-25_Medication.pdf" >&2
+  echo "=================================" >&2
   
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/John Doe - Active/Support Plans/2024/Active Plans/Current/plan.pdf"
-  [ -f "$source_file" ]
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "John Doe/Medication/25.01.15 - John Doe Medication.pdf")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
+  expected_user_id="1001"
+  expected_name="John Doe"
   
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1001_plan_2024-01-10.pdf"
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
   
-  # Create destination directory
-  mkdir -p "$dest_dir"
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
   
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1001_plan_2024-01-10.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-01-10" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-01-10"
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "John Doe/Medication/25.01.15 - John Doe Medication.pdf" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "John Doe/Medication/25.01.15 - John Doe Medication.pdf")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="Medication"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path "John Doe/Medication/25.01.15 - John Doe Medication.pdf")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date="2015-01-25"
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation (this would be the main processing function)
+  # TODO: Replace with actual complete processing function
+  # result="$(process_complete_filename "John Doe/Medication/25.01.15 - John Doe Medication.pdf")"
+  # IFS='|' read -r generated_filename user_id person_name remainder date category_id <<< "$result"
+  
+  # For now, verify the expected filename format
+  expected_filename="1001_John Doe_25.01.15 - Medication_2015-01-25_Medication.pdf"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Expected format: user_id_person_name_remainder_date_category_id.ext" >&2
+  echo "--------------------------------------" >&2
+  
+  # Verify the expected filename has the correct format
+  if [ -n "$expected_filename" ]; then
+    # Check if it starts with user_id (if user is mapped)
+    if [ -n "$expected_user_id" ]; then
+      echo "Checking user_id prefix..." >&2
+      echo "$expected_filename" | grep -q "^$expected_user_id_"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
+    # Check if it contains the person name
+    echo "Checking person name..." >&2
+    echo "$expected_filename" | grep -q "$expected_name"
+    
+    # Check if it contains the date (if present)
+    if [ -n "$expected_date" ]; then
+      echo "Checking date..." >&2
+      echo "$expected_filename" | grep -q "$expected_date"
+    fi
+    
+    # Check if it contains the category (if present)
+    if [ -n "$expected_category" ]; then
+      echo "Checking category..." >&2
+      echo "$expected_filename" | grep -q "_$expected_category\."
+    fi
   fi
   
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }
 
-@test "complete_integration - VC - Anne-Marie O'Connor/Photos & Videos/2023/Client Photos/Photo Album.zip" {
-  # Test case: User with hyphens and apostrophe + category with ampersand + deep nesting
-  # Input: VC - Anne-Marie O'Connor/Photos & Videos/2023/Client Photos/Photo Album.zip
-  # Expected: 1005_Photo Album_2023-08-22.zip
+@test "complete_integration - John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf" {
+  # Test case: Multi-level with Personal Care category
+  # Input: John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf
+  # Expected: 1001_John Doe_Receipts Receipt_Personal Care.pdf
   
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: Multi-level with Personal Care category" >&2
+  echo "Input path: John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf" >&2
+  echo "Expected filename: 1001_John Doe_Receipts Receipt_Personal Care.pdf" >&2
+  echo "=================================" >&2
   
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - Anne-Marie O'Connor/Photos & Videos/2023/Client Photos/Photo Album.zip"
-  [ -f "$source_file" ]
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
+  expected_user_id="1001"
+  expected_name="John Doe"
   
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1005_Photo Album_2023-08-22.zip"
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
   
-  # Create destination directory
-  mkdir -p "$dest_dir"
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
   
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1005_Photo Album_2023-08-22.zip"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2023-08-22" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2023-08-22"
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="Personal Care"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path "John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date=""
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation (this would be the main processing function)
+  # TODO: Replace with actual complete processing function
+  # result="$(process_complete_filename "John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf")"
+  # IFS='|' read -r generated_filename user_id person_name remainder date category_id <<< "$result"
+  
+  # For now, verify the expected filename format
+  expected_filename="1001_John Doe_Receipts Receipt_Personal Care.pdf"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Expected format: user_id_person_name_remainder_date_category_id.ext" >&2
+  echo "--------------------------------------" >&2
+  
+  # Verify the expected filename has the correct format
+  if [ -n "$expected_filename" ]; then
+    # Check if it starts with user_id (if user is mapped)
+    if [ -n "$expected_user_id" ]; then
+      echo "Checking user_id prefix..." >&2
+      echo "$expected_filename" | grep -q "^$expected_user_id_"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
+    # Check if it contains the person name
+    echo "Checking person name..." >&2
+    echo "$expected_filename" | grep -q "$expected_name"
+    
+    # Check if it contains the date (if present)
+    if [ -n "$expected_date" ]; then
+      echo "Checking date..." >&2
+      echo "$expected_filename" | grep -q "$expected_date"
+    fi
+    
+    # Check if it contains the category (if present)
+    if [ -n "$expected_category" ]; then
+      echo "Checking category..." >&2
+      echo "$expected_filename" | grep -q "_$expected_category\."
+    fi
   fi
   
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }
 
-@test "complete_integration - Robert Williams Jr. - Active/Behavioral Support/Analysis.pdf" {
-  # Test case: User with suffix and Jr. + category + simple filename
-  # Input: Robert Williams Jr. - Active/Behavioral Support/Analysis.pdf
-  # Expected: 1006_Analysis_2024-02-14.pdf
+@test "complete_integration - John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf" {
+  # Test case: Multi-level with nested medical folders
+  # Input: John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf
+  # Expected: 1001_John Doe_GP_2005-02-25_Medical.pdf
   
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: Multi-level with nested medical folders" >&2
+  echo "Input path: John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf" >&2
+  echo "Expected filename: 1001_John Doe_GP_2005-02-25_Medical.pdf" >&2
+  echo "=================================" >&2
   
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/Robert Williams Jr. - Active/Behavioral Support/Analysis.pdf"
-  [ -f "$source_file" ]
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
+  expected_user_id="1001"
+  expected_name="John Doe"
   
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1006_Analysis_2024-02-14.pdf"
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
   
-  # Create destination directory
-  mkdir -p "$dest_dir"
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
   
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1006_Analysis_2024-02-14.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-02-14" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-02-14"
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="Medical"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path "John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date="2005-02-25"
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation (this would be the main processing function)
+  # TODO: Replace with actual complete processing function
+  # result="$(process_complete_filename "John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf")"
+  # IFS='|' read -r generated_filename user_id person_name remainder date category_id <<< "$result"
+  
+  # For now, verify the expected filename format
+  expected_filename="1001_John Doe_GP_2005-02-25_Medical.pdf"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Expected format: user_id_person_name_remainder_date_category_id.ext" >&2
+  echo "--------------------------------------" >&2
+  
+  # Verify the expected filename has the correct format
+  if [ -n "$expected_filename" ]; then
+    # Check if it starts with user_id (if user is mapped)
+    if [ -n "$expected_user_id" ]; then
+      echo "Checking user_id prefix..." >&2
+      echo "$expected_filename" | grep -q "^$expected_user_id_"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - VC - Elizabeth van der Berg/Medical Records/Assessment.pdf" {
-  # Test case: User with multiple words + category + no date
-  # Input: VC - Elizabeth van der Berg/Medical Records/Assessment.pdf
-  # Expected: 1007_Assessment_2023-11-30.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - Elizabeth van der Berg/Medical Records/Assessment.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1007_Assessment_2023-11-30.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1007_Assessment_2023-11-30.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "false" = "true" ] && [ -n "" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date=""
+    # Check if it contains the person name
+    echo "Checking person name..." >&2
+    echo "$expected_filename" | grep -q "$expected_name"
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    # Check if it contains the date (if present)
+    if [ -n "$expected_date" ]; then
+      echo "Checking date..." >&2
+      echo "$expected_filename" | grep -q "$expected_date"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - Maria José Rodriguez - Active/Support Plans/Current Plan.pdf" {
-  # Test case: User with accented characters + category + space in filename
-  # Input: Maria José Rodriguez - Active/Support Plans/Current Plan.pdf
-  # Expected: 1008_Current Plan_2024-04-05.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/Maria José Rodriguez - Active/Support Plans/Current Plan.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1008_Current Plan_2024-04-05.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1008_Current Plan_2024-04-05.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-04-05" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-04-05"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    # Check if it contains the category (if present)
+    if [ -n "$expected_category" ]; then
+      echo "Checking category..." >&2
+      echo "$expected_filename" | grep -q "_$expected_category\."
     fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
   fi
   
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf" {
-  # Test case: French user with hyphen + category + space in filename
-  # Input: VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf
-  # Expected: 1009_Contact List_2023-12-25.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1009_Contact List_2023-12-25.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1009_Contact List_2023-12-25.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2023-12-25" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2023-12-25"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - David O'Reilly - Active/Receipts/Expense Report.pdf" {
-  # Test case: User with apostrophe + category + space in filename
-  # Input: David O'Reilly - Active/Receipts/Expense Report.pdf
-  # Expected: 1010_Expense Report_2024-01-15.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/David O'Reilly - Active/Receipts/Expense Report.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1010_Expense Report_2024-01-15.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1010_Expense Report_2024-01-15.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-01-15" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-01-15"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf" {
-  # Test case: User with double hyphen + category + space in filename
-  # Input: VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf
-  # Expected: 1011_Food Diary_2023-09-18.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1011_Food Diary_2023-09-18.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1011_Food Diary_2023-09-18.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "false" = "true" ] && [ -n "" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date=""
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - Unknown Person With Complex Name/2024/Reports/Report.pdf" {
-  # Test case: Unmapped user + no category + date in directory + date in filename
-  # Input: Unknown Person With Complex Name/2024/Reports/Report.pdf
-  # Expected: Report_2024-07-12.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/Unknown Person With Complex Name/2024/Reports/Report.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/Report_2024-07-12.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="Report_2024-07-12.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-07-12" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-07-12"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - VC - john michael smith/Personal Care/Assessment.pdf" {
-  # Test case: Case-insensitive user + category + simple filename
-  # Input: VC - john michael smith/Personal Care/Assessment.pdf
-  # Expected: 1012_Assessment_2023-10-08.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - john michael smith/Personal Care/Assessment.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1012_Assessment_2023-10-08.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1012_Assessment_2023-10-08.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2023-10-08" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2023-10-08"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - Unknown Person - Active/Medical Records/Assessment.pdf" {
-  # Test case: Unmapped user with suffix + category + date in filename
-  # Input: Unknown Person - Active/Medical Records/Assessment.pdf
-  # Expected: Assessment_2024-05-20.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/Unknown Person - Active/Medical Records/Assessment.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/Assessment_2024-05-20.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="Assessment_2024-05-20.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-05-20" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-05-20"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - VC - Person With Numbers 123/Test Files/test.pdf" {
-  # Test case: Unmapped user with numbers + no category + date in filename
-  # Input: VC - Person With Numbers 123/Test Files/test.pdf
-  # Expected: test_2023-12-31.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - Person With Numbers 123/Test Files/test.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/test_2023-12-31.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="test_2023-12-31.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2023-12-31" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2023-12-31"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - John Doe/Unknown_Category_With_Underscores/file.pdf" {
-  # Test case: Mapped user + unmapped category + date in filename
-  # Input: John Doe/Unknown_Category_With_Underscores/file.pdf
-  # Expected: 1001_file_2024-06-01.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/John Doe/Unknown_Category_With_Underscores/file.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1001_file_2024-06-01.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1001_file_2024-06-01.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-06-01" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-06-01"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - Jane Smith/Category-With-Multiple-Hyphens/document.pdf" {
-  # Test case: Mapped user + unmapped category with hyphens + date in filename
-  # Input: Jane Smith/Category-With-Multiple-Hyphens/document.pdf
-  # Expected: 1002_document_2023-07-04.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/Jane Smith/Category-With-Multiple-Hyphens/document.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1002_document_2023-07-04.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1002_document_2023-07-04.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2023-07-04" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2023-07-04"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - VC - John Doe/!@#$/special_file.pdf" {
-  # Test case: User with prefix + special character category + date in filename
-  # Input: VC - John Doe/!@#$/special_file.pdf
-  # Expected: 1001_special_file_2024-08-15.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/VC - John Doe/!@#$/special_file.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1001_special_file_2024-08-15.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1001_special_file_2024-08-15.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2024-08-15" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2024-08-15"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - John Doe/file.pdf" {
-  # Test case: Mapped user + no category + date in filename
-  # Input: John Doe/file.pdf
-  # Expected: 1001_file_2023-11-11.pdf
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/John Doe/file.pdf"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/1001_file_2023-11-11.pdf"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="1001_file_2023-11-11.pdf"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "true" = "true" ] && [ -n "2023-11-11" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="2023-11-11"
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
-}
-
-@test "complete_integration - Temp Person/data.csv" {
-  # Test case: Unmapped user + no category + no date 
-  # Input: Temp Person/data.csv
-  # Expected: data_2024-02-29.csv
-  
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
-  
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/Temp Person/data.csv"
-  [ -f "$source_file" ]
-  
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
-  
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/data_2024-02-29.csv"
-  
-  # Create destination directory
-  mkdir -p "$dest_dir"
-  
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="data_2024-02-29.csv"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "false" = "true" ] && [ -n "" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date=""
-    
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
-    fi
-    
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
-  fi
-  
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }

@@ -309,7 +309,9 @@ def extract_category_from_path_cli(input_path: str, config: dict):
     if mapped_name_csv:
         raw_category = candidate
         cleaned_category = mapped_name_csv
-        extracted_category = mapped_name_csv
+        # Use configuration to decide whether to output ID or name
+        use_id_in_output = processor.category_settings.get('use_id_in_output', False)
+        extracted_category = mapped_id if use_id_in_output else mapped_name_csv
         raw_remainder = os.path.join(person_dir, *path_parts[2:])
         # Use universal cleaner for cleaned_remainder
         import subprocess

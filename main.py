@@ -443,6 +443,12 @@ def main():
         help='Test name for output directory (for test mode)'
     )
     
+    # Single file processing for testing
+    parser.add_argument(
+        '--extract-filename',
+        help='Extract normalized filename from a single file path (for testing)'
+    )
+    
     args = parser.parse_args()
     
     if args.verbose:

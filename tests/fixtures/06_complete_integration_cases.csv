@@ -1,21 +1,7 @@
-input_path|expected_normalized_filename|user_id|user_name|category_id|category_name|has_modified_date|modified_date|description
-John Doe/WHS/2023/Incident Report.pdf|1001_Incident Report_2023-05-15.pdf|1001|John Doe|1|WHS|true|2023-05-15|Basic case: user + category + date in directory + date in filename
-Jane Smith/Medical Records/2024/Assessments/Patient Assessment.pdf|1002_Patient Assessment_2024-03-20.pdf|1002|Jane Smith|7|Medical Records|true|2024-03-20|Deep nesting: user + category + date dir + subdir + filename with date
-VC - Mary Jane Wilson/Personal Care/2023.06.15_Assessment/assessment.pdf|1003_assessment_2023-06-15.pdf|1003|Mary Jane Wilson|3|Personal Care|false||Multi-word user with prefix + category + date in subdir
-John Doe - Active/Support Plans/2024/Active Plans/Current/plan.pdf|1001_plan_2024-01-10.pdf|1001|John Doe|4|Support Plans|true|2024-01-10|User with suffix + category + deep nesting + date in filename
-VC - Anne-Marie O'Connor/Photos & Videos/2023/Client Photos/Photo Album.zip|1005_Photo Album_2023-08-22.zip|1005|Anne-Marie O'Connor|14|Photos|true|2023-08-22|User with hyphens and apostrophe + category with ampersand + deep nesting
-Robert Williams Jr. - Active/Behavioral Support/Analysis.pdf|1006_Analysis_2024-02-14.pdf|1006|Robert Williams Jr.|5|Behavioral Support|true|2024-02-14|User with suffix and Jr. + category + simple filename
-VC - Elizabeth van der Berg/Medical Records/Assessment.pdf|1007_Assessment_2023-11-30.pdf|1007|Elizabeth Van Der Berg|7|Medical Records|false||User with multiple words + category + no date
-Maria José Rodriguez - Active/Support Plans/Current Plan.pdf|1008_Current Plan_2024-04-05.pdf|1008|Maria José Rodriguez|4|Support Plans|true|2024-04-05|User with accented characters + category + space in filename
-VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf|1009_Contact List_2023-12-25.pdf|1009|Jean-Pierre Dubois|8|Emergency Contacts|true|2023-12-25|French user with hyphen + category + space in filename
-David O'Reilly - Active/Receipts/Expense Report.pdf|1010_Expense Report_2024-01-15.pdf|1010|David O'Reilly|16|Receipts|true|2024-01-15|User with apostrophe + category + space in filename
-VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf|1011_Food Diary_2023-09-18.pdf|1011|Patricia Thompson-Smith|10|Mealtime Management|false||User with double hyphen + category + space in filename
-Unknown Person With Complex Name/2024/Reports/Report.pdf|Report_2024-07-12.pdf||Unknown Person With Complex Name|||true|2024-07-12|Unmapped user + no category + date in directory + date in filename
-VC - john michael smith/Personal Care/Assessment.pdf|1012_Assessment_2023-10-08.pdf|1012|John Michael Smith|3|Personal Care|true|2023-10-08|Case-insensitive user + category + simple filename
-Unknown Person - Active/Medical Records/Assessment.pdf|Assessment_2024-05-20.pdf||Unknown Person|7|Medical Records|true|2024-05-20|Unmapped user with suffix + category + date in filename
-VC - Person With Numbers 123/Test Files/test.pdf|test_2023-12-31.pdf||Person With Numbers 123|||true|2023-12-31|Unmapped user with numbers + no category + date in filename
-John Doe/Unknown_Category_With_Underscores/file.pdf|1001_file_2024-06-01.pdf|1001|John Doe|||true|2024-06-01|Mapped user + unmapped category + date in filename
-Jane Smith/Category-With-Multiple-Hyphens/document.pdf|1002_document_2023-07-04.pdf|1002|Jane Smith|||true|2023-07-04|Mapped user + unmapped category with hyphens + date in filename
-VC - John Doe/!@#$/special_file.pdf|1001_special_file_2024-08-15.pdf|1001|John Doe|||true|2024-08-15|User with prefix + special character category + date in filename
-John Doe/file.pdf|1001_file_2023-11-11.pdf|1001|John Doe|||true|2023-11-11|Mapped user + no category + date in filename
-Temp Person/data.csv|data_2024-02-29.csv||Temp Person|||false||Unmapped user + no category + no date 
+test_case|full_path|person_name|expected_user_id|expected_name|expected_remainder|expected_date|expected_category|expected_filename|description|folder_date|filename_date|modified_date|created_date|priority_date
+case_1|John Doe/WHS/2023/Incidents/01.06.2023 - John Doe.pdf|John Doe|1001|John Doe|2023 Incidents|2023-06-01|WHS|1001_John Doe_2023 Incidents_2023-06-01_WHS.pdf|Basic multi-level with WHS category|2023-01-01|2023-06-01||today|2023-01-01
+case_2|John Doe/Medical/GP Report - John Doe.docx|John Doe|1001|John Doe|GP Report||Medical|1001_John Doe_GP Report_Medical.docx|Multi-level with Medical category|||2024-01-15|today|2024-01-01
+case_3|John Doe/Medication/25.01.15 - John Doe Medication.pdf|John Doe|1001|John Doe|25.01.15 - Medication|2015-01-25|Medication|1001_John Doe_25.01.15 - Medication_2015-01-25_Medication.pdf|Multi-level with Medication category|2015-01-25|2015-01-25||today|2015-01-25
+case_4|John Doe/Personal Care/Receipts/John Doe - Receipt 2024.pdf|John Doe|1001|John Doe|Receipts Receipt||Personal Care|1001_John Doe_Receipts Receipt_Personal Care.pdf|Multi-level with Personal Care category|||2024-01-20|today|2024-01-01
+case_5|John Doe/Medical/GP/25.02.05 - John Doe GP Summary.pdf|John Doe|1001|John Doe|GP|2005-02-25|Medical|1001_John Doe_GP_2005-02-25_Medical.pdf|Multi-level with nested medical folders||2005-02-25|2005-02-28|today|2005-02-25
+ 

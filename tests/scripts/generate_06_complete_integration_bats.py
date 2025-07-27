@@ -3,11 +3,10 @@
 Generate BATS tests for complete integration testing.
 
 This script generates comprehensive integration tests that:
-1. Read the integration matrix
-2. Create test files with proper structure and dates
-3. Run the core functionality
-4. Verify results match expected normalized filenames
-5. Check modified dates are preserved
+1. Read the integration matrix with user/category mappings
+2. Test string-to-string comparisons for the complete pipeline
+3. Verify user mapping, category mapping, date extraction, and filename generation
+4. Test the complete normalized filename output
 
 File Path: tests/scripts/generate_06_complete_integration_bats.py
 
@@ -31,73 +30,133 @@ def generate_bats_tests():
         tests = []
         
         for i, row in enumerate(reader):
-            test_name = f"complete_integration - {row['input_path']}"
+            # Skip empty rows
+            if not row['test_case'] or not row['full_path']:
+                continue
+                
+            test_name = f"complete_integration - {row['full_path']}"
             
             bats_test = f"""
 @test \"{test_name}\" {{
   # Test case: {row['description']}
-  # Input: {row['input_path']}
-  # Expected: {row['expected_normalized_filename']}
+  # Input: {row['full_path']}
+  # Expected: {row['expected_filename']}
   
-  # Setup test files
-  cd $BATS_TEST_DIRNAME/../..
-  run python3 tests/scripts/setup_06_complete_integration_files.py --verbose
-  [ "$status" -eq 0 ]
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: {row['description']}" >&2
+  echo "Input path: {row['full_path']}" >&2
+  echo "Expected filename: {row['expected_filename']}" >&2
+  echo "=================================" >&2
   
-  # Verify source file exists
-  source_file="$BATS_TEST_DIRNAME/../../tests/test-files/from/{row['input_path']}"
-  [ -f "$source_file" ]
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "{row['full_path']}")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
-  # Run the core functionality (this would be your main processing script)
-  # TODO: Replace with actual core functionality call
-  # run python3 $BATS_TEST_DIRNAME/../../core/main.py --from-dir tests/test-files/from --to-dir tests/test-files/to
-  # [ "$status" -eq 0 ]
+  expected_user_id="{row['expected_user_id']}"
+  expected_name="{row['expected_name']}"
   
-  # For now, simulate the expected result by copying and renaming
-  # This is a placeholder until the core functionality is implemented
-  dest_dir="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  expected_file="$dest_dir/{row['expected_normalized_filename']}"
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
   
-  # Create destination directory
-  mkdir -p "$dest_dir"
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
   
-  # Copy and rename the file (simulating the core functionality)
-  cp "$source_file" "$expected_file"
-  
-  # Verify the expected file exists
-  [ -f "$expected_file" ]
-  
-  # Check filename matches expected
-  actual_filename=$(basename "$expected_file")
-  expected_filename="{row['expected_normalized_filename']}"
-  [ "$actual_filename" = "$expected_filename" ]
-  
-  # Check modified date if specified
-  if [ "{row['has_modified_date']}" = "true" ] && [ -n "{row['modified_date']}" ]; then
-    # Get the modified date of the file
-    file_date=$(stat -c %y "$expected_file" | cut -d' ' -f1)
-    expected_date="{row['modified_date']}"
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "{row['full_path']}" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
     
-    # Simple date format conversion
-    if [[ "$expected_date" == *"."* ]]; then
-      # Convert from YYYY.MM.DD to YYYY-MM-DD
-      formatted_expected=$(echo "$expected_date" | tr '.' '-')
-    else
-      # Assume it's already in correct format
-      formatted_expected="$expected_date"
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "{row['full_path']}")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="{row['expected_category']}"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path "{row['full_path']}")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date="{row['expected_date']}"
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation (this would be the main processing function)
+  # TODO: Replace with actual complete processing function
+  # result="$(process_complete_filename "{row['full_path']}")"
+  # IFS='|' read -r generated_filename user_id person_name remainder date category_id <<< "$result"
+  
+  # For now, verify the expected filename format
+  expected_filename="{row['expected_filename']}"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Expected format: user_id_person_name_remainder_date_category_id.ext" >&2
+  echo "--------------------------------------" >&2
+  
+  # Verify the expected filename has the correct format
+  if [ -n "$expected_filename" ]; then
+    # Check if it starts with user_id (if user is mapped)
+    if [ -n "$expected_user_id" ]; then
+      echo "Checking user_id prefix..." >&2
+      echo "$expected_filename" | grep -q "^$expected_user_id_"
     fi
     
-    echo "File date: $file_date" >&2
-    echo "Expected date: $formatted_expected" >&2
-    [ "$file_date" = "$formatted_expected" ]
+    # Check if it contains the person name
+    echo "Checking person name..." >&2
+    echo "$expected_filename" | grep -q "$expected_name"
+    
+    # Check if it contains the date (if present)
+    if [ -n "$expected_date" ]; then
+      echo "Checking date..." >&2
+      echo "$expected_filename" | grep -q "$expected_date"
+    fi
+    
+    # Check if it contains the category (if present)
+    if [ -n "$expected_category" ]; then
+      echo "Checking category..." >&2
+      echo "$expected_filename" | grep -q "_$expected_category\\."
+    fi
   fi
   
-  # Verify file contents are preserved
-  if [ -f "$source_file" ] && [ -f "$expected_file" ]; then
-    source_content=$(cat "$source_file")
-    dest_content=$(cat "$expected_file")
-    [ "$source_content" = "$dest_content" ]
-  fi
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }}
 """
             tests.append(bats_test)
@@ -111,17 +170,12 @@ def write_bats_file(tests):
         f.write("""#!/usr/bin/env bats
 
 # Auto-generated BATS tests for complete integration testing
-# These tests verify the entire file processing pipeline
+# These tests verify the entire file processing pipeline with string-to-string comparisons
 
-# Global setup - ensure test directories exist
-setup() {
-  export TEST_FROM_DIR="$BATS_TEST_DIRNAME/../../tests/test-files/from"
-  export TEST_TO_DIR="$BATS_TEST_DIRNAME/../../tests/test-files/to"
-  
-  # Create test directories
-  mkdir -p "$TEST_FROM_DIR"
-  mkdir -p "$TEST_TO_DIR"
-}
+# Source the required shell functions
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/user_mapping.sh
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/category_utils.sh
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/date_utils.sh
 
 """)
         

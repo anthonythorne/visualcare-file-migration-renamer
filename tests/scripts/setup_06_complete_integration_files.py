@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Setup script for complete integration tests.
+Setup script for 06 complete integration test files.
 
-This script reads the integration test matrix and creates the test file structure
-with proper directories, files, and modified dates for comprehensive testing.
+This script creates test files based on the integration matrix:
+1. Reads the CSV matrix with user/category mappings
+2. Creates directory structures in tests/test-files/from
+3. Creates test files with specified content
+4. Applies modified dates based on priority_date or modified_date
 
 File Path: tests/scripts/setup_06_complete_integration_files.py
 
@@ -14,24 +17,26 @@ File Path: tests/scripts/setup_06_complete_integration_files.py
 import csv
 import os
 import shutil
-from pathlib import Path
-from datetime import datetime
 import argparse
+from datetime import datetime
+from pathlib import Path
 
 def parse_date(date_str):
     """Parse date string in various formats."""
-    if not date_str:
+    if not date_str or date_str.strip() == '':
         return None
+    
+    date_str = date_str.strip()
     
     # Try different date formats
     formats = [
-        "%Y-%m-%d",
-        "%Y.%m.%d", 
-        "%d-%m-%Y",
-        "%m-%d-%Y",
-        "%Y%m%d",
-        "%d%m%Y",
-        "%m%d%Y"
+        '%Y-%m-%d',
+        '%d.%m.%Y',
+        '%d.%m.%y',
+        '%Y.%m.%d',
+        '%d/%m/%Y',
+        '%d/%m/%y',
+        '%Y/%m/%d'
     ]
     
     for fmt in formats:
@@ -40,28 +45,21 @@ def parse_date(date_str):
         except ValueError:
             continue
     
-    raise ValueError(f"Could not parse date: {date_str}")
+    return None
 
 def setup_test_files(matrix_file, from_dir, to_dir, verbose=False):
-    """
-    Setup test files based on the integration matrix.
+    """Setup test files based on the integration matrix."""
     
-    Args:
-        matrix_file: Path to the CSV matrix file
-        from_dir: Source directory for test files
-        to_dir: Destination directory (will be cleaned)
-        verbose: Enable verbose output
-    """
     # Clean and recreate directories
-    if verbose:
-        print(f"Cleaning directories: {from_dir}, {to_dir}")
-    
     for dir_path in [from_dir, to_dir]:
         if os.path.exists(dir_path):
             shutil.rmtree(dir_path)
         os.makedirs(dir_path, exist_ok=True)
     
-    # Read matrix file
+    if verbose:
+        print(f"Cleaning directories: {from_dir}, {to_dir}")
+    
+    # Read matrix file and create files/directories
     with open(matrix_file, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile, delimiter='|')
         test_cases = list(reader)
@@ -70,75 +68,66 @@ def setup_test_files(matrix_file, from_dir, to_dir, verbose=False):
         print(f"Processing {len(test_cases)} test cases")
     
     for i, row in enumerate(test_cases):
-        input_path = row['input_path']
-        has_modified_date = row['has_modified_date'].lower() == 'true'
-        modified_date = row['modified_date'] if has_modified_date else None
+        full_path = row['full_path']
+        description = row['description']
         
         if verbose:
-            print(f"\nTest case {i+1}: {input_path}")
-            if has_modified_date:
-                print(f"  Modified date: {modified_date}")
+            print(f"\nTest case {i+1}: {full_path}")
         
-        # Create the full path in the from directory
-        full_path = os.path.join(from_dir, input_path)
+        # Determine which date to use for modified date
+        # Priority: priority_date > modified_date > filename_date > folder_date
+        date_to_use = None
+        for date_field in ['priority_date', 'modified_date', 'filename_date', 'folder_date']:
+            if row.get(date_field) and row[date_field].strip():
+                date_to_use = parse_date(row[date_field])
+                if date_to_use:
+                    if verbose:
+                        print(f"  Using {date_field}: {row[date_field]}")
+                    break
         
-        # Create directories
+        full_path = os.path.join(from_dir, full_path)
         dir_path = os.path.dirname(full_path)
         os.makedirs(dir_path, exist_ok=True)
         
-        # Create the file
-        filename = os.path.basename(input_path)
-        file_path = os.path.join(dir_path, filename)
+        file_path = os.path.join(dir_path, os.path.basename(full_path))
         
-        # Create a simple text file with the test case info
+        # Create test file with content
         with open(file_path, 'w') as f:
-            f.write(f"Test case: {row['description']}\n")
-            f.write(f"Input path: {input_path}\n")
-            f.write(f"Expected filename: {row['expected_normalized_filename']}\n")
-            f.write(f"User: {row['user_name']} (ID: {row['user_id']})\n")
-            f.write(f"Category: {row['category_name']} (ID: {row['category_id']})\n")
-            if has_modified_date:
-                f.write(f"Modified date: {modified_date}\n")
+            f.write(f"Test case: {description}\n")
+            f.write(f"Full path: {row['full_path']}\n")
+            f.write(f"Person: {row['person_name']}\n")
+            f.write(f"Expected user ID: {row['expected_user_id']}\n")
+            f.write(f"Expected category: {row['expected_category']}\n")
+            f.write(f"Expected filename: {row['expected_filename']}\n")
+            f.write(f"Expected date: {row['expected_date']}\n")
+            f.write(f"Priority date: {row.get('priority_date', '')}\n")
+            f.write(f"Modified date: {row.get('modified_date', '')}\n")
+            f.write(f"Created date: {row.get('created_date', '')}\n")
+            f.write(f"Filename date: {row.get('filename_date', '')}\n")
+            f.write(f"Folder date: {row.get('folder_date', '')}\n")
         
         # Apply modified date if specified
-        if has_modified_date and modified_date:
-            try:
-                date_obj = parse_date(modified_date)
-                if date_obj:
-                    # Convert to timestamp
-                    timestamp = date_obj.timestamp()
-                    os.utime(file_path, (timestamp, timestamp))
-                    if verbose:
-                        print(f"  Applied modified date: {date_obj.strftime('%Y-%m-%d %H:%M:%S')}")
-                else:
-                    if verbose:
-                        print(f"  Warning: Could not parse date: {modified_date}")
-            except Exception as e:
-                if verbose:
-                    print(f"  Error applying date {modified_date}: {e}")
+        if date_to_use:
+            os.utime(file_path, (date_to_use.timestamp(), date_to_use.timestamp()))
+            if verbose:
+                print(f"  Applied modified date: {date_to_use}")
     
     if verbose:
         print(f"\nSetup complete. Created {len(test_cases)} test files in {from_dir}")
         print(f"Destination directory {to_dir} is ready for processing")
 
 def main():
-    parser = argparse.ArgumentParser(description='Setup complete integration test files')
-    parser.add_argument('--matrix', default='tests/fixtures/06_complete_integration_cases.csv',
-                       help='Path to the integration test matrix CSV file')
-    parser.add_argument('--from-dir', default='tests/test-files/from',
-                       help='Source directory for test files')
-    parser.add_argument('--to-dir', default='tests/test-files/to',
-                       help='Destination directory for processed files')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                       help='Enable verbose output')
-    
+    """Main function."""
+    parser = argparse.ArgumentParser(description='Setup test files for 06 integration tests')
+    parser.add_argument('--verbose', action='store_true', help='Enable verbose output')
     args = parser.parse_args()
     
-    # Ensure paths are absolute
-    project_root = Path(__file__).parent.parent.parent
-    matrix_file = project_root / args.matrix
-    from_dir = project_root / args.from_dir
-    to_dir = project_root / args.to_dir
+    # Get paths
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent.parent
+    matrix_file = script_dir.parent / 'fixtures' / '06_complete_integration_cases.csv'
+    from_dir = project_root / 'tests' / 'test-files' / 'from'
+    to_dir = project_root / 'tests' / 'test-files' / 'to'
     
     if not matrix_file.exists():
         print(f"Error: Matrix file not found: {matrix_file}")

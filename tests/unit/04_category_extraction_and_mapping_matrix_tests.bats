@@ -310,7 +310,7 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   [ "$status" -eq 0 ]
   IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
   echo "----- TEST CASE -----" >&2
-  echo "Comment: Edge case: only special characters " >&2
+  echo "Comment: Edge case: only special characters" >&2
   echo "function: extract_category_from_path" >&2
   echo "input_path: John Doe/!@#$/file.pdf" >&2
   echo "input_category: !@#$" >&2

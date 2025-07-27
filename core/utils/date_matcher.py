@@ -141,6 +141,21 @@ def build_date_patterns(allowed_formats):
                 rf'(?P<year>\d{{4}})/(?P<month>0[1-9]|1[0-2])/(?P<day>0[1-9]|[12]\d|3[01])',
                 'YMD_slash'
             ))
+        elif fmt == "%d.%m.%y":
+            patterns.append((
+                rf'(?P<day>\d{{1,2}})\.(?P<month>\d{{1,2}})\.(?P<year>\d{{2}})',
+                'DMY_dot_2digit'
+            ))
+        elif fmt == "%d/%m/%y":
+            patterns.append((
+                rf'(?P<day>\d{{1,2}})/(?P<month>\d{{1,2}})/(?P<year>\d{{2}})',
+                'DMY_slash_2digit'
+            ))
+        elif fmt == "%d-%m-%y":
+            patterns.append((
+                rf'(?P<day>\d{{1,2}})-(?P<month>\d{{1,2}})-(?P<year>\d{{2}})',
+                'DMY_dash_2digit'
+            ))
     
     return patterns
 
@@ -188,6 +203,12 @@ def extract_date_matches(filename):
             year = int(match.group('year'))
             month = int(match.group('month'))
             day = int(match.group('day'))
+            
+            # Handle 2-digit years (convert to 4-digit)
+            if year < 100:
+                # All 2-digit years are 2000-2099
+                # So 25.02.05 = 25th February 2005, 25.02.15 = 25th February 2015
+                year += 2000
         
         try:
             dt = datetime(year, month, day)
@@ -261,6 +282,12 @@ def extract_date_from_path(full_path: str, date_to_match: str) -> str:
                 year = int(match.group('year'))
                 month = int(match.group('month'))
                 day = int(match.group('day'))
+                
+                # Handle 2-digit years (convert to 4-digit)
+                if year < 100:
+                    # All 2-digit years are 2000-2099
+                    # So 25.02.05 = 25th February 2005, 25.02.15 = 25th February 2015
+                    year += 2000
             
             try:
                 dt = datetime(year, month, day)
