@@ -28,25 +28,30 @@ Welcome to the comprehensive documentation for the VisualCare File Migration Ren
   - Test generation
   - Troubleshooting
 
-### 📋 Detailed Specifications
-- **[Naming Conventions](NAMING_CONVENTIONS.md)** - Complete name extraction and filename processing
-  - Processing algorithms and matcher types
-  - Separator handling and cleaning logic
-  - Date extraction integration
-  - Template system and formatting
-  - Configuration management
-  - Examples and best practices
+### 📋 Core Processing Documentation
+- **[File Normalization Process](FILE_NORMALIZATION_PROCESS.md)** - Complete file processing workflow
+  - Sequential extraction approach
+  - Component isolation
+  - String-based processing
+  - Three-part name handling
+  - Configuration integration
+
+- **[Category Extraction](CATEGORY_EXTRACTION.md)** - Category system implementation
+  - Two-step matching process
+  - First directory exact matching
+  - Integration with other functions
+  - Configuration options
 
 ## 🎯 Quick Navigation
 
 ### For New Users
 1. Start with **[Usage Guide](USAGE_GUIDE.md)** for basic usage
 2. Review **[Testing Guide](TESTING.md)** to understand testing
-3. Check **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** for technical details
+3. Check **[File Normalization Process](FILE_NORMALIZATION_PROCESS.md)** for processing details
 
 ### For Developers
 1. Read **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** for architecture
-2. Study **[Naming Conventions](NAMING_CONVENTIONS.md)** for extraction algorithms
+2. Study **[File Normalization Process](FILE_NORMALIZATION_PROCESS.md)** for processing logic
 3. Review **[Testing Guide](TESTING.md)** for test coverage
 
 ### For System Administrators
@@ -58,11 +63,12 @@ Welcome to the comprehensive documentation for the VisualCare File Migration Ren
 
 ```
 docs/
-├── README.md                    # This documentation index
+├── DOCUMENTATION_INDEX.md       # This documentation index
 ├── USAGE_GUIDE.md              # Comprehensive usage guide
 ├── IMPLEMENTATION_SUMMARY.md   # Technical architecture
 ├── TESTING.md                  # Testing documentation
-└── NAMING_CONVENTIONS.md       # Complete name extraction and filename processing
+├── FILE_NORMALIZATION_PROCESS.md # Core processing workflow
+└── CATEGORY_EXTRACTION.md      # Category system implementation
 ```
 
 ## 🔍 Finding Information
@@ -79,11 +85,11 @@ docs/
 
 **Technical Details**
 - [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Architecture and design
-- [Naming Conventions](NAMING_CONVENTIONS.md) - Name extraction algorithms and filename processing
+- [File Normalization Process](FILE_NORMALIZATION_PROCESS.md) - Processing workflow
 
-**Examples and Patterns**
-- [Usage Guide](USAGE_GUIDE.md) - Usage examples
-- [Naming Conventions](NAMING_CONVENTIONS.md) - Name extraction and filename examples
+**Processing Logic**
+- [File Normalization Process](FILE_NORMALIZATION_PROCESS.md) - Sequential extraction
+- [Category Extraction](CATEGORY_EXTRACTION.md) - Category system
 
 ### By User Type
 
@@ -93,7 +99,7 @@ docs/
 
 **Developers**
 - [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Primary resource
-- [Naming Conventions](NAMING_CONVENTIONS.md) - Algorithm details
+- [File Normalization Process](FILE_NORMALIZATION_PROCESS.md) - Processing details
 - [Testing Guide](TESTING.md) - Test development
 
 **System Administrators**
@@ -140,6 +146,6 @@ This documentation is updated with each release to ensure:
 
 ---
 
-**Last Updated**: July 2025  
+**Last Updated**: January 2025  
 **Version**: 1.0.0  
 **Status**: Complete and up-to-date 

@@ -241,12 +241,19 @@ def format_filename_with_id(user_id: str, name: str, date: str, remainder: str,
 def extract_user_from_path(full_path: str) -> str:
     """
     Extract user information from a full path (directory + filename).
+    Follows sequential string-based approach: extracts person name from first directory.
     
     Args:
         full_path: Full path like "John Doe/file.pdf" or "VC - John Doe/document.pdf"
         
     Returns:
         user_id|raw_name|cleaned_name|raw_remainder|cleaned_remainder
+        
+    Process:
+    1. Extract person name from first directory
+    2. Remove person name from path (always)
+    3. Check user mapping for match
+    4. Return remainder string for next extraction step
     """
     from pathlib import Path
     import subprocess
@@ -255,32 +262,32 @@ def extract_user_from_path(full_path: str) -> str:
     global_config = config.get('Global', {})
     case_normalization = global_config.get('case_normalization', 'titlecase')
     
-    # Split path into directory and filename
+    # Split path into parts to get first directory
     path_obj = Path(full_path)
     path_parts = path_obj.parts
     
-    # Get the top-level directory as the user directory
-    if len(path_parts) > 1:
-        directory = path_parts[0]  # Top-level directory
-        # Reconstruct the remainder path (everything after the top-level directory)
-        remainder_parts = path_parts[1:]
-        filename = remainder_parts[-1] if remainder_parts else ""
-        raw_remainder = "/".join(remainder_parts) if remainder_parts else ""
+    # Extract person name from first directory
+    if len(path_parts) > 0:
+        person_directory = path_parts[0]  # First directory is person's name
+        # Get remainder (everything after person directory)
+        if len(path_parts) > 1:
+            raw_remainder = "/".join(path_parts[1:])
+        else:
+            raw_remainder = ""
     else:
-        directory = path_obj.name
-        filename = ""
+        person_directory = ""
         raw_remainder = ""
     
     # Get user mapping info
-    user_id = get_user_id_by_name(directory) or ""
-    raw_name = directory
+    user_id = get_user_id_by_name(person_directory) or ""
+    raw_name = person_directory
     
     # Get cleaned name (with prefix/suffix removed)
     user_config = config.get('UserMapping', {})
     prefix = user_config.get('prefix', '')
     suffix = user_config.get('suffix', '')
     
-    cleaned_name = directory
+    cleaned_name = person_directory
     if prefix and cleaned_name.startswith(prefix):
         cleaned_name = cleaned_name[len(prefix):].strip()
     if suffix and cleaned_name.endswith(suffix):
@@ -294,10 +301,8 @@ def extract_user_from_path(full_path: str) -> str:
     elif case_normalization == 'uppercase':
         cleaned_name = cleaned_name.upper()
     
-    # Get cleaned remainder
+    # Get cleaned remainder using global cleaner
     cleaned_remainder = raw_remainder
-    
-    # Use universal cleaner for cleaned remainder if remainder exists
     if raw_remainder:
         project_root = Path(__file__).parent.parent.parent
         try:

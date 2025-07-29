@@ -75,9 +75,9 @@ def setup_test_files(matrix_file, from_dir, to_dir, verbose=False):
             print(f"\nTest case {i+1}: {full_path}")
         
         # Determine which date to use for modified date
-        # Priority: priority_date > modified_date > filename_date > folder_date
+        # Priority: modified_date > filename_date > folder_date
         date_to_use = None
-        for date_field in ['priority_date', 'modified_date', 'filename_date', 'folder_date']:
+        for date_field in ['modified_date', 'filename_date', 'folder_date']:
             if row.get(date_field) and row[date_field].strip():
                 date_to_use = parse_date(row[date_field])
                 if date_to_use:
@@ -100,7 +100,6 @@ def setup_test_files(matrix_file, from_dir, to_dir, verbose=False):
             f.write(f"Expected category: {row['expected_category']}\n")
             f.write(f"Expected filename: {row['expected_filename']}\n")
             f.write(f"Expected date: {row['expected_date']}\n")
-            f.write(f"Priority date: {row.get('priority_date', '')}\n")
             f.write(f"Modified date: {row.get('modified_date', '')}\n")
             f.write(f"Created date: {row.get('created_date', '')}\n")
             f.write(f"Filename date: {row.get('filename_date', '')}\n")

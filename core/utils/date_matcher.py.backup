@@ -184,84 +184,21 @@ def extract_date_matches(filename):
     exclude_ranges_separators = config.get('Date', {}).get('exclude_ranges_separators', [" ", "-", "_", ".", ","])
     normalized_separator = config.get('Date', {}).get('exclude_ranges_normalized_separator', " - ")
     
-    # Build a pattern to detect date ranges using all allowed formats
+    # Build a pattern to detect date ranges
     escaped_separators = [re.escape(sep) for sep in exclude_ranges_separators]
     separator_pattern = '|'.join(escaped_separators)
-    
-    # Create date patterns for all allowed formats
-    date_patterns_for_ranges = []
-    for fmt in allowed_formats:
-        if fmt == "%Y-%m-%d":
-            date_patterns_for_ranges.append(r'\d{4}-\d{1,2}-\d{1,2}')
-        elif fmt == "%d-%m-%Y":
-            date_patterns_for_ranges.append(r'\d{1,2}-\d{1,2}-\d{4}')
-        elif fmt == "%Y%m%d":
-            date_patterns_for_ranges.append(r'\d{8}')
-        elif fmt == "%d%m%Y":
-            date_patterns_for_ranges.append(r'\d{8}')
-        elif fmt == "%m%d%Y":
-            date_patterns_for_ranges.append(r'\d{8}')
-        elif fmt == "%d-%b-%Y":
-            date_patterns_for_ranges.append(r'\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}')
-        elif fmt == "%b-%d-%Y":
-            date_patterns_for_ranges.append(r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{1,2}-\d{4}')
-        elif fmt == "%d %b %Y":
-            date_patterns_for_ranges.append(r'\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}')
-        elif fmt == "%B %d, %Y":
-            date_patterns_for_ranges.append(r'(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}')
-        elif fmt == "%Y.%m.%d":
-            date_patterns_for_ranges.append(r'\d{4}\.\d{1,2}\.\d{1,2}')
-        elif fmt == "%d.%m.%Y":
-            date_patterns_for_ranges.append(r'\d{1,2}\.\d{1,2}\.\d{4}')
-        elif fmt == "%d %B %Y":
-            date_patterns_for_ranges.append(r'\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}')
-        elif fmt == "%d-%B-%Y":
-            date_patterns_for_ranges.append(r'\d{1,2}-(?:January|February|March|April|May|June|July|August|September|October|November|December)-\d{4}')
-        elif fmt == "%d/%m/%Y":
-            date_patterns_for_ranges.append(r'\d{1,2}/\d{1,2}/\d{4}')
-        elif fmt == "%Y/%m/%d":
-            date_patterns_for_ranges.append(r'\d{4}/\d{1,2}/\d{1,2}')
-        elif fmt == "%d.%m.%y":
-            date_patterns_for_ranges.append(r'\d{1,2}\.\d{1,2}\.\d{2}')
-        elif fmt == "%d/%m/%y":
-            date_patterns_for_ranges.append(r'\d{1,2}/\d{1,2}/\d{2}')
-        elif fmt == "%d-%m-%y":
-            date_patterns_for_ranges.append(r'\d{1,2}-\d{1,2}-\d{2}')
-    
-    # Create range patterns for each date format
-    range_patterns = []
-    for date_pattern in date_patterns_for_ranges:
-        range_pattern = f"{date_pattern}(?:{separator_pattern})*{date_pattern}"
-        range_patterns.append(range_pattern)
+    date_pattern = r'\d{4}-\d{1,2}-\d{1,2}'
+    range_pattern = f"{date_pattern}(?:{separator_pattern}){date_pattern}"
     
     # Find date ranges and keep excluded ones in the remainder
-    for range_pattern in range_patterns:
-        range_matches = re.finditer(range_pattern, raw_remainder, re.IGNORECASE)
-        for match in reversed(list(range_matches)):  # Process in reverse to maintain positions
-            matched_range = match.group(0)
-            # Check if this range should be excluded (kept in remainder)
-            if not should_exclude_date_pattern(filename, matched_range):
-                # Remove the date range from the text (only if NOT excluded)
-                start, end = match.span()
-                raw_remainder = raw_remainder[:start] + raw_remainder[end:]
-            else:
-                # Normalize the date range separators to the configured normalized separator
-                # Pattern to match date ranges with various separators
-                date_pattern = r"\d{4}-\d{1,2}-\d{1,2}"
-                separator_pattern = r"[-s_,.]+"
-                range_pattern = f"({date_pattern})({separator_pattern})({date_pattern})"
-                
-                def replace_separators(match):
-                    date1 = match.group(1)
-                    separator = match.group(2)
-                    date2 = match.group(3)
-                    return date1 + normalized_separator + date2
-                
-                normalized_range = re.sub(range_pattern, replace_separators, matched_range, flags=re.IGNORECASE)
-                start, end = match.span()
-                raw_remainder = raw_remainder[:start] + normalized_range + raw_remainder[end:]
-                start, end = match.span()
-                raw_remainder = raw_remainder[:start] + raw_remainder[end:]
+    range_matches = re.finditer(range_pattern, raw_remainder, re.IGNORECASE)
+    for match in reversed(list(range_matches)):  # Process in reverse to maintain positions
+        matched_range = match.group(0)
+        # Check if this range should be excluded (kept in remainder)
+        if not should_exclude_date_pattern(filename, matched_range):
+            # Remove the date range from the text (only if NOT excluded)
+            start, end = match.span()
+            raw_remainder = raw_remainder[:start] + raw_remainder[end:]
     
     while True:
         best_match_info = None

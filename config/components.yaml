@@ -12,6 +12,12 @@ Global:
     - date
     - category
   component_separator: "_"  # Separator between components in final filename
+  file_exclusions:
+    - "desktop.ini"
+    - "Thumbs.db"
+    - ".DS_Store"
+    - "*.tmp"
+    - "~$*"  # Temporary Office files
 
 Name:
   use_global_separators: true
@@ -19,6 +25,7 @@ Name:
     - shorthand
     - initials
     - first_name
+    - middle_name
     - last_name
 
 Date:
@@ -34,6 +41,7 @@ Date:
     - "%d %b %Y"      # 15 May 2023
     - "%B %d, %Y"     # May 15, 2023
     - "%Y.%m.%d"      # 2023.05.15
+    - "%d.%m.%Y"      # 15.05.2023
     - "%d %B %Y"      # 15 May 2023
     - "%d-%B-%Y"      # 15-May-2023
     - "%d/%m/%Y"      # 15/05/2023
@@ -46,6 +54,17 @@ Date:
     - foldername
     - modified
     - created
+  exclude_ranges: true
+  excluded_date_by_prefix:
+    - "exp"
+  exclude_ranges_separators:
+    - " "
+    - "-"
+    - "_"
+    - "."
+    - ","
+    - "to"
+  exclude_ranges_normalized_separator: " - "
 
 Category:
   mapping_test_file: tests/fixtures/04_category_mapping.csv
@@ -64,4 +83,4 @@ UserMapping:
   case_insensitive: true
   create_if_missing: false
   prefix: "VC - "  # Optional prefix to remove from directory names
-  suffix: " - Active"  # Optional suffix to remove from directory names 
+  suffix: " Management"  # Optional suffix to remove from directory names 

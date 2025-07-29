@@ -25,9 +25,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: WHS" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/file.pdf" >&2
+  echo "raw_remainder expected: file.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe file.pdf" >&2
+  echo "cleaned_remainder expected: file.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -38,8 +38,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "WHS"
   assert_equal "$raw_category" "WHS"
   assert_equal "$cleaned_category" "WHS"
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$raw_remainder" "file.pdf"
+  assert_equal "$cleaned_remainder" "file.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -60,9 +60,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Medical" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2023/file.pdf" >&2
+  echo "raw_remainder expected: 2023/file.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2023 file.pdf" >&2
+  echo "cleaned_remainder expected: 2023 file.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -73,8 +73,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Medical"
   assert_equal "$raw_category" "Medical"
   assert_equal "$cleaned_category" "Medical"
-  assert_equal "$raw_remainder" "John Doe/2023/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2023 file.pdf"
+  assert_equal "$raw_remainder" "2023/file.pdf"
+  assert_equal "$cleaned_remainder" "2023 file.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -88,9 +88,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_path: John Doe/UnknownCategory/file.pdf" >&2
   echo "input_category: UnknownCategory" >&2
   echo "expected_match: false" >&2
-  echo "raw remainder expected: John Doe/file.pdf" >&2
+  echo "raw remainder expected: John Doe/UnknownCategory/file.pdf" >&2
   echo "raw remainder matched: $raw_remainder" >&2
-  echo "cleaned remainder expected: John Doe file.pdf" >&2
+  echo "cleaned remainder expected: John Doe UnknownCategory file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: UnknownCategory" >&2
   echo "extracted_category matched: $extracted_category" >&2
@@ -99,8 +99,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" ""
   assert_equal "$raw_category" "UnknownCategory"
   assert_equal "$cleaned_category" ""
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$raw_remainder" "John Doe/UnknownCategory/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe UnknownCategory file.pdf"
   assert_equal "$error_status" "unmapped"
 }
 
@@ -147,9 +147,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Support Plans" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2022/plan.pdf" >&2
+  echo "raw_remainder expected: 2022/plan.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2022 plan.pdf" >&2
+  echo "cleaned_remainder expected: 2022 plan.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -160,8 +160,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Support Plans"
   assert_equal "$raw_category" "Support Plans"
   assert_equal "$cleaned_category" "Support Plans"
-  assert_equal "$raw_remainder" "John Doe/2022/plan.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2022 plan.pdf"
+  assert_equal "$raw_remainder" "2022/plan.pdf"
+  assert_equal "$cleaned_remainder" "2022 plan.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -182,9 +182,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: WHS" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/file.pdf" >&2
+  echo "raw_remainder expected: file.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe file.pdf" >&2
+  echo "cleaned_remainder expected: file.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -195,8 +195,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "WHS"
   assert_equal "$raw_category" "whs"
   assert_equal "$cleaned_category" "WHS"
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$raw_remainder" "file.pdf"
+  assert_equal "$cleaned_remainder" "file.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -217,9 +217,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Mealtime Management" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/file.pdf" >&2
+  echo "raw_remainder expected: file.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe file.pdf" >&2
+  echo "cleaned_remainder expected: file.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -230,8 +230,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Mealtime Management"
   assert_equal "$raw_category" "Mealtime-Management"
   assert_equal "$cleaned_category" "Mealtime Management"
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$raw_remainder" "file.pdf"
+  assert_equal "$cleaned_remainder" "file.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -239,70 +239,52 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   run extract_category_from_path "John Doe/Photos & Videos/file.jpg"
   [ "$status" -eq 0 ]
   IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: Mapped category with special character (should map to Photos)" >&2
+  echo "Comment: Unmapped category with special character" >&2
   echo "function: extract_category_from_path" >&2
   echo "input_path: John Doe/Photos & Videos/file.jpg" >&2
   echo "input_category: Photos & Videos" >&2
-  echo "expected_match: true" >&2
-  echo "expected_category_name: Photos" >&2
-  echo "expected_category_id: 14" >&2
-  echo "raw_category expected: Photos & Videos" >&2
-  echo "raw_category matched: $raw_category" >&2
-  echo "cleaned_category expected: Photos" >&2
-  echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/file.jpg" >&2
-  echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe file.jpg" >&2
-  echo "cleaned_remainder matched: $cleaned_remainder" >&2
-  echo "error_status expected: " >&2
-  echo "error_status matched: $error_status" >&2
-  echo "extracted_category expected: Photos" >&2
+  echo "expected_match: false" >&2
+  echo "raw remainder expected: John Doe/Photos & Videos/file.jpg" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: John Doe Photos Videos file.jpg" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_category expected: Photos & Videos" >&2
   echo "extracted_category matched: $extracted_category" >&2
-  echo "expected match: true" >&2
+  echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_category" "Photos"
+  assert_equal "$extracted_category" ""
   assert_equal "$raw_category" "Photos & Videos"
-  assert_equal "$cleaned_category" "Photos"
-  assert_equal "$raw_remainder" "John Doe/file.jpg"
-  assert_equal "$cleaned_remainder" "John Doe file.jpg"
-  assert_equal "$error_status" ""
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/Photos & Videos/file.jpg"
+  assert_equal "$cleaned_remainder" "John Doe Photos Videos file.jpg"
+  assert_equal "$error_status" "unmapped"
 }
 
 @test "extract_category_from_path - John Doe/Receipts_2023/file.pdf" {
   run extract_category_from_path "John Doe/Receipts_2023/file.pdf"
   [ "$status" -eq 0 ]
   IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: Mapped category with underscore and year" >&2
+  echo "Comment: Unmapped category with underscore and year" >&2
   echo "function: extract_category_from_path" >&2
   echo "input_path: John Doe/Receipts_2023/file.pdf" >&2
   echo "input_category: Receipts_2023" >&2
-  echo "expected_match: true" >&2
-  echo "expected_category_name: Receipts" >&2
-  echo "expected_category_id: 16" >&2
-  echo "raw_category expected: Receipts_2023" >&2
-  echo "raw_category matched: $raw_category" >&2
-  echo "cleaned_category expected: Receipts" >&2
-  echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/file.pdf" >&2
-  echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe file.pdf" >&2
-  echo "cleaned_remainder matched: $cleaned_remainder" >&2
-  echo "error_status expected: " >&2
-  echo "error_status matched: $error_status" >&2
-  echo "extracted_category expected: Receipts" >&2
+  echo "expected_match: false" >&2
+  echo "raw remainder expected: John Doe/Receipts_2023/file.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: John Doe Receipts 2023 file.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_category expected: Receipts_2023" >&2
   echo "extracted_category matched: $extracted_category" >&2
-  echo "expected match: true" >&2
+  echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_category" "Receipts"
+  assert_equal "$extracted_category" ""
   assert_equal "$raw_category" "Receipts_2023"
-  assert_equal "$cleaned_category" "Receipts"
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
-  assert_equal "$error_status" ""
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/Receipts_2023/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe Receipts 2023 file.pdf"
+  assert_equal "$error_status" "unmapped"
 }
 
 @test "extract_category_from_path - John Doe/!@#$/file.pdf" {
@@ -315,9 +297,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_path: John Doe/!@#$/file.pdf" >&2
   echo "input_category: !@#$" >&2
   echo "expected_match: false" >&2
-  echo "raw remainder expected: John Doe/file.pdf" >&2
+  echo "raw remainder expected: John Doe/!@#$/file.pdf" >&2
   echo "raw remainder matched: $raw_remainder" >&2
-  echo "cleaned remainder expected: John Doe file.pdf" >&2
+  echo "cleaned remainder expected: John Doe ! file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: !@#$" >&2
   echo "extracted_category matched: $extracted_category" >&2
@@ -326,8 +308,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" ""
   assert_equal "$raw_category" "!@#$"
   assert_equal "$cleaned_category" ""
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$raw_remainder" "John Doe/!@#$/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe ! file.pdf"
   assert_equal "$error_status" "unmapped"
 }
 
@@ -348,9 +330,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Personal Care" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2024/Assessments/assessment.pdf" >&2
+  echo "raw_remainder expected: 2024/Assessments/assessment.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2024 Assessments assessment.pdf" >&2
+  echo "cleaned_remainder expected: 2024 Assessments assessment.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -361,8 +343,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Personal Care"
   assert_equal "$raw_category" "Personal Care"
   assert_equal "$cleaned_category" "Personal Care"
-  assert_equal "$raw_remainder" "John Doe/2024/Assessments/assessment.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2024 Assessments assessment.pdf"
+  assert_equal "$raw_remainder" "2024/Assessments/assessment.pdf"
+  assert_equal "$cleaned_remainder" "2024 Assessments assessment.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -383,9 +365,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Behavioral Support" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2023/Reports/behavioral_analysis.pdf" >&2
+  echo "raw_remainder expected: 2023/Reports/behavioral_analysis.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2023 Reports behavioral analysis.pdf" >&2
+  echo "cleaned_remainder expected: 2023 Reports behavioral analysis.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -396,8 +378,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Behavioral Support"
   assert_equal "$raw_category" "Behavioral Support"
   assert_equal "$cleaned_category" "Behavioral Support"
-  assert_equal "$raw_remainder" "John Doe/2023/Reports/behavioral_analysis.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2023 Reports behavioral analysis.pdf"
+  assert_equal "$raw_remainder" "2023/Reports/behavioral_analysis.pdf"
+  assert_equal "$cleaned_remainder" "2023 Reports behavioral analysis.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -418,9 +400,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Incident Reports" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2024/Emergency/incident_report.pdf" >&2
+  echo "raw_remainder expected: 2024/Emergency/incident_report.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2024 Emergency incident report.pdf" >&2
+  echo "cleaned_remainder expected: 2024 Emergency incident report.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -431,8 +413,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Incident Reports"
   assert_equal "$raw_category" "Incident Reports"
   assert_equal "$cleaned_category" "Incident Reports"
-  assert_equal "$raw_remainder" "John Doe/2024/Emergency/incident_report.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2024 Emergency incident report.pdf"
+  assert_equal "$raw_remainder" "2024/Emergency/incident_report.pdf"
+  assert_equal "$cleaned_remainder" "2024 Emergency incident report.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -453,9 +435,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Medical Records" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2023/Assessments/Patient Data/medical_assessment.pdf" >&2
+  echo "raw_remainder expected: 2023/Assessments/Patient Data/medical_assessment.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2023 Assessments Patient Data medical assessment.pdf" >&2
+  echo "cleaned_remainder expected: 2023 Assessments Patient Data medical assessment.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -466,8 +448,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Medical Records"
   assert_equal "$raw_category" "Medical Records"
   assert_equal "$cleaned_category" "Medical Records"
-  assert_equal "$raw_remainder" "John Doe/2023/Assessments/Patient Data/medical_assessment.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2023 Assessments Patient Data medical assessment.pdf"
+  assert_equal "$raw_remainder" "2023/Assessments/Patient Data/medical_assessment.pdf"
+  assert_equal "$cleaned_remainder" "2023 Assessments Patient Data medical assessment.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -488,9 +470,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Support Plans" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2024/Active Plans/Current/plan.pdf" >&2
+  echo "raw_remainder expected: 2024/Active Plans/Current/plan.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2024 Active Plans Current plan.pdf" >&2
+  echo "cleaned_remainder expected: 2024 Active Plans Current plan.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -501,8 +483,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Support Plans"
   assert_equal "$raw_category" "Support Plans"
   assert_equal "$cleaned_category" "Support Plans"
-  assert_equal "$raw_remainder" "John Doe/2024/Active Plans/Current/plan.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2024 Active Plans Current plan.pdf"
+  assert_equal "$raw_remainder" "2024/Active Plans/Current/plan.pdf"
+  assert_equal "$cleaned_remainder" "2024 Active Plans Current plan.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -510,35 +492,26 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   run extract_category_from_path "John Doe/Photos & Videos/2023/Client Photos/Photo Album/album.zip"
   [ "$status" -eq 0 ]
   IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$output"
-  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: Category with ampersand in deep path" >&2
+  echo "Comment: Unmapped category with ampersand in deep path" >&2
   echo "function: extract_category_from_path" >&2
   echo "input_path: John Doe/Photos & Videos/2023/Client Photos/Photo Album/album.zip" >&2
   echo "input_category: Photos & Videos" >&2
-  echo "expected_match: true" >&2
-  echo "expected_category_name: Photos" >&2
-  echo "expected_category_id: 14" >&2
-  echo "raw_category expected: Photos & Videos" >&2
-  echo "raw_category matched: $raw_category" >&2
-  echo "cleaned_category expected: Photos" >&2
-  echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2023/Client Photos/Photo Album/album.zip" >&2
-  echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2023 Client Photos Photo Album album.zip" >&2
-  echo "cleaned_remainder matched: $cleaned_remainder" >&2
-  echo "error_status expected: " >&2
-  echo "error_status matched: $error_status" >&2
-  echo "extracted_category expected: Photos" >&2
+  echo "expected_match: false" >&2
+  echo "raw remainder expected: John Doe/Photos & Videos/2023/Client Photos/Photo Album/album.zip" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: John Doe Photos Videos 2023 Client Photos Photo Album album.zip" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_category expected: Photos & Videos" >&2
   echo "extracted_category matched: $extracted_category" >&2
-  echo "expected match: true" >&2
+  echo "expected match: false" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_category" "Photos"
+  assert_equal "$extracted_category" ""
   assert_equal "$raw_category" "Photos & Videos"
-  assert_equal "$cleaned_category" "Photos"
-  assert_equal "$raw_remainder" "John Doe/2023/Client Photos/Photo Album/album.zip"
-  assert_equal "$cleaned_remainder" "John Doe 2023 Client Photos Photo Album album.zip"
-  assert_equal "$error_status" ""
+  assert_equal "$cleaned_category" ""
+  assert_equal "$raw_remainder" "John Doe/Photos & Videos/2023/Client Photos/Photo Album/album.zip"
+  assert_equal "$cleaned_remainder" "John Doe Photos Videos 2023 Client Photos Photo Album album.zip"
+  assert_equal "$error_status" "unmapped"
 }
 
 @test "extract_category_from_path - John Doe/Emergency Contacts/2024/Updated Contacts/contact_list.pdf" {
@@ -558,9 +531,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Emergency Contacts" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2024/Updated Contacts/contact_list.pdf" >&2
+  echo "raw_remainder expected: 2024/Updated Contacts/contact_list.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2024 Updated Contacts contact list.pdf" >&2
+  echo "cleaned_remainder expected: 2024 Updated Contacts contact list.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -571,8 +544,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Emergency Contacts"
   assert_equal "$raw_category" "Emergency Contacts"
   assert_equal "$cleaned_category" "Emergency Contacts"
-  assert_equal "$raw_remainder" "John Doe/2024/Updated Contacts/contact_list.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2024 Updated Contacts contact list.pdf"
+  assert_equal "$raw_remainder" "2024/Updated Contacts/contact_list.pdf"
+  assert_equal "$cleaned_remainder" "2024 Updated Contacts contact list.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -593,9 +566,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Receipts" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2023/Expense Reports/Detailed/expense_report.pdf" >&2
+  echo "raw_remainder expected: 2023/Expense Reports/Detailed/expense_report.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2023 Expense Reports Detailed expense report.pdf" >&2
+  echo "cleaned_remainder expected: 2023 Expense Reports Detailed expense report.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -606,8 +579,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Receipts"
   assert_equal "$raw_category" "Receipts"
   assert_equal "$cleaned_category" "Receipts"
-  assert_equal "$raw_remainder" "John Doe/2023/Expense Reports/Detailed/expense_report.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2023 Expense Reports Detailed expense report.pdf"
+  assert_equal "$raw_remainder" "2023/Expense Reports/Detailed/expense_report.pdf"
+  assert_equal "$cleaned_remainder" "2023 Expense Reports Detailed expense report.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -628,9 +601,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Mealtime Management" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2024/Diary Records/Food Preferences/food_diary.pdf" >&2
+  echo "raw_remainder expected: 2024/Diary Records/Food Preferences/food_diary.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2024 Diary Records Food Preferences food diary.pdf" >&2
+  echo "cleaned_remainder expected: 2024 Diary Records Food Preferences food diary.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -641,8 +614,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Mealtime Management"
   assert_equal "$raw_category" "Mealtime Management"
   assert_equal "$cleaned_category" "Mealtime Management"
-  assert_equal "$raw_remainder" "John Doe/2024/Diary Records/Food Preferences/food_diary.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2024 Diary Records Food Preferences food diary.pdf"
+  assert_equal "$raw_remainder" "2024/Diary Records/Food Preferences/food_diary.pdf"
+  assert_equal "$cleaned_remainder" "2024 Diary Records Food Preferences food diary.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -663,9 +636,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "raw_category matched: $raw_category" >&2
   echo "cleaned_category expected: Personal Care" >&2
   echo "cleaned_category matched: $cleaned_category" >&2
-  echo "raw_remainder expected: John Doe/2023/Assessments/2023.05.15_Assessment/assessment.pdf" >&2
+  echo "raw_remainder expected: 2023/Assessments/2023.05.15_Assessment/assessment.pdf" >&2
   echo "raw_remainder matched: $raw_remainder" >&2
-  echo "cleaned_remainder expected: John Doe 2023 Assessments 2023 05 15 Assessment assessment.pdf" >&2
+  echo "cleaned_remainder expected: 2023 Assessments 2023 05 15 Assessment assessment.pdf" >&2
   echo "cleaned_remainder matched: $cleaned_remainder" >&2
   echo "error_status expected: " >&2
   echo "error_status matched: $error_status" >&2
@@ -676,8 +649,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" "Personal Care"
   assert_equal "$raw_category" "Personal Care"
   assert_equal "$cleaned_category" "Personal Care"
-  assert_equal "$raw_remainder" "John Doe/2023/Assessments/2023.05.15_Assessment/assessment.pdf"
-  assert_equal "$cleaned_remainder" "John Doe 2023 Assessments 2023 05 15 Assessment assessment.pdf"
+  assert_equal "$raw_remainder" "2023/Assessments/2023.05.15_Assessment/assessment.pdf"
+  assert_equal "$cleaned_remainder" "2023 Assessments 2023 05 15 Assessment assessment.pdf"
   assert_equal "$error_status" ""
 }
 
@@ -691,9 +664,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_path: John Doe/Unknown_Category_With_Underscores/file.pdf" >&2
   echo "input_category: Unknown_Category_With_Underscores" >&2
   echo "expected_match: false" >&2
-  echo "raw remainder expected: John Doe/file.pdf" >&2
+  echo "raw remainder expected: John Doe/Unknown_Category_With_Underscores/file.pdf" >&2
   echo "raw remainder matched: $raw_remainder" >&2
-  echo "cleaned remainder expected: John Doe file.pdf" >&2
+  echo "cleaned remainder expected: John Doe Unknown Category With Underscores file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: Unknown_Category_With_Underscores" >&2
   echo "extracted_category matched: $extracted_category" >&2
@@ -702,8 +675,8 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" ""
   assert_equal "$raw_category" "Unknown_Category_With_Underscores"
   assert_equal "$cleaned_category" ""
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$raw_remainder" "John Doe/Unknown_Category_With_Underscores/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe Unknown Category With Underscores file.pdf"
   assert_equal "$error_status" "unmapped"
 }
 
@@ -717,9 +690,9 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   echo "input_path: John Doe/Category-With-Multiple-Hyphens/file.pdf" >&2
   echo "input_category: Category-With-Multiple-Hyphens" >&2
   echo "expected_match: false" >&2
-  echo "raw remainder expected: John Doe/file.pdf" >&2
+  echo "raw remainder expected: John Doe/Category-With-Multiple-Hyphens/file.pdf" >&2
   echo "raw remainder matched: $raw_remainder" >&2
-  echo "cleaned remainder expected: John Doe file.pdf" >&2
+  echo "cleaned remainder expected: John Doe Category With Multiple Hyphens file.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
   echo "extracted_category expected: Category-With-Multiple-Hyphens" >&2
   echo "extracted_category matched: $extracted_category" >&2
@@ -728,7 +701,7 @@ source "${BATS_TEST_DIRNAME}/../utils/category_utils.sh"
   assert_equal "$extracted_category" ""
   assert_equal "$raw_category" "Category-With-Multiple-Hyphens"
   assert_equal "$cleaned_category" ""
-  assert_equal "$raw_remainder" "John Doe/file.pdf"
-  assert_equal "$cleaned_remainder" "John Doe file.pdf"
+  assert_equal "$raw_remainder" "John Doe/Category-With-Multiple-Hyphens/file.pdf"
+  assert_equal "$cleaned_remainder" "John Doe Category With Multiple Hyphens file.pdf"
   assert_equal "$error_status" "unmapped"
 }

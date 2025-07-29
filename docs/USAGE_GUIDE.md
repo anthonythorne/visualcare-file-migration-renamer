@@ -364,8 +364,7 @@ python3 tests/scripts/generate_bats_tests.py combined
 
 For more detailed information, see:
 - [Testing Guide](TESTING.md)
-- [Naming Conventions](NAMING_CONVENTIONS.md)
-- [Filename Conventions](FILENAME_CONVENTIONS.md)
+- [File Normalization Process](FILE_NORMALIZATION_PROCESS.md)
 
 ## File Date Handling and Extraction
 

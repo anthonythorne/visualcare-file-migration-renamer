@@ -171,7 +171,10 @@ bash tests/run_tests.sh --verbose=all
 
 Each test suite is always regenerated before running, so you never need to manually clean or rebuild BATS files.
 
-## 📚 Documentation
+## �� Documentation
+
+### Documentation Index
+- **[Documentation Index](docs/DOCUMENTATION_INDEX.md)** - Complete guide to all available documentation
 
 ### For Users
 - **[Usage Guide](docs/USAGE_GUIDE.md)** - Complete usage instructions and examples
@@ -179,7 +182,7 @@ Each test suite is always regenerated before running, so you never need to manua
 
 ### For Developers
 - **[Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md)** - Technical architecture and design
-- **[Naming Conventions](docs/NAMING_CONVENTIONS.md)** - Complete name extraction and filename processing
+- **[File Normalization Process](docs/FILE_NORMALIZATION_PROCESS.md)** - Complete file processing workflow
 
 ### For System Administrators
 - **[Usage Guide](docs/USAGE_GUIDE.md)** - Deployment and configuration

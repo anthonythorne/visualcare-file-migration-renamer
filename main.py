@@ -78,7 +78,7 @@ class FileMigrationRenamer:
         return logging.getLogger(__name__)
     
     def process_directory(self, input_dir: str, output_dir: str, user_mapping: Dict[str, str], 
-                         category_mapping: Dict[str, str], dry_run: bool = False) -> List[Dict]:
+                         category_mapping: Dict[str, str], duplicate: bool = True) -> List[Dict]:
         """
         Process all files in a directory with multi-level support.
         
@@ -87,7 +87,7 @@ class FileMigrationRenamer:
             output_dir: Output directory path
             user_mapping: Dictionary mapping full names to user IDs
             category_mapping: Dictionary mapping category names to category IDs
-            dry_run: If True, don't actually process files
+            duplicate: If True, copy files; if False, move files
             
         Returns:
             List of processing results
@@ -101,40 +101,103 @@ class FileMigrationRenamer:
             return results
         
         # Create output directory if it doesn't exist
-        if not dry_run:
-            output_path.mkdir(parents=True, exist_ok=True)
+        output_path.mkdir(parents=True, exist_ok=True)
         
         # Get all files recursively
         for filepath in input_path.rglob('*'):
             if filepath.is_file():
+                # Check if file should be excluded
+                filename = filepath.name
+                should_exclude = False
+                
+                # Load config to get exclusions
+                config = load_config()
+                exclusions = config.get('Global', {}).get('file_exclusions', [])
+                
+                for exclusion in exclusions:
+                    if exclusion.startswith('*') and exclusion.endswith('*'):
+                        # Pattern like "*tmp*"
+                        pattern = exclusion[1:-1]
+                        if pattern in filename:
+                            should_exclude = True
+                            break
+                    elif exclusion.startswith('*'):
+                        # Pattern like "*.tmp"
+                        pattern = exclusion[1:]
+                        if filename.endswith(pattern):
+                            should_exclude = True
+                            break
+                    elif exclusion.endswith('*'):
+                        # Pattern like "~$*"
+                        pattern = exclusion[:-1]
+                        if filename.startswith(pattern):
+                            should_exclude = True
+                            break
+                    else:
+                        # Exact match
+                        if filename == exclusion:
+                            should_exclude = True
+                            break
+                
+                if should_exclude:
+                    self.logger.info(f"Skipping excluded file: {filename}")
+                    continue
+                
+                # Debug: Log files that are being processed
+                if filename == "desktop.ini":
+                    self.logger.warning(f"Processing desktop.ini file: {filepath}")
+                    self.logger.warning(f"Exclusions: {exclusions}")
+                    self.logger.warning(f"Filename: '{filename}'")
+                
                 # Get relative path from input directory
                 relative_path = filepath.relative_to(input_path)
                 
                 # Use the real normalize_filename function
                 try:
-                    normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping)
+                    normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping, str(filepath))
+                    
+                    # Extract person name from the original path for directory structure
+                    person_name = relative_path.parts[0] if relative_path.parts else ""
                     
                     result = {
                         'original_filename': str(relative_path),
                         'new_filename': normalized_filename,
-                        'person': relative_path.parts[0] if relative_path.parts else "",
+                        'person': person_name,
                         'success': True
                     }
                     
-                    if not dry_run:
-                        try:
-                            # Copy to output directory with new name
-                            new_filepath = output_path / normalized_filename
+                    try:
+                        # Create person subdirectory in output
+                        person_output_dir = output_path / person_name
+                        person_output_dir.mkdir(parents=True, exist_ok=True)
+                        
+                        # Capture original file times before processing
+                        orig_stat = filepath.stat()
+                        orig_mtime = orig_stat.st_mtime
+                        orig_atime = orig_stat.st_atime
+                        
+                        # Process file (copy or move)
+                        new_filepath = person_output_dir / normalized_filename
+                        if duplicate:
                             shutil.copy2(filepath, new_filepath)
                             result['copied'] = True
-                            self.logger.info(f"Copied: {relative_path} -> {normalized_filename}")
-                        except Exception as e:
-                            result['error'] = f"Failed to copy {relative_path}: {e}"
-                            result['success'] = False
-                            self.logger.error(result['error'])
-                    else:
-                        result['copied'] = False
-                        self.logger.info(f"DRY RUN - Would copy: {relative_path} -> {normalized_filename}")
+                            self.logger.info(f"Copied: {relative_path} -> {person_name}/{normalized_filename}")
+                        else:
+                            filepath.rename(new_filepath)
+                            result['moved'] = True
+                            self.logger.info(f"Moved: {relative_path} -> {person_name}/{normalized_filename}")
+                        
+                        # Restore original times on the new file (ignore errors for Windows files)
+                        try:
+                            os.utime(new_filepath, (orig_atime, orig_mtime))
+                        except OSError as e:
+                            # Windows files might not allow timestamp modification, but that's okay
+                            self.logger.warning(f"Could not restore timestamps for {relative_path}: {e}")
+                            # Continue processing - the file was still copied/moved successfully
+                    except Exception as e:
+                        result['error'] = f"Failed to process {relative_path}: {e}"
+                        result['success'] = False
+                        self.logger.error(result['error'])
                     
                     results.append(result)
                     
@@ -267,10 +330,16 @@ class FileMigrationRenamer:
                 print(f"\nTest output directories: {', '.join(f'to-{name}' for name in test_names)}")
 
 
-def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, category_mapping: Dict[str, str] = None) -> str:
+def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, category_mapping: Dict[str, str] = None, full_file_path: str = None) -> str:
     """
-    Normalize a filename from a full path using all extraction functions.
+    Normalize a filename from a full path using existing core functions.
     This is the main function for real-world applications.
+    
+    Sequential extraction order:
+    1. Category extraction (first directory after person)
+    2. Name extraction (from remainder)
+    3. Date extraction (from remainder)
+    4. Final assembly (clean remainder, assemble filename)
     
     Args:
         full_path: Full path to the file (e.g., "John Doe/report.pdf" or "VC - John Doe/document.pdf")
@@ -283,52 +352,130 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
     from pathlib import Path
     from core.utils.name_matcher import clean_filename_remainder_py
     from core.utils.date_matcher import extract_date_matches
-    from core.utils.category_processor import extract_category_from_path_cli
+    import subprocess
+    import os
     
     # Parse the path
     path_obj = Path(full_path)
-    directory = path_obj.parent.name if path_obj.parent.name else path_obj.name
-    filename = path_obj.name if path_obj.parent.name else ""
+    path_parts = path_obj.parts
     
-    # Extract user information
-    user_result = extract_user_from_path(full_path)
-    user_parts = user_result.split('|')
-    user_id = user_parts[0] if len(user_parts) > 0 else ""
-    cleaned_name = user_parts[3] if len(user_parts) > 3 else ""
-    cleaned_remainder = user_parts[5] if len(user_parts) > 5 else ""
+    # Get the file extension early and remove it from processing
+    file_extension = path_obj.suffix if path_obj.suffix else ""
     
-    # Use provided user mapping if available
-    if user_mapping and cleaned_name in user_mapping:
-        user_id = user_mapping[cleaned_name]
+    # Initialize components
+    user_id = ""
+    cleaned_name = ""
+    extracted_category = ""
+    extracted_date = ""
+    raw_remainder = full_path
     
-    # Extract date from filename using the standalone date matcher
-    date_result = extract_date_matches(filename)
-    date_parts = date_result.split('|')
-    extracted_date = date_parts[0] if len(date_parts) > 0 else ""
+    # Remove file extension from raw_remainder for processing
+    if file_extension and raw_remainder.endswith(file_extension):
+        raw_remainder = raw_remainder[:-len(file_extension)]
     
-    # Extract category from directory using the CLI function
-    import subprocess
-    project_root = Path(__file__).parent
-    category_result = subprocess.check_output([
-        'python3',
-        str(project_root / 'core/utils/category_processor.py'),
-        full_path
-    ], text=True, stderr=subprocess.DEVNULL).strip()
-    category_parts = category_result.split('|')
-    category = category_parts[0] if len(category_parts) > 0 else ""
+    # STEP 1: Extract person name from first directory using existing user_mapping function
+    if len(path_parts) > 0:
+        person_directory = path_parts[0]
+        
+        # Use the existing user_mapping function
+        from core.utils.user_mapping import extract_user_from_path
+        user_result = extract_user_from_path(full_path)
+        user_parts = user_result.split('|')
+        user_id = user_parts[0] if len(user_parts) > 0 else ""
+        cleaned_name = user_parts[2] if len(user_parts) > 2 else ""
+        
+        # Use provided user mapping if available
+        if user_mapping and cleaned_name in user_mapping:
+            user_id = user_mapping[cleaned_name]
+        
+        # Get the raw remainder after person extraction
+        raw_remainder = user_parts[3] if len(user_parts) > 3 else ""  # raw_remainder from user extraction
+        
+        # Remove file extension from raw_remainder if it's still there
+        if file_extension and raw_remainder.endswith(file_extension):
+            raw_remainder = raw_remainder[:-len(file_extension)]
     
-    # Use provided category mapping if available
-    if category_mapping and category in category_mapping:
-        category = category_mapping[category]
+    # STEP 2: Extract category using existing category_processor function
+    if raw_remainder:
+        # Use the existing category_processor function
+        project_root = Path(__file__).parent
+        try:
+            category_result = subprocess.check_output([
+                'python3',
+                str(project_root / 'core/utils/category_processor.py'),
+                full_path
+            ], text=True, stderr=subprocess.DEVNULL).strip()
+            category_parts = category_result.split('|')
+            extracted_category = category_parts[0] if len(category_parts) > 0 else ""
+            
+            # Get the raw remainder after category extraction
+            raw_remainder = category_parts[3] if len(category_parts) > 3 else ""  # raw_remainder from category extraction
+            
+            # Remove file extension from raw_remainder if it's still there
+            if file_extension and raw_remainder.endswith(file_extension):
+                raw_remainder = raw_remainder[:-len(file_extension)]
+        except:
+            extracted_category = ""
     
-    # Format the final filename
-    return format_filename(
+    # STEP 3: Extract name from remainder using existing name_matcher function
+    if raw_remainder and cleaned_name:
+        from core.utils.name_matcher import extract_name_from_filename
+        name_result = extract_name_from_filename(raw_remainder, cleaned_name)
+        name_parts = name_result.split('|')
+        if len(name_parts) > 1:
+            # Use the remainder after name extraction
+            raw_remainder = name_parts[1]  # This is the remainder with name removed
+            
+            # Remove file extension from raw_remainder if it's still there
+            if file_extension and raw_remainder.endswith(file_extension):
+                raw_remainder = raw_remainder[:-len(file_extension)]
+    
+    # STEP 4: Extract date from remainder using existing date_matcher function
+    if raw_remainder:
+        # Use the existing date_matcher function
+        date_result = extract_date_matches(raw_remainder)
+        date_parts = date_result.split('|')
+        if date_parts[0]:  # If date found
+            extracted_date = date_parts[0]
+            # Update remainder to remove the date
+            if len(date_parts) > 1:
+                raw_remainder = date_parts[1]  # This is the remainder with date removed
+                
+                # Remove file extension from raw_remainder if it's still there
+                if file_extension and raw_remainder.endswith(file_extension):
+                    raw_remainder = raw_remainder[:-len(file_extension)]
+        else:
+            # No date found in filename, try file metadata if we have the full path
+            from core.utils.date_matcher import extract_date_with_metadata_fallback
+            # Use the original filename (before name extraction) for metadata fallback
+            original_filename = path_obj.name
+            # Use full_file_path if provided, otherwise use full_path (which might be relative)
+            file_path_for_metadata = full_file_path if full_file_path else full_path
+            metadata_result = extract_date_with_metadata_fallback(original_filename, file_path_for_metadata)
+            metadata_parts = metadata_result.split('|')
+            if metadata_parts[0]:  # If metadata date found
+                extracted_date = metadata_parts[0]
+                print(f"DEBUG: Metadata date extracted: {extracted_date} for {original_filename}")
+                # Keep the original remainder since metadata date doesn't change the filename
+                # raw_remainder stays the same
+    
+    # STEP 5: Clean the final remainder using existing name_matcher function
+    cleaned_remainder = clean_filename_remainder_py(raw_remainder) if raw_remainder else ""
+    
+    # Format the final filename using existing format_filename function
+    formatted = format_filename(
         user_id=user_id,
         name=cleaned_name,
         remainder=cleaned_remainder,
         date=extracted_date,
-        category=category
+        category=extracted_category
     )
+    
+    # Add the file extension
+    if file_extension:
+        formatted += file_extension
+    
+    return formatted
 
 
 def format_filename(user_id: str = "", name: str = "", remainder: str = "", date: str = "", category: str = "") -> str:
@@ -417,11 +564,6 @@ def main():
         help='Copy files instead of moving them (default: move/rename)'
     )
     parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Preview changes without making them (recommended for testing)'
-    )
-    parser.add_argument(
         '--verbose', '-v',
         action='store_true',
         help='Enable detailed logging'
@@ -455,6 +597,41 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
     
     renamer = FileMigrationRenamer()
+    
+    # Handle single file extraction for testing
+    if args.extract_filename:
+        try:
+            # Load user mapping
+            user_mapping = {}
+            user_mapping_file = Path(__file__).parent / 'tests' / 'fixtures' / '05_user_mapping.csv'
+            if user_mapping_file.exists():
+                with open(user_mapping_file, 'r') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        user_id = row.get('user_id', '').strip()
+                        full_name = row.get('full_name', '').strip()
+                        if user_id and full_name:
+                            user_mapping[full_name] = user_id
+            
+            # Load category mapping
+            category_mapping = {}
+            category_mapping_file = Path(__file__).parent / 'tests' / 'fixtures' / '04_category_mapping.csv'
+            if category_mapping_file.exists():
+                with open(category_mapping_file, 'r') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        category_id = row.get('category_id', '').strip()
+                        category_name = row.get('category_name', '').strip()
+                        if category_id and category_name:
+                            category_mapping[category_name] = category_id
+            
+            # Extract normalized filename
+            result = normalize_filename(args.extract_filename, user_mapping, category_mapping)
+            print(result)
+            sys.exit(0)
+        except Exception as e:
+            print(f"Error extracting filename: {e}")
+            sys.exit(1)
     
     if args.test_mode:
         print(f"Processing test files using tests/test-files structure")
@@ -495,7 +672,7 @@ def main():
                 sys.exit(1)
         
         print(f"Processing directory: {args.input_dir} -> {args.output_dir}")
-        results = renamer.process_directory(args.input_dir, args.output_dir, user_mapping, category_mapping, args.dry_run)
+        results = renamer.process_directory(args.input_dir, args.output_dir, user_mapping, category_mapping, args.duplicate)
         renamer.print_summary(results)
     else:
         print("Error: Must specify either --test-mode or both --input-dir and --output-dir")

@@ -117,7 +117,7 @@ extract_name_and_date_from_filename() {
 
 # Extract name from full path (folders and filename)
 # Usage: extract_name_from_path <full_path> <name_to_match>
-# Output: extracted_names|raw_remainder|matched
+# Output: extracted_names|raw_remainder|cleaned_remainder|matched
 extract_name_from_path() {
     local full_path="$1"
     local name_to_match="$2"

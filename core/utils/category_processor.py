@@ -42,7 +42,7 @@ class CategoryProcessor:
     
     def _load_category_mapping(self):
         """Load category mappings from the configured CSV file."""
-        mapping_file = self.category_settings.get('mapping_file', 'config/category_mapping.csv')
+        mapping_file = self.category_settings.get('mapping_test_file', 'tests/fixtures/04_category_mapping.csv')
         id_column = self.category_settings.get('id_column', 'category_id')
         name_column = self.category_settings.get('name_column', 'category_name')
         
@@ -261,17 +261,30 @@ def extract_category_from_path_cli(input_path: str, config: dict):
     """
     CLI entrypoint for extracting category from a path.
     Outputs: extracted_category|raw_category|cleaned_category|raw_remainder|cleaned_remainder|error_status
+    
+    Category extraction rules:
+    - Only matches the FIRST directory after the person's name
+    - Exact match only (no partial matches) for the first directory
+    - If first directory matches: remove category, then process remainder for partial matches
+    - If first directory doesn't match: return full path unchanged
+    - Never touches the person's name directory
     """
     processor = CategoryProcessor(config)
     import os
     import re
+    from pathlib import Path
+    
     path_parts = Path(input_path).parts
+    
+    # Need at least 3 parts: person/category/filename
     if len(path_parts) < 3:
-        # No category
+        # No category possible
         print(f"|||{input_path}|{input_path}|no_category")
         return
-    person_dir = path_parts[0]
-    candidate = path_parts[1]
+    
+    person_dir = path_parts[0]  # First directory is person's name
+    category_candidate = path_parts[1]  # Second directory is category candidate
+    
     # Normalize function: lowercase, replace underscores/hyphens/& with spaces, remove non-alphanum except spaces, collapse spaces
     def normalize(s):
         s = s.lower()
@@ -279,41 +292,40 @@ def extract_category_from_path_cli(input_path: str, config: dict):
         s = re.sub(r'[^a-z0-9 ]', '', s)
         s = re.sub(r'\s+', ' ', s)
         return s.strip()
-    norm_candidate = normalize(candidate)
-    # Load mapping file for robust matching
+    
+    norm_candidate = normalize(category_candidate)
+    
+    # Load mapping file for exact matching of first directory only
     mapping_file = processor.category_settings.get('mapping_test_file', 'config/category_mapping.csv')
     project_root = Path(__file__).parent.parent.parent
     mapping_path = project_root / mapping_file
+    
     mapped_name_csv = None
     mapped_id = None
-    if mapping_path.exists() and norm_candidate:  # Only try to match if normalized candidate is not empty
+    
+    if mapping_path.exists() and norm_candidate:
         import csv
         with open(mapping_path, 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 norm_map = normalize(row['category_name'])
-                # Prefer exact match, then partial
+                # EXACT MATCH ONLY for first directory - no partial matches
                 if norm_candidate == norm_map:
                     mapped_name_csv = row['category_name']
                     mapped_id = row['category_id']
                     break
-            if not mapped_name_csv:
-                f.seek(0)
-                next(reader)  # skip header
-                for row in reader:
-                    norm_map = normalize(row['category_name'])
-                    if norm_map in norm_candidate or norm_candidate in norm_map:
-                        mapped_name_csv = row['category_name']
-                        mapped_id = row['category_id']
-                        break
+    
     if mapped_name_csv:
-        raw_category = candidate
+        # FIRST DIRECTORY MATCHES - remove category directory and process remainder
+        raw_category = category_candidate
         cleaned_category = mapped_name_csv
-        # Use configuration to decide whether to output ID or name
-        use_id_in_output = processor.category_settings.get('use_id_in_output', False)
-        extracted_category = mapped_id if use_id_in_output else mapped_name_csv
-        raw_remainder = os.path.join(person_dir, *path_parts[2:])
-        # Use universal cleaner for cleaned_remainder
+        extracted_category = mapped_name_csv
+        
+        # Get remainder after category directory (index 2+)
+        raw_remainder = os.path.join(*path_parts[2:])
+        
+        # Now process the remainder for partial matches and cleaning
+        # This allows partial matches in the remainder since first directory matched exactly
         import subprocess
         cleaned_remainder = subprocess.check_output([
             'python3',
@@ -321,22 +333,28 @@ def extract_category_from_path_cli(input_path: str, config: dict):
             '--clean-filename',
             raw_remainder
         ], text=True).strip()
+        
         print(f"{extracted_category}|{raw_category}|{cleaned_category}|{raw_remainder}|{cleaned_remainder}||")
+        
     else:
-        # Unmapped category, treat as directory
-        if candidate:
-            raw_remainder = os.path.join(person_dir, *path_parts[2:])
-            import subprocess
-            cleaned_remainder = subprocess.check_output([
-                'python3',
-                str(project_root / 'core/utils/name_matcher.py'),
-                '--clean-filename',
-                raw_remainder
-            ], text=True).strip()
-            print(f"|{candidate}||{raw_remainder}|{cleaned_remainder}|unmapped")
-        else:
-            # No category
-            print(f"|||{input_path}|{input_path}|no_category")
+        # FIRST DIRECTORY DOES NOT MATCH - return full path unchanged
+        raw_category = category_candidate
+        cleaned_category = ""
+        extracted_category = ""
+        
+        # Return the full path unchanged (including person's name)
+        raw_remainder = input_path
+        
+        # Clean the full path
+        import subprocess
+        cleaned_remainder = subprocess.check_output([
+            'python3',
+            str(project_root / 'core/utils/name_matcher.py'),
+            '--clean-filename',
+            raw_remainder
+        ], text=True).strip()
+        
+        print(f"{extracted_category}|{raw_category}|{cleaned_category}|{raw_remainder}|{cleaned_remainder}|unmapped")
 
 if __name__ == "__main__":
     import yaml

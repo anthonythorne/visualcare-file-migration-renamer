@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Generate BATS tests for complete integration testing.
 
@@ -99,7 +100,7 @@ def generate_bats_tests():
   
   # Test date extraction
   echo "Testing date extraction..." >&2
-  result="$(extract_date_from_path "{row['full_path']}")"
+  result="$(extract_date_from_path_for_string_test_fallback "{row['full_path']}" "{row.get('modified_date', '')}" "{row.get('created_date', '')}" "{row.get('string_test_date_type', '')}")"
   IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
   
   expected_date="{row['expected_date']}"
@@ -118,42 +119,22 @@ def generate_bats_tests():
     [ "$extracted_date" = "$expected_date" ]
   fi
   
-  # Test complete filename generation (this would be the main processing function)
-  # TODO: Replace with actual complete processing function
-  # result="$(process_complete_filename "{row['full_path']}")"
-  # IFS='|' read -r generated_filename user_id person_name remainder date category_id <<< "$result"
+  # Test complete filename generation
+  echo "Testing complete filename generation..." >&2
   
-  # For now, verify the expected filename format
+  # Use the test-specific function that handles fallback dates
+  result="$(extract_complete_filename_with_fallback "{row['full_path']}" "{row.get('modified_date', '')}" "{row.get('created_date', '')}" "{row.get('string_test_date_type', '')}")"
+  
   expected_filename="{row['expected_filename']}"
   
   echo "----- COMPLETE FILENAME VALIDATION -----" >&2
   echo "Expected filename: '$expected_filename'" >&2
-  echo "Expected format: user_id_person_name_remainder_date_category_id.ext" >&2
-  echo "--------------------------------------" >&2
+  echo "Generated filename: '$result'" >&2
+  echo "-------------------------------------" >&2
   
-  # Verify the expected filename has the correct format
+  # Compare the actual generated filename with the expected filename
   if [ -n "$expected_filename" ]; then
-    # Check if it starts with user_id (if user is mapped)
-    if [ -n "$expected_user_id" ]; then
-      echo "Checking user_id prefix..." >&2
-      echo "$expected_filename" | grep -q "^$expected_user_id_"
-    fi
-    
-    # Check if it contains the person name
-    echo "Checking person name..." >&2
-    echo "$expected_filename" | grep -q "$expected_name"
-    
-    # Check if it contains the date (if present)
-    if [ -n "$expected_date" ]; then
-      echo "Checking date..." >&2
-      echo "$expected_filename" | grep -q "$expected_date"
-    fi
-    
-    # Check if it contains the category (if present)
-    if [ -n "$expected_category" ]; then
-      echo "Checking category..." >&2
-      echo "$expected_filename" | grep -q "_$expected_category\\."
-    fi
+    [ "$result" = "$expected_filename" ]
   fi
   
   echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
@@ -176,6 +157,7 @@ def write_bats_file(tests):
 source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/user_mapping.sh
 source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/category_utils.sh
 source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/date_utils.sh
+source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/complete_processing.sh
 
 """)
         
