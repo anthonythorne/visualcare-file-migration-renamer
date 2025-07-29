@@ -5,12 +5,12 @@
 extract_date_from_filename() {
     local filename="$1"
     local expected_date="$2"
-    
+
     # Call the Python date matcher
     result=$(python3 "$(dirname "${BASH_SOURCE[0]}")/../../core/utils/date_matcher.py" "$filename" 2>/dev/null)
     
     if [ $? -eq 0 ]; then
-        echo "$result"
+    echo "$result"
         return 0
     else
         echo "||$filename|false"

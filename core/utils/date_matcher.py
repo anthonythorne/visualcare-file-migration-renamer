@@ -174,6 +174,7 @@ def extract_date_matches(filename):
     """
     config = load_config()
     allowed_formats = config.get('Date', {}).get('allowed_formats', ['%Y-%m-%d'])
+    normalized_format = config.get('Date', {}).get('normalized_format', '%Y-%m-%d')
     date_patterns = build_date_patterns(allowed_formats)
 
     found_dates = []
@@ -235,33 +236,26 @@ def extract_date_matches(filename):
         range_patterns.append(range_pattern)
     
     # Find date ranges and keep excluded ones in the remainder
-    for range_pattern in range_patterns:
-        range_matches = re.finditer(range_pattern, raw_remainder, re.IGNORECASE)
-        for match in reversed(list(range_matches)):  # Process in reverse to maintain positions
-            matched_range = match.group(0)
-            # Check if this range should be excluded (kept in remainder)
-            if not should_exclude_date_pattern(filename, matched_range):
-                # Remove the date range from the text (only if NOT excluded)
-                start, end = match.span()
-                raw_remainder = raw_remainder[:start] + raw_remainder[end:]
-            else:
-                # Normalize the date range separators to the configured normalized separator
-                # Pattern to match date ranges with various separators
-                date_pattern = r"\d{4}-\d{1,2}-\d{1,2}"
-                separator_pattern = r"[-s_,.]+"
-                range_pattern = f"({date_pattern})({separator_pattern})({date_pattern})"
-                
-                def replace_separators(match):
-                    date1 = match.group(1)
-                    separator = match.group(2)
-                    date2 = match.group(3)
-                    return date1 + normalized_separator + date2
-                
-                normalized_range = re.sub(range_pattern, replace_separators, matched_range, flags=re.IGNORECASE)
+    try:
+        from core.utils.date_utils import is_date_range_and_normalize
+    except ImportError:
+        # If core module is not in path, try relative import
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+        from core.utils.date_utils import is_date_range_and_normalize
+    
+    is_range, normalized_range = is_date_range_and_normalize(raw_remainder, config)
+    if is_range:
+        # Replace the original range with the normalized version
+        # Find the original range pattern to replace it
+        for date_pattern in date_patterns_for_ranges:
+            range_pattern = f"{date_pattern}(?:{separator_pattern})*{date_pattern}"
+            match = re.search(range_pattern, raw_remainder, re.IGNORECASE)
+            if match:
                 start, end = match.span()
                 raw_remainder = raw_remainder[:start] + normalized_range + raw_remainder[end:]
-                start, end = match.span()
-                raw_remainder = raw_remainder[:start] + raw_remainder[end:]
+                break
     
     while True:
         best_match_info = None
@@ -301,7 +295,7 @@ def extract_date_matches(filename):
         
         try:
             dt = datetime(year, month, day)
-            date_str = dt.strftime('%Y-%m-%d')
+            date_str = dt.strftime(normalized_format)
             
             # Check if this date pattern should be excluded
             if should_exclude_date_pattern(filename, match.group(0)):
@@ -351,6 +345,7 @@ def extract_date_from_path(full_path: str, date_to_match: str) -> str:
     # Load configuration and build patterns
     config = load_config()
     allowed_formats = config.get('Date', {}).get('allowed_formats', [])
+    normalized_format = config.get('Date', {}).get('normalized_format', '%Y-%m-%d')
     patterns = build_date_patterns(allowed_formats)
     
     extracted_dates = []
@@ -388,7 +383,7 @@ def extract_date_from_path(full_path: str, date_to_match: str) -> str:
             
             try:
                 dt = datetime(year, month, day)
-                extracted_dates.append(dt.strftime('%Y-%m-%d'))
+                extracted_dates.append(dt.strftime(normalized_format))
                 
                 # Remove the matched date portion and preserve separators
                 start, end = match.span()
@@ -588,10 +583,9 @@ def should_exclude_date_pattern(text: str, date_match: str) -> bool:
 
     import re
     
-    # Build exclusion patterns using excluded_date_by_prefix, exclude_ranges_separators, and allowed_formats
+    # Check for excluded prefixes followed by optional separators and dates
     allowed_formats = date_config.get('allowed_formats', [])
     exclude_ranges_separators = date_config.get('exclude_ranges_separators', [" ", "-", "_", "."])
-    normalized_separator = date_config.get('exclude_ranges_normalized_separator', " - ")
     
     # Escape separators that are regex special characters
     escaped_separators = [re.escape(sep) for sep in exclude_ranges_separators]
@@ -608,25 +602,11 @@ def should_exclude_date_pattern(text: str, date_match: str) -> bool:
             exclusion_pattern = f"{re.escape(prefix)}\\s*(?:{separator_pattern})?\\s*{format_regex}"
             if re.search(exclusion_pattern, text, re.IGNORECASE):
                 return True
-        
-        # Create range patterns using normalized separator:
-        # Look for DATE1 (any separator) DATE2 and normalize to DATE1 - DATE2 for comparison
-        range_pattern = f"{format_regex}(?:{separator_pattern}){format_regex}"
-        matches = re.finditer(range_pattern, text, re.IGNORECASE)
-        
-        for match in matches:
-            # Normalize the matched range to use the normalized separator
-            matched_range = match.group(0)
-            # Replace any separator with the normalized separator
-            for sep in exclude_ranges_separators:
-                if sep in matched_range:
-                    normalized_range = matched_range.replace(sep, normalized_separator)
-                    # Check if this normalized range matches our exclusion pattern
-                    normalized_pattern = f"{format_regex}{re.escape(normalized_separator)}{format_regex}"
-                    if re.match(normalized_pattern, normalized_range, re.IGNORECASE):
-                        return True
     
-    return False
+    # Use the centralized date range utility for date range detection
+    from core.utils.date_utils import is_date_range_and_normalize
+    is_range, _ = is_date_range_and_normalize(text, config)
+    return is_range
 
 
 if __name__ == "__main__":

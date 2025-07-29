@@ -30,6 +30,7 @@ Name:
 
 Date:
   use_global_separators: true
+  normalized_format: "%Y-%m-%d"  # Format to normalize all dates to
   allowed_formats:
     - "%Y-%m-%d"      # 2023-05-15
     - "%d-%m-%Y"      # 15-05-2023
@@ -64,6 +65,8 @@ Date:
     - "."
     - ","
     - "to"
+  exclude_ranges_separator_strings:
+    - " to "
   exclude_ranges_normalized_separator: " - "
 
 Category:

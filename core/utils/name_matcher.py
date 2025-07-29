@@ -361,24 +361,35 @@ def clean_filename_remainder_py(remainder):
     Clean a filename remainder by replacing all input separators with the normalized separator,
     collapsing runs of separators, and trimming leading/trailing separators.
     """
+    import sys
     import re
     
     if not remainder:
         return remainder
-    # Split extension to preserve it
-    if '.' in remainder:
-        base, ext = remainder.rsplit('.', 1)
-        ext = '.' + ext
-    else:
-        base, ext = remainder, ""
+        
+    print(f"DEBUG: clean_filename_remainder_py input: '{remainder}'", file=sys.stderr)
+    # STEP 1: Normalize date ranges first using centralized utility (on full remainder)
+    try:
+        from core.utils.date_utils import is_date_range_and_normalize
+    except ImportError:
+        # If core module is not in path, try relative import
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+        from core.utils.date_utils import is_date_range_and_normalize
     
-    # Normalize date ranges before general separator normalization
-    def normalize_date_range_separators(text, normalized_separator=" - "):
-        # Pattern to match date ranges with various separators
-        # Use all allowed date formats from config
-        config = load_config()
+    config = load_config()
+    date_normalized_separator = config.get("Date", {}).get("exclude_ranges_normalized_separator", " - ")
+    exclude_ranges_separators = config.get('Date', {}).get('exclude_ranges_separators', [" ", "-", "_", ".", ","])
+    
+    # Check if this is a date range and normalize it
+    is_range, normalized_range = is_date_range_and_normalize(remainder, config)
+    print(f"DEBUG: is_range={is_range}, normalized_range='{normalized_range}'", file=sys.stderr)
+    
+    if is_range and normalized_range:
+        # Replace the original range with the normalized version
+        # Find the original range pattern to replace it
         allowed_formats = config.get('Date', {}).get('allowed_formats', ['%Y-%m-%d'])
-        exclude_ranges_separators = config.get('Date', {}).get('exclude_ranges_separators', [" ", "-", "_", ".", ","])
         
         # Create date patterns for all allowed formats
         date_patterns_for_ranges = []
@@ -420,73 +431,112 @@ def clean_filename_remainder_py(remainder):
             elif fmt == "%d-%m-%y":
                 date_patterns_for_ranges.append(r'\d{1,2}-\d{1,2}-\d{2}')
         
-        # Build separator pattern
+        # Build separator pattern for the original separators
         escaped_separators = [re.escape(sep) for sep in exclude_ranges_separators]
         separator_pattern = '|'.join(escaped_separators)
         
-        # Process each date format pattern
+        # Find and replace the original range
         for date_pattern in date_patterns_for_ranges:
-            range_pattern = f"({date_pattern})({separator_pattern})*({date_pattern})"
-            
-            def replace_separators(match):
-                date1 = match.group(1)
-                date2 = match.group(3)
-                return date1 + normalized_separator + date2
-            
-            text = re.sub(range_pattern, replace_separators, text, flags=re.IGNORECASE)
-        
-        return text
+            range_pattern = f"{date_pattern}(?:{separator_pattern})*{date_pattern}"
+            match = re.search(range_pattern, remainder, re.IGNORECASE)
+            print(f"DEBUG: Trying to replace range with pattern: {range_pattern}", file=sys.stderr)
+            if match:
+                start, end = match.span()
+                print(f"DEBUG: Replacing '{remainder[start:end]}' with '{normalized_range}'", file=sys.stderr)
+                remainder = remainder[:start] + normalized_range + remainder[end:]
+                break
+        # Also try string separators
+        separator_strings = config.get('Date', {}).get('exclude_ranges_separator_strings', [])
+        for sep_str in separator_strings:
+            for date_pattern in date_patterns_for_ranges:
+                range_pattern = f"{date_pattern}{re.escape(sep_str)}{date_pattern}"
+                match = re.search(range_pattern, remainder, re.IGNORECASE)
+                if match:
+                    start, end = match.span()
+                    print(f"DEBUG: [STRINGS] Replacing '{remainder[start:end]}' with '{normalized_range}'", file=sys.stderr)
+                    remainder = remainder[:start] + normalized_range + remainder[end:]
+                    break
     
-    # Get the normalized separator from config
-    config = load_config()
-    date_normalized_separator = config.get("Date", {}).get("exclude_ranges_normalized_separator", " - ")
-    
-    # Normalize date ranges first
-    base = normalize_date_range_separators(base, date_normalized_separator)
-    
-    # Replace all input separators with the normalized separator, but skip normalized date ranges
-    input_seps = load_global_separators()
-    norm_sep = get_normalized_separator()
-    
-    # Split the text into parts, preserving normalized date ranges
-    # Create a pattern that matches normalized date ranges with all possible date formats
+    # STEP 2: Protect normalized date ranges from general separator normalization
+    # Create patterns for normalized date ranges (with the normalized separator)
     normalized_date_patterns = []
     allowed_formats = config.get('Date', {}).get('allowed_formats', ['%Y-%m-%d'])
+    
     for fmt in allowed_formats:
         if fmt == "%Y-%m-%d":
             normalized_date_patterns.append(f"\\d{{4}}-\\d{{1,2}}-\\d{{1,2}}{re.escape(date_normalized_separator)}\\d{{4}}-\\d{{1,2}}-\\d{{1,2}}")
         elif fmt == "%d-%m-%Y":
             normalized_date_patterns.append(f"\\d{{1,2}}-\\d{{1,2}}-\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}-\\d{{1,2}}-\\d{{4}}")
         elif fmt == "%d.%m.%Y":
-            normalized_date_patterns.append(f"\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}")
+            pattern = f"\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}"
+            normalized_date_patterns.append(pattern)
         elif fmt == "%d/%m/%Y":
             normalized_date_patterns.append(f"\\d{{1,2}}/\\d{{1,2}}/\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}/\\d{{1,2}}/\\d{{4}}")
-        # Add more patterns as needed
+        elif fmt == "%Y.%m.%d":
+            normalized_date_patterns.append(f"\\d{{4}}\\.\\d{{1,2}}\\.\\d{{1,2}}{re.escape(date_normalized_separator)}\\d{{4}}\\.\\d{{1,2}}\\.\\d{{1,2}}")
+        elif fmt == "%Y%m%d":
+            normalized_date_patterns.append(f"\\d{{8}}{re.escape(date_normalized_separator)}\\d{{8}}")
+        elif fmt == "%d%m%Y":
+            normalized_date_patterns.append(f"\\d{{8}}{re.escape(date_normalized_separator)}\\d{{8}}")
+        elif fmt == "%m%d%Y":
+            normalized_date_patterns.append(f"\\d{{8}}{re.escape(date_normalized_separator)}\\d{{8}}")
+        elif fmt == "%d-%b-%Y":
+            normalized_date_patterns.append(f"\\d{{1,2}}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{4}}")
+        elif fmt == "%b-%d-%Y":
+            normalized_date_patterns.append(f"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{1,2}}-\\d{{4}}{re.escape(date_normalized_separator)}(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{1,2}}-\\d{{4}}")
+        elif fmt == "%d %b %Y":
+            normalized_date_patterns.append(f"\\d{{1,2}} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{{4}}")
+        elif fmt == "%B %d, %Y":
+            normalized_date_patterns.append(f"(?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{1,2}}, \\d{{4}}{re.escape(date_normalized_separator)}(?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{1,2}}, \\d{{4}}")
+        elif fmt == "%d %B %Y":
+            normalized_date_patterns.append(f"\\d{{1,2}} (?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}} (?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{4}}")
+        elif fmt == "%d-%B-%Y":
+            normalized_date_patterns.append(f"\\d{{1,2}}-(?:January|February|March|April|May|June|July|August|September|October|November|December)-\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}-(?:January|February|March|April|May|June|July|August|September|October|November|December)-\\d{{4}}")
+        elif fmt == "%Y/%m/%d":
+            normalized_date_patterns.append(f"\\d{{4}}/\\d{{1,2}}/\\d{{1,2}}{re.escape(date_normalized_separator)}\\d{{4}}/\\d{{1,2}}/\\d{{1,2}}")
+        elif fmt == "%d.%m.%y":
+            normalized_date_patterns.append(f"\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}{re.escape(date_normalized_separator)}\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}")
+        elif fmt == "%d/%m/%y":
+            normalized_date_patterns.append(f"\\d{{1,2}}/\\d{{1,2}}/\\d{{2}}{re.escape(date_normalized_separator)}\\d{{1,2}}/\\d{{1,2}}/\\d{{2}}")
+        elif fmt == "%d-%m-%y":
+            normalized_date_patterns.append(f"\\d{{1,2}}-\\d{{1,2}}-\\d{{2}}{re.escape(date_normalized_separator)}\\d{{1,2}}-\\d{{1,2}}-\\d{{2}}")
     
-    # Combine all patterns
+    # STEP 3: Apply general separator normalization, but protect normalized date ranges
+    input_seps = load_global_separators()
+    norm_sep = get_normalized_separator()
+    
+    # Split the text into parts, preserving normalized date ranges
     combined_pattern = '|'.join(normalized_date_patterns)
-    parts = re.split(f"({combined_pattern})", base)
+    parts = re.split(f"({combined_pattern})", remainder)
     
     for i, part in enumerate(parts):
-        # Skip normalized date ranges
-        if any(re.match(pattern, part) for pattern in normalized_date_patterns):
+        # Skip normalized date ranges - they should not be processed by general separator normalization
+        is_protected = any(re.search(pattern, part) for pattern in normalized_date_patterns)
+        if is_protected:
             continue
         # Apply general separator normalization to other parts
         for sep in input_seps:
             part = part.replace(sep, norm_sep)
         parts[i] = part
     
-    base = "".join(parts)
+    remainder = "".join(parts)
     
-    # Collapse runs of separators
-    import re
-    norm_sep = get_normalized_separator()
-    base = re.sub(f'{re.escape(norm_sep)}+', norm_sep, base)
+    # STEP 4: Collapse runs of separators
+    remainder = re.sub(f'{re.escape(norm_sep)}+', norm_sep, remainder)
     
-    # Trim leading/trailing separators (all known input separators)
-    input_seps = load_global_separators()
+    # STEP 5: Trim leading/trailing separators (all known input separators)
     for sep in input_seps:
-        base = base.strip(sep)
+        remainder = remainder.strip(sep)
+    
+    # Now split extension, but only if it's not numeric
+    if '.' in remainder:
+        base, ext = remainder.rsplit('.', 1)
+        if not ext.isdigit():
+            ext = '.' + ext
+        else:
+            base, ext = remainder, ""
+    else:
+        base, ext = remainder, ""
     
     result = base + ext
     return result

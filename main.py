@@ -101,7 +101,7 @@ class FileMigrationRenamer:
             return results
         
         # Create output directory if it doesn't exist
-        output_path.mkdir(parents=True, exist_ok=True)
+            output_path.mkdir(parents=True, exist_ok=True)
         
         # Get all files recursively
         for filepath in input_path.rglob('*'):
@@ -142,7 +142,7 @@ class FileMigrationRenamer:
                 if should_exclude:
                     self.logger.info(f"Skipping excluded file: {filename}")
                     continue
-                
+            
                 # Debug: Log files that are being processed
                 if filename == "desktop.ini":
                     self.logger.warning(f"Processing desktop.ini file: {filepath}")
@@ -158,14 +158,14 @@ class FileMigrationRenamer:
                     
                     # Extract person name from the original path for directory structure
                     person_name = relative_path.parts[0] if relative_path.parts else ""
-                    
+            
                     result = {
                         'original_filename': str(relative_path),
                         'new_filename': normalized_filename,
                         'person': person_name,
                         'success': True
                     }
-                    
+            
                     try:
                         # Create person subdirectory in output
                         person_output_dir = output_path / person_name
@@ -198,7 +198,7 @@ class FileMigrationRenamer:
                         result['error'] = f"Failed to process {relative_path}: {e}"
                         result['success'] = False
                         self.logger.error(result['error'])
-                    
+            
                     results.append(result)
                     
                 except Exception as e:
@@ -423,9 +423,12 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
         name_result = extract_name_from_filename(raw_remainder, cleaned_name)
         name_parts = name_result.split('|')
         if len(name_parts) > 1:
+            # Use the canonical name from the name matcher if available
+            canonical_name = name_parts[0].replace(',', ' ').strip()
+            if canonical_name and canonical_name.lower() != cleaned_name.lower():
+                cleaned_name = canonical_name
             # Use the remainder after name extraction
-            raw_remainder = name_parts[1]  # This is the remainder with name removed
-            
+            raw_remainder = name_parts[1]
             # Remove file extension from raw_remainder if it's still there
             if file_extension and raw_remainder.endswith(file_extension):
                 raw_remainder = raw_remainder[:-len(file_extension)]
@@ -455,7 +458,6 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
             metadata_parts = metadata_result.split('|')
             if metadata_parts[0]:  # If metadata date found
                 extracted_date = metadata_parts[0]
-                print(f"DEBUG: Metadata date extracted: {extracted_date} for {original_filename}")
                 # Keep the original remainder since metadata date doesn't change the filename
                 # raw_remainder stays the same
     

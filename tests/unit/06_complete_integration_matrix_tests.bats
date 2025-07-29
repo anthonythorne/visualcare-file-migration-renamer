@@ -2155,12 +2155,12 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
 @test "complete_integration - VC - Mary Jane Wilson Management/Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" {
   # Test case: Real-world date range exclusion test (Mary Jane Wilson DSOA ISP)
   # Input: VC - Mary Jane Wilson Management/Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx
-  # Expected: 1003_Mary Jane Wilson_DSOA0476 ISP 01.07.2024 - 30.06.2025_2025-01-05_Support and NDIS Plan.docx
+  # Expected: 1003_Mary Jane Wilson_DSOA0476 ISP 2024-07-01 - 2025-06-30_2025-01-05_Support and NDIS Plan.docx
   
   echo "=== COMPLETE INTEGRATION TEST ===" >&2
   echo "Test case: Real-world date range exclusion test (Mary Jane Wilson DSOA ISP)" >&2
   echo "Input path: VC - Mary Jane Wilson Management/Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" >&2
-  echo "Expected filename: 1003_Mary Jane Wilson_DSOA0476 ISP 01.07.2024 - 30.06.2025_2025-01-05_Support and NDIS Plan.docx" >&2
+  echo "Expected filename: 1003_Mary Jane Wilson_DSOA0476 ISP 2024-07-01 - 2025-06-30_2025-01-05_Support and NDIS Plan.docx" >&2
   echo "=================================" >&2
   
   # Test user mapping
@@ -2239,7 +2239,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   # Use the test-specific function that handles fallback dates
   result="$(extract_complete_filename_with_fallback "VC - Mary Jane Wilson Management/Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" "2025-01-05" "today" "modified")"
   
-  expected_filename="1003_Mary Jane Wilson_DSOA0476 ISP 01.07.2024 - 30.06.2025_2025-01-05_Support and NDIS Plan.docx"
+  expected_filename="1003_Mary Jane Wilson_DSOA0476 ISP 2024-07-01 - 2025-06-30_2025-01-05_Support and NDIS Plan.docx"
   
   echo "----- COMPLETE FILENAME VALIDATION -----" >&2
   echo "Expected filename: '$expected_filename'" >&2
@@ -2968,20 +2968,20 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }
 
-@test "complete_integration - VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf" {
+@test "complete_integration - VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf" {
   # Test case: Real-world date extraction test (Mary Jane Wilson service agreement)
-  # Input: VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf
-  # Expected: 1003_Mary Jane Wilson_Letter from participant changing provider to Care to Change_2021-03-20_Service Agreements .pdf
+  # Input: VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf
+  # Expected: 1003_Mary Jane Wilson_Letter from participant changing provider to Helping Care_2021-03-20_Service Agreements.pdf
   
   echo "=== COMPLETE INTEGRATION TEST ===" >&2
   echo "Test case: Real-world date extraction test (Mary Jane Wilson service agreement)" >&2
-  echo "Input path: VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf" >&2
-  echo "Expected filename: 1003_Mary Jane Wilson_Letter from participant changing provider to Care to Change_2021-03-20_Service Agreements .pdf" >&2
+  echo "Input path: VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf" >&2
+  echo "Expected filename: 1003_Mary Jane Wilson_Letter from participant changing provider to Helping Care_2021-03-20_Service Agreements.pdf" >&2
   echo "=================================" >&2
   
   # Test user mapping
   echo "Testing user mapping..." >&2
-  result="$(extract_user_from_path "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf")"
+  result="$(extract_user_from_path "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf")"
   IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
   expected_user_id="1003"
@@ -3003,14 +3003,14 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   # Test category mapping (if there's a second directory)
   # Extract the second directory as the category candidate
   # Use cut to get the second field when splitting by '/'
-  category_candidate=$(echo "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf" | cut -d'/' -f2)
+  category_candidate=$(echo "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf" | cut -d'/' -f2)
   if [ -n "$category_candidate" ]; then
     
     echo "Testing category mapping..." >&2
-    result="$(extract_category_from_path "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf")"
+    result="$(extract_category_from_path "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf")"
     IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
     
-    expected_category="Service Agreements "
+    expected_category="Service Agreements"
     
     echo "----- CATEGORY MAPPING RESULTS -----" >&2
     echo "Category candidate: '$category_candidate'" >&2
@@ -3030,7 +3030,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   
   # Test date extraction
   echo "Testing date extraction..." >&2
-  result="$(extract_date_from_path_for_string_test_fallback "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf" "" "today" "filename")"
+  result="$(extract_date_from_path_for_string_test_fallback "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf" "" "today" "filename")"
   IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
   
   expected_date="2021-03-20"
@@ -3053,9 +3053,9 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   echo "Testing complete filename generation..." >&2
   
   # Use the test-specific function that handles fallback dates
-  result="$(extract_complete_filename_with_fallback "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Care to Change.pdf" "" "today" "filename")"
+  result="$(extract_complete_filename_with_fallback "VC - Mary Jane Wilson Management/Service Agreements/2021.03.20 - Mary Jane Wilson - Letter from participant changing provider to Helping Care.pdf" "" "today" "filename")"
   
-  expected_filename="1003_Mary Jane Wilson_Letter from participant changing provider to Care to Change_2021-03-20_Service Agreements .pdf"
+  expected_filename="1003_Mary Jane Wilson_Letter from participant changing provider to Helping Care_2021-03-20_Service Agreements.pdf"
   
   echo "----- COMPLETE FILENAME VALIDATION -----" >&2
   echo "Expected filename: '$expected_filename'" >&2
