@@ -1,239 +1,89 @@
-# Configuration for filename normalization components.
-# Each section defines rules for a specific component of the filename.
-# This file is loaded by the main application and utility modules.
-
-# Filename format configuration - defines the order and structure of normalized filenames.
-# This section controls how the final filename is assembled from extracted components.
-FilenameFormat:
-  # Template for normalized filename using placeholders.
-  # Available placeholders: {id}, {name}, {date}, {remainder}, {category}, {management_flag}
-  # The template defines the order and separators between components.
-  template: "{id}_{name}_{remainder}_{date}"
-  
-  # Separator between components in the final filename
-  component_separator: "_"
-  
-  # Whether to include empty components (e.g., if no date, skip the separator)
-  skip_empty_components: true
-  
-  # Whether to clean up multiple consecutive separators in final filename
-  cleanup_separators: true
-
-# File ignore configuration
-FileIgnore:
-  # List of files to ignore during processing
-  # These files will be skipped entirely
-  ignore_files:
+Global:
+  separators:
+    input: [" ", "-", "_", ".", "/", "*", "@", "#", "$", "%", "&", "+", "=", "~", "|"]
+    normalized: " "  # Use a single space for normalized output
+    preserve: false  # Always normalize to the above
+  case_normalization: "titlecase"  # Options: lowercase, uppercase, titlecase
+  allow_multiple_separators: false
+  component_order:
+    - id
+    - name
+    - remainder
+    - date
+    - category
+  component_separator: "_"  # Separator between components in final filename
+  file_exclusions:
     - "desktop.ini"
     - "Thumbs.db"
     - ".DS_Store"
-    - "~tmp*"
     - "*.tmp"
-    - "*.temp"
-    - "*.bak"
-    - "*.backup"
-    - "*.old"
-    - "*.orig"
-  
-  # List of directories to ignore during processing
-  # These directories and their contents will be skipped entirely
-  ignore_directories:
-    - ".git"
-    - ".svn"
-    - "__pycache__"
-    - "node_modules"
-    - ".vscode"
-    - ".idea"
-  
-  # Whether to ignore hidden files (files starting with .)
-  ignore_hidden_files: true
-  
-  # Whether to ignore system files
-  ignore_system_files: true
-
-# Multi-level directory handling configuration
-DirectoryStructure:
-  # Whether to enable multi-level directory processing
-  enabled: true
-  
-  # Maximum depth to process (0 = unlimited, 1 = immediate subdirectories only, etc.)
-  max_depth: 0
-  
-  # How to handle directory names in the filename
-  # Options: "include", "exclude", "smart"
-  # - "include": Include all directory names in the path
-  # - "exclude": Exclude directory names from filename
-  # - "smart": Include meaningful directory names, exclude system/utility directories
-  directory_handling: "smart"
-  
-  # Directory names to exclude from filename (when using smart mode)
-  exclude_directories:
-    - "MISC"
-    - "PERSONAL"
-    - "Previous"
-    - "Old"
-    - "Archive"
-    - "Backup"
-    - "Temp"
-    - "Temporary"
-  
-  # Whether to flatten directory structure in output
-  # If true, all files will be placed in a single output directory
-  # If false, maintain relative directory structure
-  flatten_structure: true
-  
-  # Folder separator replacement for remainder processing
-  # Replace folder separators with this character in remainder
-  folder_separator_replacement: " "
-  
-  # Whether to preserve YYYY folders in remainder
-  # If true, year folders like "2023", "2024" are kept in remainder
-  preserve_year_folders: true
-  
-  # Whether to remove date folders from remainder
-  # If true, date folders like "01.06.2023" are removed from remainder
-  remove_date_folders: true
-
-# Year and date folder handling
-DateFolderHandling:
-  # Whether to enable year/date folder processing
-  enabled: true
-  
-  # Pattern to match year-only folders (e.g., "2023", "2024", "2025")
-  year_pattern: r"^\d{4}$"
-  
-  # Pattern to match full date folders (e.g., "25.01.15", "2023.07.25")
-  full_date_pattern: r"^\d{2}\.\d{2}\.\d{4}$|^\d{4}\.\d{2}\.\d{2}$"
-  
-  # How to handle year folders
-  # Options: "prepend", "append", "ignore", "use_as_date"
-  # - "prepend": Add year to beginning of filename
-  # - "append": Add year to end of filename  
-  # - "ignore": Don't include year in filename
-  # - "use_as_date": Use year as the file date
-  year_handling: "prepend"
-  
-  # How to handle full date folders
-  # Options: "use_as_date", "prepend", "append", "ignore"
-  # - "use_as_date": Use folder date as the file date (overrides file date)
-  # - "prepend": Add date to beginning of filename
-  # - "append": Add date to end of filename
-  # - "ignore": Don't include date in filename
-  full_date_handling: "use_as_date"
-  
-  # Priority for date sources (when full_date_handling is "use_as_date")
-  # Higher priority sources override lower priority ones
-  date_priority:
-    - "filename_date"    # Date extracted from filename
-    - "folder_date"      # Date from folder name
-    - "modified_date"    # File modification date
-    - "created_date"     # File creation date
-
-# User ID mapping configuration
-UserMapping:
-  # Path to CSV file containing user ID to name mappings
-  # Expected format: user_id,full_name (e.g., "1001,John Doe")
-  mapping_file: "tests/fixtures/user_mapping.csv"
-  
-  # Column names in the mapping CSV
-  id_column: "user_id"
-  name_column: "full_name"
-  
-  # Whether to create the mapping file if it doesn't exist
-  create_if_missing: true
-  
-  # Default behavior when user ID is not found in mapping
-  # Options: "error", "skip", "use_name_only"
-  missing_id_behavior: "error"
-
-# Category support for multi-level directory processing
-Category:
-  # Whether to enable category support
-  enabled: true
-  
-  # Default category when none can be determined
-  default_category: "general"
-  
-  # Path to CSV file containing category ID to name mappings
-  mapping_file: "tests/fixtures/category_mapping.csv"
-  
-  # Column names in the mapping CSV
-  id_column: "category_id"
-  name_column: "category_name"
-  
-  # Whether to use case insensitive matching
-  case_insensitive: true
-  
-  # Whether to only check first-level directories for category matches
-  first_level_only: true
-  
-  # Whether to append category ID to filename
-  append_to_filename: true
-  
-  # Where to place the category ID in the filename
-  # Options: "prefix", "suffix", "separate_component"
-  placement: "suffix"
-
-# Management flag configuration
-ManagementFlag:
-  # Whether to enable management flag detection
-  enabled: true
-  
-  # Keywords that indicate management files
-  keywords:
-    - "management"
-    - "admin"
-    - "supervisor"
-  
-  # Flag to append to management files
-  flag: "MGMT"
-  
-  # Where to place the flag in the filename
-  # Options: "prefix", "suffix", "separate_component"
-  placement: "suffix"
+    - "~$*"  # Temporary Office files
 
 Name:
-  # Allowed separators to have in the name portion when searching for name parts.
-  allowed_separators_when_searching:
-    - " "  # space
-    - "-"  # hyphen
-    - "_"  # underscore
-    - "."  # period
-    - "*"  # asterisk
-    - "@"  # at sign
-    - "#"  # hash
-    - "$"  # dollar
-    - "%"  # percent
-    - "&"  # ampersand
-    - "+"  # plus
-    - "="  # equals
-    - "~"  # tilde
-    - "|"  # pipe
-  # Allowed separators to keep in the plucked full name (from directory, e.g., 'John Doe')
-  allowed_separator_on_normalized_name:
-    - " "  # space
-  allow_multiple: true  # Allow multiple consecutive separators when searching
-  normalize_output: true  # Normalize separators in output
-  default_output_separator: "_"  # Default separator for normalized output
-  normalized_case: uppercasewords  # Options: uppercase, lowercase, uppercasewords
+  use_global_separators: true
+  extraction_order:
+    - shorthand
+    - initials
+    - first_name
+    - middle_name
+    - last_name
 
 Date:
-  # Date format used for the final filename (strftime compatible)
-  format: "%Y-%m-%d"  # Example: 2023-05-15
-  # Priority order for extracting date: options are 'filename', 'foldername', 'modified', 'created'
+  use_global_separators: true
+  normalized_format: "%Y-%m-%d"  # Format to normalize all dates to
+  allowed_formats:
+    - "%Y-%m-%d"      # 2023-05-15
+    - "%d-%m-%Y"      # 15-05-2023
+    - "%Y%m%d"        # 20230515
+    - "%d%m%Y"        # 15052023
+    - "%m%d%Y"        # 05152023
+    - "%d-%b-%Y"      # 15-May-2023
+    - "%b-%d-%Y"      # May-15-2023
+    - "%d %b %Y"      # 15 May 2023
+    - "%B %d, %Y"     # May 15, 2023
+    - "%Y.%m.%d"      # 2023.05.15
+    - "%d.%m.%Y"      # 15.05.2023
+    - "%d %B %Y"      # 15 May 2023
+    - "%d-%B-%Y"      # 15-May-2023
+    - "%d/%m/%Y"      # 15/05/2023
+    - "%Y/%m/%d"      # 2023/05/15
+    - "%d.%m.%y"      # 25.01.15 or 5.9.24 (2-digit year, single or double digit day/month)
+    - "%d/%m/%y"      # 25/01/15 or 5/9/24 (2-digit year, single or double digit day/month)
+    - "%d-%m-%y"      # 25-01-15 or 5-9-24 (2-digit year, single or double digit day/month)
   date_priority_order:
     - filename
     - foldername
     - modified
     - created
+  exclude_ranges: true
+  excluded_date_by_prefix:
+    - "exp"
+  exclude_ranges_separators:
+    - " "
+    - "-"
+    - "_"
+    - "."
+    - ","
+    - "to"
+  exclude_ranges_separator_strings:
+    - " to "
+  exclude_ranges_normalized_separator: " - "
 
-Remainder:
-  # Allowed separators to keep in the remainder (duplicates will be collapsed)
-  allowed_separators:
-    - " "  # space
-    - "-"  # hyphen
-    - "_"  # underscore
-    - "."  # period
-    - "/"  # forward slash (for folder separators)
-    # Add more as needed
-  preserve_remainder_separators: true  # Whether to preserve original separators in the remainder (duplicates collapsed) 
+Category:
+  mapping_test_file: tests/fixtures/04_category_mapping.csv
+  id_column: category_id
+  name_column: category_name
+  case_insensitive: true
+  enabled: true
+  first_level_only: true
+  append_to_filename: true
+  placement: suffix 
+
+UserMapping:
+  mapping_test_file: tests/fixtures/05_user_mapping.csv
+  id_column: user_id
+  name_column: full_name
+  case_insensitive: true
+  create_if_missing: false
+  prefix: "VC - "  # Optional prefix to remove from directory names
+  suffix: " Management"  # Optional suffix to remove from directory names 

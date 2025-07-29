@@ -1,0 +1,7 @@
+test_case,full_path,person_name,expected_user_id,expected_name,expected_remainder,expected_date,expected_category,expected_filename,description,folder_date,filename_date,modified_date,created_date,priority_date
+comp_1,John Doe/CategoryA/2023/John_Doe_15-05-2023_Report.pdf,John Doe,1001,John Doe,Report,2023-05-15,CategoryA,1001_John Doe_Report_2023-05-15_CategoryA.pdf,All features: category, folder date, full name, EU date, multi-level,2023-05-15,2023-05-15,,,filename_date
+comp_2,John Doe/CategoryA/Dir1/Dir2/JD_2023.05.18_Report.pdf,John Doe,1001,John Doe,Report,2023-05-18,CategoryA,1001_John Doe_Report_2023-05-18_CategoryA.pdf,Shorthand, multi-level, category, dot date,,2023-05-18,,,filename_date
+comp_3,John Doe/CategoryA/Dir1/Dir2/Report.pdf,John Doe,1001,John Doe,Report,2023-05-20,CategoryA,1001_John Doe_Report_2023-05-20_CategoryA.pdf,Date from folder, multi-level, category,2023-05-20,,,,folder_date
+comp_4,John Doe/Dir1/Dir2/Report.pdf,John Doe,1001,John Doe,Report,2023-05-21,,1001_John Doe_Report_2023-05-21.pdf,Date from modified, multi-level, no category,,,2023-05-21,,modified_date
+comp_5,John Doe/CategoryA/Report.pdf,John Doe,1001,John Doe,Report,today,CategoryA,1001_John Doe_Report_today_CategoryA.pdf,Date from created, category, single-level,,,,today,created_date
+comp_6,John Doe/Report.pdf,John Doe,1001,John Doe,Report,today,,1001_John Doe_Report_today.pdf,Date from created, no category, single-level,,,,today,created_date 

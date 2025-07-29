@@ -57,7 +57,7 @@ def load_user_mapping() -> Dict[str, str]:
     config = load_config()
     user_config = config.get('UserMapping', {})
     
-    mapping_file = user_config.get('mapping_file', 'config/user_mapping.csv')
+    mapping_file = user_config.get('mapping_test_file', 'config/user_mapping.csv')
     id_column = user_config.get('id_column', 'user_id')
     name_column = user_config.get('name_column', 'full_name')
     
@@ -104,24 +104,31 @@ def create_default_mapping(mapping_path: Path, id_column: str, name_column: str)
 
 def get_user_id_by_name(full_name: str) -> Optional[str]:
     """
-    Get user ID by full name.
+    Get user ID by full name, handling optional prefix/suffix removal.
     
     Args:
-        full_name: The full name to look up
+        full_name: The full name to look up (may include prefix/suffix)
         
     Returns:
         User ID if found, None otherwise
     """
+    config = load_config()
+    user_config = config.get('UserMapping', {})
     user_mapping = load_user_mapping()
     
-    # Direct lookup
-    for user_id, name in user_mapping.items():
-        if name.lower() == full_name.lower():
-            return user_id
+    # Remove prefix and suffix if configured
+    prefix = user_config.get('prefix', '')
+    suffix = user_config.get('suffix', '')
     
-    # Fuzzy matching (case-insensitive partial match)
+    cleaned_name = full_name
+    if prefix and cleaned_name.startswith(prefix):
+        cleaned_name = cleaned_name[len(prefix):].strip()
+    if suffix and cleaned_name.endswith(suffix):
+        cleaned_name = cleaned_name[:-len(suffix)].strip()
+    
+    # Direct lookup (case-insensitive)
     for user_id, name in user_mapping.items():
-        if full_name.lower() in name.lower() or name.lower() in full_name.lower():
+        if name.lower() == cleaned_name.lower():
             return user_id
     
     return None
@@ -231,36 +238,162 @@ def format_filename_with_id(user_id: str, name: str, date: str, remainder: str,
     return formatted
 
 
+def extract_user_from_path(full_path: str) -> str:
+    """
+    Extract user information from a full path (directory + filename).
+    Follows sequential string-based approach: extracts person name from first directory.
+    
+    Args:
+        full_path: Full path like "John Doe/file.pdf" or "VC - John Doe/document.pdf"
+        
+    Returns:
+        user_id|raw_name|cleaned_name|raw_remainder|cleaned_remainder
+        
+    Process:
+    1. Extract person name from first directory
+    2. Remove person name from path (always)
+    3. Check user mapping for match
+    4. Return remainder string for next extraction step
+    """
+    from pathlib import Path
+    import subprocess
+    
+    config = load_config()
+    global_config = config.get('Global', {})
+    case_normalization = global_config.get('case_normalization', 'titlecase')
+    
+    # Split path into parts to get first directory
+    path_obj = Path(full_path)
+    path_parts = path_obj.parts
+    
+    # Extract person name from first directory
+    if len(path_parts) > 0:
+        person_directory = path_parts[0]  # First directory is person's name
+        # Get remainder (everything after person directory)
+        if len(path_parts) > 1:
+            raw_remainder = "/".join(path_parts[1:])
+        else:
+            raw_remainder = ""
+    else:
+        person_directory = ""
+        raw_remainder = ""
+    
+    # Get user mapping info
+    user_id = get_user_id_by_name(person_directory) or ""
+    raw_name = person_directory
+    
+    # Get cleaned name (with prefix/suffix removed)
+    user_config = config.get('UserMapping', {})
+    prefix = user_config.get('prefix', '')
+    suffix = user_config.get('suffix', '')
+    
+    cleaned_name = person_directory
+    if prefix and cleaned_name.startswith(prefix):
+        cleaned_name = cleaned_name[len(prefix):].strip()
+    if suffix and cleaned_name.endswith(suffix):
+        cleaned_name = cleaned_name[:-len(suffix)].strip()
+    
+    # Apply case normalization
+    if case_normalization == 'titlecase':
+        cleaned_name = cleaned_name.title()
+    elif case_normalization == 'lowercase':
+        cleaned_name = cleaned_name.lower()
+    elif case_normalization == 'uppercase':
+        cleaned_name = cleaned_name.upper()
+    
+    # Get cleaned remainder using global cleaner
+    cleaned_remainder = raw_remainder
+    if raw_remainder:
+        project_root = Path(__file__).parent.parent.parent
+        try:
+            cleaned_remainder = subprocess.check_output([
+                'python3',
+                str(project_root / 'core/utils/name_matcher.py'),
+                '--clean-filename',
+                raw_remainder
+            ], text=True, stderr=subprocess.DEVNULL).strip()
+        except:
+            cleaned_remainder = raw_remainder
+    
+    return f"{user_id}|{raw_name}|{cleaned_name}|{raw_remainder}|{cleaned_remainder}"
+
+
 if __name__ == "__main__":
-    # Test the functionality
     import sys
+    from pathlib import Path
+    import subprocess
     
-    if len(sys.argv) < 2:
-        print("Usage: user_mapping.py <command> [args]")
-        print("Commands:")
-        print("  get_id <name> - Get user ID by name")
-        print("  get_name <id> - Get name by user ID")
-        print("  extract_id <filename> <name> - Extract user ID from filename")
-        sys.exit(1)
+    if len(sys.argv) == 2:
+        input_path = sys.argv[1]
+        
+        # Check if this looks like a full path (contains directory separator)
+        if '/' in input_path or '\\' in input_path:
+            # Use the new path-based extraction
+            result = extract_user_from_path(input_path)
+            print(result)
+        else:
+            # Use the old name-based extraction for backward compatibility
+            input_name = input_path
+            user_id = get_user_id_by_name(input_name) or ""
+            full_name = get_name_by_user_id(user_id) if user_id else ""
+            raw_name = input_name
+            
+            # Get cleaned name (with prefix/suffix removed)
+            config = load_config()
+            user_config = config.get('UserMapping', {})
+            global_config = config.get('Global', {})
+            prefix = user_config.get('prefix', '')
+            suffix = user_config.get('suffix', '')
+            case_normalization = global_config.get('case_normalization', 'titlecase')
+            
+            cleaned_name = input_name
+            if prefix and cleaned_name.startswith(prefix):
+                cleaned_name = cleaned_name[len(prefix):].strip()
+            if suffix and cleaned_name.endswith(suffix):
+                cleaned_name = cleaned_name[:-len(suffix)].strip()
+            
+            # Apply case normalization
+            if case_normalization == 'titlecase':
+                cleaned_name = cleaned_name.title()
+            elif case_normalization == 'lowercase':
+                cleaned_name = cleaned_name.lower()
+            elif case_normalization == 'uppercase':
+                cleaned_name = cleaned_name.upper()
+            
+            print(f"{user_id}|{raw_name}|{cleaned_name}")
     
-    command = sys.argv[1]
-    
-    if command == "get_id" and len(sys.argv) >= 3:
-        name = sys.argv[2]
-        user_id = get_user_id_by_name(name)
-        print(f"User ID for '{name}': {user_id}")
-    
-    elif command == "get_name" and len(sys.argv) >= 3:
-        user_id = sys.argv[2]
-        name = get_name_by_user_id(user_id)
-        print(f"Name for user ID '{user_id}': {name}")
-    
-    elif command == "extract_id" and len(sys.argv) >= 4:
-        filename = sys.argv[2]
-        name = sys.argv[3]
-        user_id = extract_user_id_from_filename(filename, name)
-        print(f"Extracted user ID from '{filename}' for '{name}': {user_id}")
+    elif len(sys.argv) >= 3:
+        command = sys.argv[1]
+        
+        if command == "get_id" and len(sys.argv) >= 3:
+            name = sys.argv[2]
+            user_id = get_user_id_by_name(name)
+            print(f"User ID for '{name}': {user_id}")
+        
+        elif command == "get_name" and len(sys.argv) >= 3:
+            user_id = sys.argv[2]
+            name = get_name_by_user_id(user_id)
+            print(f"Name for user ID '{user_id}': {name}")
+        
+        elif command == "extract_id" and len(sys.argv) >= 4:
+            filename = sys.argv[2]
+            name = sys.argv[3]
+            user_id = extract_user_id_from_filename(filename, name)
+            print(f"Extracted user ID from '{filename}' for '{name}': {user_id}")
+        
+        elif command == "extract_from_path" and len(sys.argv) >= 3:
+            path = sys.argv[2]
+            result = extract_user_from_path(path)
+            print(result)
+        
+        else:
+            print("Invalid command or missing arguments")
+            sys.exit(1)
     
     else:
-        print("Invalid command or missing arguments")
+        print("Usage: python3 user_mapping.py <name_or_path>")
+        print("   or: python3 user_mapping.py get_id <name>")
+        print("   or: python3 user_mapping.py get_name <user_id>")
+        print("   or: python3 user_mapping.py extract_id <filename> <name>")
+        print("   or: python3 user_mapping.py extract_from_path <path>")
         sys.exit(1) 

@@ -14,6 +14,7 @@ File Path: core/utils/name_matcher.py
 @since   1.0.0
 
 Algorithms:
+- Extraction order is now fully configurable via config/components.yaml (Name.extraction_order)
 - Full name extraction with fuzzy character substitution
 - Initials detection (grouped and separated)
 - Shorthand patterns (j-doe, john-d)
@@ -22,7 +23,7 @@ Algorithms:
 - Remainder cleaning and normalization
 
 Configuration:
-- Loads separators from config/components.yaml
+- Loads separators and extraction order from config/components.yaml
 - Supports fuzzy character substitutions
 - Configurable separator precedence for cleaning
 - Extension preservation during processing
@@ -48,24 +49,20 @@ def load_config():
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
-def load_separators_for_searching():
+def load_global_separators():
     config = load_config()
-    return config['Name']['allowed_separators_when_searching']
+    return config['Global']['separators']['input']
 
-def load_allowed_separators_for_name():
+def get_normalized_separator():
     config = load_config()
-    return config['Name']['allowed_separators']
-
-def load_remainder_allowed_separators():
-    config = load_config()
-    return config['Remainder']['allowed_separators']
+    return config['Global']['separators']['normalized']
 
 def separator_regex_for_searching():
-    seps = load_separators_for_searching()
+    seps = load_global_separators()
     return '(?:' + '|'.join(re.escape(sep) for sep in seps) + ')'
 
 def separator_char_class_for_remainder():
-    seps = load_remainder_allowed_separators()
+    seps = load_global_separators()
     return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
 def _generate_fuzzy_regex(part):
@@ -103,94 +100,90 @@ def match_both_initials(filename, first_initial, last_initial):
         return filename[start:end], filename[:start] + filename[end:]
     return None
 
+def get_extraction_order():
+    config = load_config()
+    return config.get('Name', {}).get('extraction_order', [
+        'shorthand', 'initials', 'first_name', 'last_name'
+    ])
+
 def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     """
-    Extract all name matches from filename using the new type-based processing algorithm.
-    
-    Processing order:
-    1. Find all shorthand patterns first (prevents incorrect splitting)
-    2. Find all remaining initials patterns
-    3. Find all remaining first name matches
-    4. Find all remaining last name matches
-    5. Clean remainder using separator precedence from config
-    
-    Returns: extracted_names|raw_remainder|match_status
+    Extract all possible name matches following the configured extraction order.
+    For three-part names, skip shorthand matching and allow middle name extraction.
+    Returns: extracted_names|raw_remainder|cleaned_remainder|matched
     """
-    # debug_print(f"START: Processing filename: '{filename}' with name: '{name_to_match}'")
-    name_parts = [p for p in name_to_match.split() if p]
-    if not name_parts:
-        return f"|{filename}|false"
+    name_parts = name_to_match.split()
+    extracted = []
+    raw_remainder = filename
+    matched = False
     
-    extracted_pieces = []
-    work_filename = filename
+    # Get the configured extraction order
+    extraction_order = get_extraction_order()
     
-    # Step 1: Find all shorthand patterns first
-    # debug_print("Step 1: Finding all shorthand patterns")
-    shorthand_matches = []
-    while True:
-        result = extract_shorthand_name_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        shorthand_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found shorthand: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(shorthand_matches)
+    # Process each extraction type in order
+    for extraction_type in extraction_order:
+        if extraction_type == 'shorthand':
+            # Skip shorthand for three-part names
+            if len(name_parts) == 2:
+                # Find all shorthand matches
+                while True:
+                    result = extract_shorthand_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
+                    parts = result.split('|')
+                    if parts[2] == 'true':  # matched
+                        extracted.append(parts[0])
+                        raw_remainder = parts[1]
+                        matched = True
+                    else:
+                        break
+        elif extraction_type == 'initials':
+            # Find all initials matches
+            while True:
+                result = extract_initials_from_filename(raw_remainder, name_to_match, clean_filename=False)
+                parts = result.split('|')
+                if parts[2] == 'true':  # matched
+                    extracted.append(parts[0])
+                    raw_remainder = parts[1]
+                    matched = True
+                else:
+                    break
+        elif extraction_type == 'first_name':
+            # Find all first name matches
+            while True:
+                result = extract_first_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
+                parts = result.split('|')
+                if parts[2] == 'true':  # matched
+                    extracted.append(parts[0])
+                    raw_remainder = parts[1]
+                    matched = True
+                else:
+                    break
+        elif extraction_type == 'middle_name':
+            # Only extract middle name for three-part names
+            if len(name_parts) == 3:
+                # Find all middle name matches
+                while True:
+                    result = extract_middle_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
+                    parts = result.split('|')
+                    if parts[3] == 'true':  # matched
+                        extracted.append(parts[0])
+                        raw_remainder = parts[1]
+                        matched = True
+                    else:
+                        break
+        elif extraction_type == 'last_name':
+            # Find all last name matches
+            while True:
+                result = extract_last_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
+                parts = result.split('|')
+                if parts[2] == 'true':  # matched
+                    extracted.append(parts[0])
+                    raw_remainder = parts[1]
+                    matched = True
+                else:
+                    break
     
-    # Step 2: Find all remaining initials patterns
-    # debug_print("Step 2: Finding all initials patterns")
-    initials_matches = []
-    while True:
-        result = extract_initials_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        initials_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found initials: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(initials_matches)
-    
-    # Step 3: Find all remaining first name matches
-    # debug_print("Step 3: Finding all first name matches")
-    first_name_matches = []
-    while True:
-        result = extract_first_name_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        first_name_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found first name: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(first_name_matches)
-    
-    # Step 4: Find all remaining last name matches
-    # debug_print("Step 4: Finding all last name matches")
-    last_name_matches = []
-    while True:
-        result = extract_last_name_from_filename(work_filename, name_to_match, clean_filename=False)
-        if result.startswith('|') or result.split('|')[2] != 'true':
-            break
-        extracted, remainder, _ = result.split('|')
-        last_name_matches.append(extracted)
-        if work_filename == remainder:
-            break  # Prevent infinite loop
-        work_filename = remainder
-        # debug_print(f"Found last name: '{extracted}', remainder: '{work_filename}'")
-    extracted_pieces.extend(last_name_matches)
-    
-    if not extracted_pieces:
-        return f"|{filename}|false"
-    
-    # Return the raw remainder (before cleaning) as expected by tests
-    final_extracted = ','.join(extracted_pieces)
-    # debug_print(f"FINAL: Extracted: '{final_extracted}', Raw remainder: '{work_filename}'")
-    return f"{final_extracted}|{work_filename}|true"
+    cleaned_remainder = clean_filename_remainder_py(raw_remainder)
+    return f"{','.join(extracted)}|{raw_remainder}|{cleaned_remainder}|{'true' if matched else 'false'}"
 
 def match_both_initials(filename, name_parts):
     """Match both initials using base functions"""
@@ -320,7 +313,7 @@ def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clea
 
 def separator_char_class():
     """Return a regex character class for all separators from YAML config."""
-    seps = load_separators_for_searching()
+    seps = load_global_separators()
     return '[' + ''.join(re.escape(s) for s in seps) + ']'
 
 def extract_initials_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
@@ -365,58 +358,187 @@ def extract_initials_from_filename(filename: str, name_to_match: str, clean_file
 
 def clean_filename_remainder_py(remainder):
     """
-    Clean a filename remainder by collapsing runs of consecutive allowed separators to the most preferred one (from YAML order).
-    
-    The algorithm:
-    1. Find areas where there are one or more separators grouped together
-    2. Remove separators in reverse order of the YAML config (least preferred first)
-    3. Keep one instance of the most preferred separator
-    4. Remove leading/trailing separators (least preferred first)
-    5. Replace forward slashes with spaces (for folder separators)
+    Clean a filename remainder by replacing all input separators with the normalized separator,
+    collapsing runs of separators, and trimming leading/trailing separators.
     """
+    import sys
+    import re
+    
     if not remainder:
         return remainder
         
-    # Split extension to preserve it
+    print(f"DEBUG: clean_filename_remainder_py input: '{remainder}'", file=sys.stderr)
+    # STEP 1: Normalize date ranges first using centralized utility (on full remainder)
+    try:
+        from core.utils.date_utils import is_date_range_and_normalize
+    except ImportError:
+        # If core module is not in path, try relative import
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+        from core.utils.date_utils import is_date_range_and_normalize
+    
+    config = load_config()
+    date_normalized_separator = config.get("Date", {}).get("exclude_ranges_normalized_separator", " - ")
+    exclude_ranges_separators = config.get('Date', {}).get('exclude_ranges_separators', [" ", "-", "_", ".", ","])
+    
+    # Check if this is a date range and normalize it
+    is_range, normalized_range = is_date_range_and_normalize(remainder, config)
+    print(f"DEBUG: is_range={is_range}, normalized_range='{normalized_range}'", file=sys.stderr)
+    
+    if is_range and normalized_range:
+        # Replace the original range with the normalized version
+        # Find the original range pattern to replace it
+        allowed_formats = config.get('Date', {}).get('allowed_formats', ['%Y-%m-%d'])
+        
+        # Create date patterns for all allowed formats
+        date_patterns_for_ranges = []
+        for fmt in allowed_formats:
+            if fmt == "%Y-%m-%d":
+                date_patterns_for_ranges.append(r'\d{4}-\d{1,2}-\d{1,2}')
+            elif fmt == "%d-%m-%Y":
+                date_patterns_for_ranges.append(r'\d{1,2}-\d{1,2}-\d{4}')
+            elif fmt == "%Y%m%d":
+                date_patterns_for_ranges.append(r'\d{8}')
+            elif fmt == "%d%m%Y":
+                date_patterns_for_ranges.append(r'\d{8}')
+            elif fmt == "%m%d%Y":
+                date_patterns_for_ranges.append(r'\d{8}')
+            elif fmt == "%d-%b-%Y":
+                date_patterns_for_ranges.append(r'\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}')
+            elif fmt == "%b-%d-%Y":
+                date_patterns_for_ranges.append(r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{1,2}-\d{4}')
+            elif fmt == "%d %b %Y":
+                date_patterns_for_ranges.append(r'\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}')
+            elif fmt == "%B %d, %Y":
+                date_patterns_for_ranges.append(r'(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}')
+            elif fmt == "%Y.%m.%d":
+                date_patterns_for_ranges.append(r'\d{4}\.\d{1,2}\.\d{1,2}')
+            elif fmt == "%d.%m.%Y":
+                date_patterns_for_ranges.append(r'\d{1,2}\.\d{1,2}\.\d{4}')
+            elif fmt == "%d %B %Y":
+                date_patterns_for_ranges.append(r'\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}')
+            elif fmt == "%d-%B-%Y":
+                date_patterns_for_ranges.append(r'\d{1,2}-(?:January|February|March|April|May|June|July|August|September|October|November|December)-\d{4}')
+            elif fmt == "%d/%m/%Y":
+                date_patterns_for_ranges.append(r'\d{1,2}/\d{1,2}/\d{4}')
+            elif fmt == "%Y/%m/%d":
+                date_patterns_for_ranges.append(r'\d{4}/\d{1,2}/\d{1,2}')
+            elif fmt == "%d.%m.%y":
+                date_patterns_for_ranges.append(r'\d{1,2}\.\d{1,2}\.\d{2}')
+            elif fmt == "%d/%m/%y":
+                date_patterns_for_ranges.append(r'\d{1,2}/\d{1,2}/\d{2}')
+            elif fmt == "%d-%m-%y":
+                date_patterns_for_ranges.append(r'\d{1,2}-\d{1,2}-\d{2}')
+        
+        # Build separator pattern for the original separators
+        escaped_separators = [re.escape(sep) for sep in exclude_ranges_separators]
+        separator_pattern = '|'.join(escaped_separators)
+        
+        # Find and replace the original range
+        for date_pattern in date_patterns_for_ranges:
+            range_pattern = f"{date_pattern}(?:{separator_pattern})*{date_pattern}"
+            match = re.search(range_pattern, remainder, re.IGNORECASE)
+            print(f"DEBUG: Trying to replace range with pattern: {range_pattern}", file=sys.stderr)
+            if match:
+                start, end = match.span()
+                print(f"DEBUG: Replacing '{remainder[start:end]}' with '{normalized_range}'", file=sys.stderr)
+                remainder = remainder[:start] + normalized_range + remainder[end:]
+                break
+        # Also try string separators
+        separator_strings = config.get('Date', {}).get('exclude_ranges_separator_strings', [])
+        for sep_str in separator_strings:
+            for date_pattern in date_patterns_for_ranges:
+                range_pattern = f"{date_pattern}{re.escape(sep_str)}{date_pattern}"
+                match = re.search(range_pattern, remainder, re.IGNORECASE)
+                if match:
+                    start, end = match.span()
+                    print(f"DEBUG: [STRINGS] Replacing '{remainder[start:end]}' with '{normalized_range}'", file=sys.stderr)
+                    remainder = remainder[:start] + normalized_range + remainder[end:]
+                    break
+    
+    # STEP 2: Protect normalized date ranges from general separator normalization
+    # Create patterns for normalized date ranges (with the normalized separator)
+    normalized_date_patterns = []
+    allowed_formats = config.get('Date', {}).get('allowed_formats', ['%Y-%m-%d'])
+    
+    for fmt in allowed_formats:
+        if fmt == "%Y-%m-%d":
+            normalized_date_patterns.append(f"\\d{{4}}-\\d{{1,2}}-\\d{{1,2}}{re.escape(date_normalized_separator)}\\d{{4}}-\\d{{1,2}}-\\d{{1,2}}")
+        elif fmt == "%d-%m-%Y":
+            normalized_date_patterns.append(f"\\d{{1,2}}-\\d{{1,2}}-\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}-\\d{{1,2}}-\\d{{4}}")
+        elif fmt == "%d.%m.%Y":
+            pattern = f"\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}"
+            normalized_date_patterns.append(pattern)
+        elif fmt == "%d/%m/%Y":
+            normalized_date_patterns.append(f"\\d{{1,2}}/\\d{{1,2}}/\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}/\\d{{1,2}}/\\d{{4}}")
+        elif fmt == "%Y.%m.%d":
+            normalized_date_patterns.append(f"\\d{{4}}\\.\\d{{1,2}}\\.\\d{{1,2}}{re.escape(date_normalized_separator)}\\d{{4}}\\.\\d{{1,2}}\\.\\d{{1,2}}")
+        elif fmt == "%Y%m%d":
+            normalized_date_patterns.append(f"\\d{{8}}{re.escape(date_normalized_separator)}\\d{{8}}")
+        elif fmt == "%d%m%Y":
+            normalized_date_patterns.append(f"\\d{{8}}{re.escape(date_normalized_separator)}\\d{{8}}")
+        elif fmt == "%m%d%Y":
+            normalized_date_patterns.append(f"\\d{{8}}{re.escape(date_normalized_separator)}\\d{{8}}")
+        elif fmt == "%d-%b-%Y":
+            normalized_date_patterns.append(f"\\d{{1,2}}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{4}}")
+        elif fmt == "%b-%d-%Y":
+            normalized_date_patterns.append(f"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{1,2}}-\\d{{4}}{re.escape(date_normalized_separator)}(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\\d{{1,2}}-\\d{{4}}")
+        elif fmt == "%d %b %Y":
+            normalized_date_patterns.append(f"\\d{{1,2}} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{{4}}")
+        elif fmt == "%B %d, %Y":
+            normalized_date_patterns.append(f"(?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{1,2}}, \\d{{4}}{re.escape(date_normalized_separator)}(?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{1,2}}, \\d{{4}}")
+        elif fmt == "%d %B %Y":
+            normalized_date_patterns.append(f"\\d{{1,2}} (?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}} (?:January|February|March|April|May|June|July|August|September|October|November|December) \\d{{4}}")
+        elif fmt == "%d-%B-%Y":
+            normalized_date_patterns.append(f"\\d{{1,2}}-(?:January|February|March|April|May|June|July|August|September|October|November|December)-\\d{{4}}{re.escape(date_normalized_separator)}\\d{{1,2}}-(?:January|February|March|April|May|June|July|August|September|October|November|December)-\\d{{4}}")
+        elif fmt == "%Y/%m/%d":
+            normalized_date_patterns.append(f"\\d{{4}}/\\d{{1,2}}/\\d{{1,2}}{re.escape(date_normalized_separator)}\\d{{4}}/\\d{{1,2}}/\\d{{1,2}}")
+        elif fmt == "%d.%m.%y":
+            normalized_date_patterns.append(f"\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}{re.escape(date_normalized_separator)}\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}")
+        elif fmt == "%d/%m/%y":
+            normalized_date_patterns.append(f"\\d{{1,2}}/\\d{{1,2}}/\\d{{2}}{re.escape(date_normalized_separator)}\\d{{1,2}}/\\d{{1,2}}/\\d{{2}}")
+        elif fmt == "%d-%m-%y":
+            normalized_date_patterns.append(f"\\d{{1,2}}-\\d{{1,2}}-\\d{{2}}{re.escape(date_normalized_separator)}\\d{{1,2}}-\\d{{1,2}}-\\d{{2}}")
+    
+    # STEP 3: Apply general separator normalization, but protect normalized date ranges
+    input_seps = load_global_separators()
+    norm_sep = get_normalized_separator()
+    
+    # Split the text into parts, preserving normalized date ranges
+    combined_pattern = '|'.join(normalized_date_patterns)
+    parts = re.split(f"({combined_pattern})", remainder)
+    
+    for i, part in enumerate(parts):
+        # Skip normalized date ranges - they should not be processed by general separator normalization
+        is_protected = any(re.search(pattern, part) for pattern in normalized_date_patterns)
+        if is_protected:
+            continue
+        # Apply general separator normalization to other parts
+        for sep in input_seps:
+            part = part.replace(sep, norm_sep)
+        parts[i] = part
+    
+    remainder = "".join(parts)
+    
+    # STEP 4: Collapse runs of separators
+    remainder = re.sub(f'{re.escape(norm_sep)}+', norm_sep, remainder)
+    
+    # STEP 5: Trim leading/trailing separators (all known input separators)
+    for sep in input_seps:
+        remainder = remainder.strip(sep)
+    
+    # Now split extension, but only if it's not numeric
     if '.' in remainder:
         base, ext = remainder.rsplit('.', 1)
-        ext = '.' + ext
+        if not ext.isdigit():
+            ext = '.' + ext
+        else:
+            base, ext = remainder, ""
     else:
-        base, ext = remainder, ''
+        base, ext = remainder, ""
     
-    # Step 0: Replace forward slashes with spaces (for folder separators)
-    base = base.replace('/', ' ')
-    
-    # Load separators in order (most preferred first)
-    seps = load_remainder_allowed_separators()
-    
-    # Build regex to match any run of 2+ separators
-    sep_class = ''.join(re.escape(s) for s in seps)
-    
-    def replace_run(match):
-        """Replace a run of separators with the most preferred one."""
-        run = match.group(0)
-        
-        # Find the most preferred separator in this run
-        for sep in seps:  # seps is already in preference order
-            if sep in run:
-                return sep
-        
-        # Fallback to first character if no known separator found
-        return run[0]
-    
-    # Step 1: Collapse runs of 2+ separators to the most preferred
-    cleaned = re.sub(rf'[{sep_class}]{{2,}}', replace_run, base)
-    
-    # Step 2: Remove leading separators (least preferred first)
-    for sep in reversed(seps):  # Start with least preferred
-        cleaned = cleaned.lstrip(sep)
-    
-    # Step 3: Remove trailing separators (least preferred first)
-    for sep in reversed(seps):  # Start with least preferred
-        cleaned = cleaned.rstrip(sep)
-    
-    result = cleaned + ext
+    result = base + ext
     return result
 
 def extract_name_and_date_from_filename(filename: str, name_to_match: str) -> str:
@@ -441,6 +563,103 @@ def extract_name_and_date_from_filename(filename: str, name_to_match: str) -> st
     extracted_date, date_remainder, date_matched = date_result.split('|')
     # Return the raw remainder (uncleaned) as the third field
     return f"{extracted_name}|{extracted_date}|{date_remainder}|{name_matched}|{date_matched}"
+
+def extract_full_name_from_path(full_path: str, name_to_match: str) -> str:
+    """
+    Extract the full name from a path by matching it as a single unit.
+    This is specifically for path-based extraction where we want to match the complete name.
+    Returns: matched_name|raw_remainder|cleaned_remainder|matched
+    """
+    import re
+    sep = separator_regex_for_searching()
+    fuzzy_pattern = _generate_fuzzy_regex(name_to_match)
+    
+    # Create a pattern that matches the full name as a single unit
+    # Look for the name surrounded by separators or at the start/end
+    pattern = re.compile(rf"(^|{sep})({fuzzy_pattern})(?=$|{sep})", re.IGNORECASE)
+    
+    match = pattern.search(full_path)
+    if not match:
+        # No match found, return cleaned path
+        cleaned = clean_filename_remainder_py(full_path)
+        return f"|{full_path}|{cleaned}|false"
+    
+    matched_name = match.group(2)
+    
+    # Replace all occurrences of the matched name with empty string
+    # Use case-insensitive replacement with simple string operations
+    raw_remainder = full_path
+    # Split by separators and filter out the matched name
+    sep_chars = load_global_separators()
+    for sep_char in sep_chars:
+        raw_remainder = raw_remainder.replace(sep_char, ' ')
+    
+    # Split by spaces and filter out the matched name (case-insensitive)
+    parts = raw_remainder.split()
+    filtered_parts = []
+    name_parts = matched_name.split()
+    
+    i = 0
+    while i < len(parts):
+        # Check if we have a match for the full name starting at position i
+        if i + len(name_parts) <= len(parts):
+            match_found = True
+            for j, name_part in enumerate(name_parts):
+                if parts[i + j].lower() != name_part.lower():
+                    match_found = False
+                    break
+            if match_found:
+                i += len(name_parts)  # Skip the matched name parts
+                continue
+        filtered_parts.append(parts[i])
+        i += 1
+    
+    raw_remainder = ' '.join(filtered_parts)
+    
+    # Clean the remainder
+    cleaned_remainder = clean_filename_remainder_py(raw_remainder)
+    
+    return f"{matched_name}|{raw_remainder}|{cleaned_remainder}|true"
+
+
+def extract_name_from_path(full_path: str, name_to_match: str) -> str:
+    """
+    Extract the name from a path using the same core logic as filename extraction.
+    This works on the full path and removes all occurrences of the matched name.
+    Returns: extracted_names|raw_remainder|cleaned_remainder|matched
+    """
+    # Use the same core function as filename extraction on the full path
+    result = extract_all_name_matches(full_path, name_to_match)
+    
+    # Parse the result (4 parts: extracted_names|raw_remainder|cleaned_remainder|matched)
+    parts = result.split('|')
+    if len(parts) >= 4:
+        extracted_name = parts[0]
+        raw_remainder = parts[1]
+        cleaned_remainder = parts[2]
+        matched = parts[3] == 'true'
+        
+        return f"{extracted_name}|{raw_remainder}|{cleaned_remainder}|{matched}"
+    
+    # Fallback if parsing fails
+    return f"|{full_path}|{clean_filename_remainder_py(full_path)}|false"
+
+def extract_middle_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
+    """
+    Extract the middle name from a filename if the name_to_match has three parts.
+    Returns: extracted_middle|raw_remainder|cleaned_remainder|matched
+    """
+    import re
+    name_parts = name_to_match.split()
+    if len(name_parts) != 3:
+        return f"|{filename}|{clean_filename_remainder_py(filename)}|false"
+    middle_name = name_parts[1]
+    # Remove all occurrences of the middle name (case-insensitive)
+    pattern = re.compile(re.escape(middle_name), re.IGNORECASE)
+    raw_remainder = pattern.sub('', filename)
+    cleaned_remainder = clean_filename_remainder_py(raw_remainder)
+    matched = 'true' if middle_name.lower() in filename.lower() else 'false'
+    return f"{middle_name}|{raw_remainder}|{cleaned_remainder}|{matched}"
 
 def main():
     """Main function to process command line arguments."""
@@ -473,6 +692,9 @@ def main():
     if function_name in ["extract_first_name_from_filename", "extract_last_name_from_filename", "extract_initials_from_filename", "extract_shorthand_name_from_filename"]:
         result = matcher_function(filename, target_name, clean_filename=False)
         print(result)  # Only print the result to stdout
+    elif function_name == "extract_name_from_path":
+        result = extract_name_from_path(filename, target_name)
+        print(result)
     else:
         result = matcher_function(filename, target_name)
         print(result)  # Only print the result to stdout

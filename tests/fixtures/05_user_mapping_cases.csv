@@ -1,0 +1,15 @@
+input_path|expected_user_id|raw_name|cleaned_name|raw_remainder|cleaned_remainder|matcher_function|description
+John Doe/file.pdf|1001|John Doe|John Doe|file.pdf|file.pdf|get_user_id_by_name|Standard full name directory
+Jane Smith/report.txt|1002|Jane Smith|Jane Smith|report.txt|report.txt|get_user_id_by_name|Standard full name directory
+VC - John Doe/document.pdf|1001|VC - John Doe|John Doe|document.pdf|document.pdf|get_user_id_by_name|Directory with prefix (VC - )
+VC - Jane Smith/notes.docx|1002|VC - Jane Smith|Jane Smith|notes.docx|notes.docx|get_user_id_by_name|Directory with prefix (VC - )
+Temp Person/data.csv||Temp Person|Temp Person|data.csv|data.csv|get_user_id_by_name|Unmapped user
+john doe/image.jpg|1001|john doe|John Doe|image.jpg|image.jpg|get_user_id_by_name|Case-insensitive mapped user
+VC - Mary Jane Wilson/2024/Progress Report.pdf|1003|VC - Mary Jane Wilson|Mary Jane Wilson|2024/Progress Report.pdf|2024 Progress Report.pdf|get_user_id_by_name|Multi-word name with prefix and subdirectory
+VC - Anne-Marie O'Connor/Photos & Videos/Photo Album.zip|1005|VC - Anne-Marie O'Connor|Anne-Marie O'Connor|Photos & Videos/Photo Album.zip|Photos Videos Photo Album.zip|get_user_id_by_name|Name with hyphens and apostrophe
+VC - Elizabeth van der Berg/Medical Records/Assessment.pdf|1007|VC - Elizabeth van der Berg|Elizabeth Van Der Berg|Medical Records/Assessment.pdf|Medical Records Assessment.pdf|get_user_id_by_name|Name with multiple words
+VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf|1009|VC - Jean-Pierre Dubois|Jean-Pierre Dubois|Emergency Contacts/Contact List.pdf|Emergency Contacts Contact List.pdf|get_user_id_by_name|French name with hyphen
+VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf|1011|VC - Patricia Thompson-Smith|Patricia Thompson-Smith|Mealtime Management/Food Diary.pdf|Mealtime Management Food Diary.pdf|get_user_id_by_name|Name with double hyphen
+Unknown Person With Complex Name/2024/Reports/Report.pdf||Unknown Person With Complex Name|Unknown Person With Complex Name|2024/Reports/Report.pdf|2024 Reports Report.pdf|get_user_id_by_name|Unmapped complex name
+VC - john michael smith/Personal Care/Assessment.pdf|1012|VC - john michael smith|John Michael Smith|Personal Care/Assessment.pdf|Personal Care Assessment.pdf|get_user_id_by_name|Case-insensitive multi-word name
+VC - Person With Numbers 123/Test Files/test.pdf||VC - Person With Numbers 123|Person With Numbers 123|Test Files/test.pdf|Test Files test.pdf|get_user_id_by_name|Name with numbers (unmapped) 

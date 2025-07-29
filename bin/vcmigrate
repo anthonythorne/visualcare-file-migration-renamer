@@ -85,9 +85,8 @@ Visualcare File Migration Renamer
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-    -c, --config FILE    Configuration file path (default: config/config.yaml)
-    -v, --verbose        Enable verbose logging
-    -d, --dry-run        Perform a dry run without making changes
+    -c, --config FILE   Configuration file path (default: config/config.yaml)
+    -v, --verbose       Enable verbose logging
     -h, --help          Show this help message
 
 EOF

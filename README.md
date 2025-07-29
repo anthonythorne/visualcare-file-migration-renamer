@@ -12,13 +12,13 @@ pip install pyyaml
 ### Basic Usage
 ```bash
 # Test mode (recommended for testing)
-python3 main.py --test-mode --test-name my-test --dry-run
+python3 main.py --test-mode --test-name my-test
 
 # Process files using CSV mapping
-python3 main.py --csv mapping.csv --dry-run
+python3 main.py --csv mapping.csv
 
 # Process directory with name mapping
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv --dry-run
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
 ```
 
 ## 📋 Features
@@ -50,10 +50,10 @@ python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-m
 ### Test Mode (Recommended)
    ```bash
 # Basic test with all files
-python3 main.py --test-mode --test-name basic --dry-run
+python3 main.py --test-mode --test-name basic
 
 # Test with specific person
-python3 main.py --test-mode --test-name person-test --person "John Doe" --dry-run
+python3 main.py --test-mode --test-name person-test --person "John Doe"
 
 # Actual processing (not dry-run)
 python3 main.py --test-mode --test-name production
@@ -62,7 +62,7 @@ python3 main.py --test-mode --test-name production
 ### CSV Mapping
 ```bash
 # Preview changes
-python3 main.py --csv mapping.csv --dry-run
+python3 main.py --csv mapping.csv
 
 # Apply changes
 python3 main.py --csv mapping.csv
@@ -78,7 +78,7 @@ another_file.docx,Jane Smith
 ### Directory Processing
 ```bash
 # Process entire directory
-python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv --dry-run
+python3 main.py --input-dir /path/to/input --output-dir /path/to/output --name-mapping names.csv
 ```
 
 ## ⚙️ Configuration
@@ -137,16 +137,44 @@ ManagementFlag:
 ### Test Mode Integration
 ```bash
 # Basic test mode
-python3 main.py --test-mode --test-name basic --dry-run
+python3 main.py --test-mode --test-name basic
 
 # User ID processing
-python3 main.py --test-mode --test-name userid --dry-run
+python3 main.py --test-mode --test-name userid
 
 # Management flag processing
-python3 main.py --test-mode --test-name management --dry-run
+python3 main.py --test-mode --test-name management
 ```
 
-## 📚 Documentation
+## Running the Test Suite
+
+The main test suite will always regenerate (scaffold) all BATS tests from the latest fixture matrices before running them. This ensures all tests are up-to-date and reproducible.
+
+To run all core extraction tests (filename and path-based):
+
+```bash
+bash tests/run_tests.sh
+```
+
+- By default, only errors (failures) will show detailed debug output.
+- To see full debug output for every test (including passing tests), use:
+
+```bash
+bash tests/run_tests.sh --verbose=all
+```
+
+### Included Test Suites
+- Name extraction from filename
+- Date extraction from filename
+- Name extraction from any folder/file path (nested directories)
+- Date extraction from any folder/file path (nested directories)
+
+Each test suite is always regenerated before running, so you never need to manually clean or rebuild BATS files.
+
+## �� Documentation
+
+### Documentation Index
+- **[Documentation Index](docs/DOCUMENTATION_INDEX.md)** - Complete guide to all available documentation
 
 ### For Users
 - **[Usage Guide](docs/USAGE_GUIDE.md)** - Complete usage instructions and examples
@@ -154,7 +182,7 @@ python3 main.py --test-mode --test-name management --dry-run
 
 ### For Developers
 - **[Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md)** - Technical architecture and design
-- **[Naming Conventions](docs/NAMING_CONVENTIONS.md)** - Complete name extraction and filename processing
+- **[File Normalization Process](docs/FILE_NORMALIZATION_PROCESS.md)** - Complete file processing workflow
 
 ### For System Administrators
 - **[Usage Guide](docs/USAGE_GUIDE.md)** - Deployment and configuration

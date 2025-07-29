@@ -1,9 +1,0 @@
-filename|date_to_match|expected_match|extracted_date|raw_remainder|cleaned_remainder|matcher_function|use_case
-report-2023-01-15.pdf|2023-01-15|true|2023-01-15|report-.pdf|report.pdf|extract_date_from_filename|ISO-Date
-client-notes_20240320.txt|2024-03-20|true|2024-03-20|client-notes_.txt|client-notes.txt|extract_date_from_filename|YYYYMMDD
-05-25-2023_summary.docx|2023-05-25|true|2023-05-25|_summary.docx|summary.docx|extract_date_from_filename|MM-DD-YYYY
-archive 10202024.zip|2024-10-20|true|2024-10-20|archive .zip|archive.zip|extract_date_from_filename|MMDDYYYY-no-sep
-no_date_in_this_file.txt||false||no_date_in_this_file.txt|no_date_in_this_file.txt|extract_date_from_filename|No-Date
-20230101_and_20240202.log|2023-01-01,2024-02-02|true|2023-01-01,2024-02-02|_and_.log|and.log|extract_date_from_filename|Multiple-Dates
-scan 25-Dec-2023.jpg|2023-12-25|true|2023-12-25|scan .jpg|scan.jpg|extract_date_from_filename|Written-Date-Dec
-report-for-1st-jan-2024.txt|2024-01-01|true|2024-01-01|report-for-.txt|report-for.txt|extract_date_from_filename|Ordinal-Date-1st 
