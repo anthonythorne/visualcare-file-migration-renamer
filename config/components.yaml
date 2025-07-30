@@ -30,7 +30,7 @@ Name:
 
 Date:
   use_global_separators: true
-  normalized_format: "%Y-%m-%d"  # Format to normalize all dates to
+  normalized_format: "%Y%m%d"  # Format to normalize all dates to
   allowed_formats:
     - "%Y-%m-%d"      # 2023-05-15
     - "%d-%m-%Y"      # 15-05-2023
@@ -56,8 +56,10 @@ Date:
     - modified
     - created
   exclude_ranges: true
+  normalized_ranges_format: "%Y.%m.%d"  # Format to normalize all dates to
   excluded_date_by_prefix:
     - "exp"
+  normalized_prefix_format: "%Y.%m.%d"  # Format to normalize all dates to
   exclude_ranges_separators:
     - " "
     - "-"

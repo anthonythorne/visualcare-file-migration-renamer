@@ -66,14 +66,18 @@ extract_date_from_path_for_string_test_fallback() {
             "modified")
                 # Use modified_date from matrix
                 if [ -n "$fallback_modified_date" ]; then
-                    echo "$fallback_modified_date|$full_path|true|||"
+                    # Convert from YYYY-MM-DD to YYYYMMDD format
+                    converted_date=$(echo "$fallback_modified_date" | sed 's/-//g')
+                    echo "$converted_date|$full_path|true|||"
                     return
                 fi
                 ;;
             "created")
                 # Use created_date from matrix
                 if [ -n "$fallback_created_date" ]; then
-                    echo "$fallback_created_date|$full_path|true|||"
+                    # Convert from YYYY-MM-DD to YYYYMMDD format
+                    converted_date=$(echo "$fallback_created_date" | sed 's/-//g')
+                    echo "$converted_date|$full_path|true|||"
                     return
                 fi
                 ;;
@@ -98,9 +102,13 @@ extract_date_from_path_for_string_test_fallback() {
     # If no date found in filename/foldername, use fallback dates
     # Priority: modified_date > created_date
     if [ -n "$fallback_modified_date" ]; then
-        echo "$fallback_modified_date|$full_path|true|||"
+        # Convert from YYYY-MM-DD to YYYYMMDD format
+        converted_date=$(echo "$fallback_modified_date" | sed 's/-//g')
+        echo "$converted_date|$full_path|true|||"
     elif [ -n "$fallback_created_date" ]; then
-        echo "$fallback_created_date|$full_path|true|||"
+        # Convert from YYYY-MM-DD to YYYYMMDD format
+        converted_date=$(echo "$fallback_created_date" | sed 's/-//g')
+        echo "$converted_date|$full_path|true|||"
     else
         echo "||$full_path|false|||"
     fi

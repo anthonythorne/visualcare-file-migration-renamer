@@ -495,17 +495,32 @@ def clean_filename_remainder_py(remainder):
         elif fmt == "%d-%m-%y":
             normalized_date_patterns.append(f"\\d{{1,2}}-\\d{{1,2}}-\\d{{2}}{re.escape(date_normalized_separator)}\\d{{1,2}}-\\d{{1,2}}-\\d{{2}}")
     
-    # STEP 3: Apply general separator normalization, but protect normalized date ranges
+    # STEP 3: Protect prefix dates from general separator normalization
+    # Create patterns for prefix dates (e.g., "exp 2025.08.30")
+    prefix_date_patterns = []
+    excluded_date_by_prefix = config.get('Date', {}).get('excluded_date_by_prefix', [])
+    normalized_prefix_format = config.get('Date', {}).get('normalized_prefix_format', '%Y.%m.%d')
+    
+    for prefix in excluded_date_by_prefix:
+        for fmt in allowed_formats:
+            if fmt == "%Y.%m.%d":
+                prefix_date_patterns.append(f"{re.escape(prefix)}\\s+\\d{{4}}\\.\\d{{1,2}}\\.\\d{{1,2}}")
+            elif fmt == "%d.%m.%Y":
+                prefix_date_patterns.append(f"{re.escape(prefix)}\\s+\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}")
+            elif fmt == "%d.%m.%y":
+                prefix_date_patterns.append(f"{re.escape(prefix)}\\s+\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}")
+    
+    # STEP 4: Apply general separator normalization, but protect normalized date ranges and prefix dates
     input_seps = load_global_separators()
     norm_sep = get_normalized_separator()
     
-    # Split the text into parts, preserving normalized date ranges
-    combined_pattern = '|'.join(normalized_date_patterns)
+    # Split the text into parts, preserving normalized date ranges and prefix dates
+    combined_pattern = '|'.join(normalized_date_patterns + prefix_date_patterns)
     parts = re.split(f"({combined_pattern})", remainder)
     
     for i, part in enumerate(parts):
-        # Skip normalized date ranges - they should not be processed by general separator normalization
-        is_protected = any(re.search(pattern, part) for pattern in normalized_date_patterns)
+        # Skip normalized date ranges and prefix dates - they should not be processed by general separator normalization
+        is_protected = any(re.search(pattern, part) for pattern in normalized_date_patterns + prefix_date_patterns)
         if is_protected:
             continue
         # Apply general separator normalization to other parts

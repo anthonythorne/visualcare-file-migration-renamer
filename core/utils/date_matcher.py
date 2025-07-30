@@ -529,10 +529,11 @@ def extract_date_from_file_metadata(file_path: str) -> str:
         timestamp = modified_time if modified_time > 0 else created_time
         
         if timestamp > 0:
-            # Convert timestamp to datetime and format as YYYY-MM-DD
+            # Convert timestamp to datetime and format using config
             from datetime import datetime
             date_obj = datetime.fromtimestamp(timestamp)
-            return date_obj.strftime('%Y-%m-%d')
+            normalized_format = config.get('Date', {}).get('normalized_format', '%Y-%m-%d')
+            return date_obj.strftime(normalized_format)
         
         return ""
     except Exception as e:

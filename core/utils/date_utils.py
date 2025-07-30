@@ -14,6 +14,7 @@ def is_date_range_and_normalize(text, config=None):
     exclude_ranges_separators = config.get('Date', {}).get('exclude_ranges_separators', [" ", "-", "_", ".", ",", "to"])
     normalized_separator = config.get('Date', {}).get('exclude_ranges_normalized_separator', " - ")
     normalized_format = config.get('Date', {}).get('normalized_format', '%Y-%m-%d')
+    normalized_ranges_format = config.get('Date', {}).get('normalized_ranges_format', '%Y-%m-%d')
 
     # Build regex patterns for all allowed formats
     date_patterns = []
@@ -78,8 +79,8 @@ def is_date_range_and_normalize(text, config=None):
             dt1 = try_parse(date1_raw)
             dt2 = try_parse(date2_raw)
             if dt1 and dt2:
-                date1_norm = dt1.strftime(normalized_format)
-                date2_norm = dt2.strftime(normalized_format)
+                date1_norm = dt1.strftime(normalized_ranges_format)
+                date2_norm = dt2.strftime(normalized_ranges_format)
                 normalized = f"{date1_norm}{normalized_separator}{date2_norm}"
                 return True, normalized
             def replace_separators(m):
@@ -106,8 +107,8 @@ def is_date_range_and_normalize(text, config=None):
                 dt1 = try_parse(date1_raw)
                 dt2 = try_parse(date2_raw)
                 if dt1 and dt2:
-                    date1_norm = dt1.strftime(normalized_format)
-                    date2_norm = dt2.strftime(normalized_format)
+                    date1_norm = dt1.strftime(normalized_ranges_format)
+                    date2_norm = dt2.strftime(normalized_ranges_format)
                     normalized = f"{date1_norm}{normalized_separator}{date2_norm}"
                     return True, normalized
                 normalized = f"{date1_raw}{normalized_separator}{date2_raw}"

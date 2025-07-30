@@ -36,8 +36,8 @@ extract_complete_filename_with_fallback() {
         return
     fi
     
-    # Check if the main function result already contains a date (YYYY-MM-DD pattern)
-    if [[ "$base_result" =~ _[0-9]{4}-[0-9]{2}-[0-9]{2}_ ]]; then
+    # Check if the main function result already contains a date (YYYYMMDD pattern)
+    if [[ "$base_result" =~ _[0-9]{8}_ ]]; then
         # Main function already has a date, use it as-is
         echo "$base_result"
     elif [ -n "$extracted_date" ]; then
