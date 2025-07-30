@@ -64,7 +64,6 @@ Date:
     - "_"
     - "."
     - ","
-    - "to"
   exclude_ranges_separator_strings:
     - " to "
   exclude_ranges_normalized_separator: " - "
@@ -86,4 +85,9 @@ UserMapping:
   case_insensitive: true
   create_if_missing: false
   prefix: "VC - "  # Optional prefix to remove from directory names
-  suffix: " Management"  # Optional suffix to remove from directory names 
+  management_suffix: " Management"  # Optional suffix to remove from directory names 
+
+ManagementFlag:
+  enabled: true
+  yes_flag: "_yes"  # Flag for non-management folders
+  no_flag: "_no"    # Flag for management folders 

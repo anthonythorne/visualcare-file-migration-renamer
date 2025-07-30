@@ -116,15 +116,15 @@ def get_user_id_by_name(full_name: str) -> Optional[str]:
     user_config = config.get('UserMapping', {})
     user_mapping = load_user_mapping()
     
-    # Remove prefix and suffix if configured
+    # Remove prefix and management_suffix if configured
     prefix = user_config.get('prefix', '')
-    suffix = user_config.get('suffix', '')
+    management_suffix = user_config.get('management_suffix', '')
     
     cleaned_name = full_name
     if prefix and cleaned_name.startswith(prefix):
         cleaned_name = cleaned_name[len(prefix):].strip()
-    if suffix and cleaned_name.endswith(suffix):
-        cleaned_name = cleaned_name[:-len(suffix)].strip()
+    if management_suffix and cleaned_name.endswith(management_suffix):
+        cleaned_name = cleaned_name[:-len(management_suffix)].strip()
     
     # Direct lookup (case-insensitive)
     for user_id, name in user_mapping.items():
@@ -282,16 +282,19 @@ def extract_user_from_path(full_path: str) -> str:
     user_id = get_user_id_by_name(person_directory) or ""
     raw_name = person_directory
     
-    # Get cleaned name (with prefix/suffix removed)
+    # Get cleaned name (with prefix/management_suffix removed)
     user_config = config.get('UserMapping', {})
     prefix = user_config.get('prefix', '')
-    suffix = user_config.get('suffix', '')
+    management_suffix = user_config.get('management_suffix', '')
     
     cleaned_name = person_directory
+    is_management_folder = False
+    
     if prefix and cleaned_name.startswith(prefix):
         cleaned_name = cleaned_name[len(prefix):].strip()
-    if suffix and cleaned_name.endswith(suffix):
-        cleaned_name = cleaned_name[:-len(suffix)].strip()
+    if management_suffix and cleaned_name.endswith(management_suffix):
+        cleaned_name = cleaned_name[:-len(management_suffix)].strip()
+        is_management_folder = True
     
     # Apply case normalization
     if case_normalization == 'titlecase':
@@ -315,7 +318,7 @@ def extract_user_from_path(full_path: str) -> str:
         except:
             cleaned_remainder = raw_remainder
     
-    return f"{user_id}|{raw_name}|{cleaned_name}|{raw_remainder}|{cleaned_remainder}"
+    return f"{user_id}|{raw_name}|{cleaned_name}|{raw_remainder}|{cleaned_remainder}|{is_management_folder}"
 
 
 if __name__ == "__main__":
@@ -338,19 +341,19 @@ if __name__ == "__main__":
             full_name = get_name_by_user_id(user_id) if user_id else ""
             raw_name = input_name
             
-            # Get cleaned name (with prefix/suffix removed)
+            # Get cleaned name (with prefix/management_suffix removed)
             config = load_config()
             user_config = config.get('UserMapping', {})
             global_config = config.get('Global', {})
             prefix = user_config.get('prefix', '')
-            suffix = user_config.get('suffix', '')
+            management_suffix = user_config.get('management_suffix', '')
             case_normalization = global_config.get('case_normalization', 'titlecase')
             
             cleaned_name = input_name
             if prefix and cleaned_name.startswith(prefix):
                 cleaned_name = cleaned_name[len(prefix):].strip()
-            if suffix and cleaned_name.endswith(suffix):
-                cleaned_name = cleaned_name[:-len(suffix)].strip()
+            if management_suffix and cleaned_name.endswith(management_suffix):
+                cleaned_name = cleaned_name[:-len(management_suffix)].strip()
             
             # Apply case normalization
             if case_normalization == 'titlecase':

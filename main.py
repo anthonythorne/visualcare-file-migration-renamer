@@ -154,21 +154,28 @@ class FileMigrationRenamer:
                 
                 # Use the real normalize_filename function
                 try:
-                    normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping, str(filepath))
+                    # Extract person name and management status from the original path
+                    person_directory = relative_path.parts[0] if relative_path.parts else ""
                     
-                    # Extract person name from the original path for directory structure
-                    person_name = relative_path.parts[0] if relative_path.parts else ""
+                    # Use the user_mapping function to get cleaned name and management status
+                    from core.utils.user_mapping import extract_user_from_path
+                    user_result = extract_user_from_path(str(relative_path))
+                    user_parts = user_result.split('|')
+                    cleaned_person_name = user_parts[2] if len(user_parts) > 2 else person_directory
+                    is_management_folder = user_parts[5] == 'True' if len(user_parts) > 5 else False
+                    
+                    normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping, str(filepath), is_management_folder)
             
                     result = {
                         'original_filename': str(relative_path),
                         'new_filename': normalized_filename,
-                        'person': person_name,
+                        'person': cleaned_person_name,
                         'success': True
                     }
             
                     try:
-                        # Create person subdirectory in output
-                        person_output_dir = output_path / person_name
+                        # Create person subdirectory in output using cleaned name
+                        person_output_dir = output_path / cleaned_person_name
                         person_output_dir.mkdir(parents=True, exist_ok=True)
                         
                         # Capture original file times before processing
@@ -181,11 +188,11 @@ class FileMigrationRenamer:
                         if duplicate:
                             shutil.copy2(filepath, new_filepath)
                             result['copied'] = True
-                            self.logger.info(f"Copied: {relative_path} -> {person_name}/{normalized_filename}")
+                            self.logger.info(f"Copied: {relative_path} -> {cleaned_person_name}/{normalized_filename}")
                         else:
                             filepath.rename(new_filepath)
                             result['moved'] = True
-                            self.logger.info(f"Moved: {relative_path} -> {person_name}/{normalized_filename}")
+                            self.logger.info(f"Moved: {relative_path} -> {cleaned_person_name}/{normalized_filename}")
                         
                         # Restore original times on the new file (ignore errors for Windows files)
                         try:
@@ -237,7 +244,14 @@ class FileMigrationRenamer:
         for person_dir in person_dirs:
             person_name = person_dir.name
             self.logger.info(f"Processing person: {person_name}")
-            output_person_dir = to_dir / person_name
+            
+            # Get cleaned person name for output directory
+            from core.utils.user_mapping import extract_user_from_path
+            user_result = extract_user_from_path(person_name)
+            user_parts = user_result.split('|')
+            cleaned_person_name = user_parts[2] if len(user_parts) > 2 else person_name
+            
+            output_person_dir = to_dir / cleaned_person_name
             output_person_dir.mkdir(parents=True, exist_ok=True)
             
             # Process all files in the person directory
@@ -248,11 +262,21 @@ class FileMigrationRenamer:
                     full_relative_path = f"{person_name}/{relative_path}"
                     
                     try:
+                        # Extract person name and management status from the original path
+                        person_directory = person_name
+                        
+                        # Use the user_mapping function to get cleaned name and management status
+                        from core.utils.user_mapping import extract_user_from_path
+                        user_result = extract_user_from_path(str(full_relative_path))
+                        user_parts = user_result.split('|')
+                        cleaned_person_name = user_parts[2] if len(user_parts) > 2 else person_directory
+                        is_management_folder = user_parts[5] == 'True' if len(user_parts) > 5 else False
+                        
                         # Use the real normalize_filename function
-                        normalized_filename = normalize_filename(str(full_relative_path))
+                        normalized_filename = normalize_filename(str(full_relative_path), is_management_folder=is_management_folder)
                         
                         result = {
-                            'person': person_name,
+                            'person': cleaned_person_name,
                             'original_filename': str(relative_path),
                             'new_filename': normalized_filename,
                             'success': True,
@@ -267,11 +291,11 @@ class FileMigrationRenamer:
                             if duplicate:
                                 shutil.copy2(filepath, new_filepath)
                                 result['copied'] = True
-                                self.logger.info(f"Copied: {person_name}/{relative_path} -> {test_name}/{person_name}/{normalized_filename}")
+                                self.logger.info(f"Copied: {person_name}/{relative_path} -> {test_name}/{cleaned_person_name}/{normalized_filename}")
                             else:
                                 filepath.rename(new_filepath)
                                 result['moved'] = True
-                                self.logger.info(f"Moved: {person_name}/{relative_path} -> {test_name}/{person_name}/{normalized_filename}")
+                                self.logger.info(f"Moved: {person_name}/{relative_path} -> {test_name}/{cleaned_person_name}/{normalized_filename}")
                             # Restore original times on the new file
                             os.utime(new_filepath, (orig_atime, orig_mtime))
                         except Exception as e:
@@ -283,7 +307,7 @@ class FileMigrationRenamer:
                         
                     except Exception as e:
                         result = {
-                            'person': person_name,
+                            'person': cleaned_person_name,
                             'original_filename': str(relative_path),
                             'error': f"Failed to normalize filename: {e}",
                             'success': False,
@@ -330,7 +354,7 @@ class FileMigrationRenamer:
                 print(f"\nTest output directories: {', '.join(f'to-{name}' for name in test_names)}")
 
 
-def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, category_mapping: Dict[str, str] = None, full_file_path: str = None) -> str:
+def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, category_mapping: Dict[str, str] = None, full_file_path: str = None, is_management_folder: bool = False) -> str:
     """
     Normalize a filename from a full path using existing core functions.
     This is the main function for real-world applications.
@@ -383,6 +407,9 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
         user_parts = user_result.split('|')
         user_id = user_parts[0] if len(user_parts) > 0 else ""
         cleaned_name = user_parts[2] if len(user_parts) > 2 else ""
+        
+        # Determine management status from the user extraction result
+        is_management_folder = user_parts[5] == 'True' if len(user_parts) > 5 else False
         
         # Use provided user mapping if available
         if user_mapping and cleaned_name in user_mapping:
@@ -464,13 +491,26 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
     # STEP 5: Clean the final remainder using existing name_matcher function
     cleaned_remainder = clean_filename_remainder_py(raw_remainder) if raw_remainder else ""
     
+    # Determine management flag based on configuration
+    config = load_config()
+    management_flag = ""
+    if is_management_folder:
+        management_config = config.get('ManagementFlag', {})
+        if management_config.get('enabled', True):
+            management_flag = management_config.get('no_flag', '_no')
+    else:
+        management_config = config.get('ManagementFlag', {})
+        if management_config.get('enabled', True):
+            management_flag = management_config.get('yes_flag', '_yes')
+    
     # Format the final filename using existing format_filename function
     formatted = format_filename(
         user_id=user_id,
         name=cleaned_name,
         remainder=cleaned_remainder,
         date=extracted_date,
-        category=extracted_category
+        category=extracted_category,
+        management_flag=management_flag
     )
     
     # Add the file extension
@@ -480,7 +520,7 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
     return formatted
 
 
-def format_filename(user_id: str = "", name: str = "", remainder: str = "", date: str = "", category: str = "") -> str:
+def format_filename(user_id: str = "", name: str = "", remainder: str = "", date: str = "", category: str = "", management_flag: str = "") -> str:
     """
     Format a filename using the global component order and separator configuration.
     
@@ -518,6 +558,10 @@ def format_filename(user_id: str = "", name: str = "", remainder: str = "", date
         # Only add non-empty components
         if value:
             filename_parts.append(value)
+    
+    # Add management flag at the end if provided
+    if management_flag:
+        filename_parts.append(management_flag)
     
     # Join with component separator
     formatted = component_separator.join(filename_parts)

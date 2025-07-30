@@ -361,13 +361,11 @@ def clean_filename_remainder_py(remainder):
     Clean a filename remainder by replacing all input separators with the normalized separator,
     collapsing runs of separators, and trimming leading/trailing separators.
     """
-    import sys
     import re
     
     if not remainder:
         return remainder
         
-    print(f"DEBUG: clean_filename_remainder_py input: '{remainder}'", file=sys.stderr)
     # STEP 1: Normalize date ranges first using centralized utility (on full remainder)
     try:
         from core.utils.date_utils import is_date_range_and_normalize
@@ -384,7 +382,6 @@ def clean_filename_remainder_py(remainder):
     
     # Check if this is a date range and normalize it
     is_range, normalized_range = is_date_range_and_normalize(remainder, config)
-    print(f"DEBUG: is_range={is_range}, normalized_range='{normalized_range}'", file=sys.stderr)
     
     if is_range and normalized_range:
         # Replace the original range with the normalized version
@@ -439,10 +436,8 @@ def clean_filename_remainder_py(remainder):
         for date_pattern in date_patterns_for_ranges:
             range_pattern = f"{date_pattern}(?:{separator_pattern})*{date_pattern}"
             match = re.search(range_pattern, remainder, re.IGNORECASE)
-            print(f"DEBUG: Trying to replace range with pattern: {range_pattern}", file=sys.stderr)
             if match:
                 start, end = match.span()
-                print(f"DEBUG: Replacing '{remainder[start:end]}' with '{normalized_range}'", file=sys.stderr)
                 remainder = remainder[:start] + normalized_range + remainder[end:]
                 break
         # Also try string separators
@@ -453,7 +448,6 @@ def clean_filename_remainder_py(remainder):
                 match = re.search(range_pattern, remainder, re.IGNORECASE)
                 if match:
                     start, end = match.span()
-                    print(f"DEBUG: [STRINGS] Replacing '{remainder[start:end]}' with '{normalized_range}'", file=sys.stderr)
                     remainder = remainder[:start] + normalized_range + remainder[end:]
                     break
     

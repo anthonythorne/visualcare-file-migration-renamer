@@ -51,8 +51,16 @@ extract_complete_filename_with_fallback() {
             base_without_ext="$base_result"
         fi
         
-        # Insert the date before the last underscore (which is before the category)
-        if [[ "$base_without_ext" =~ ^(.+)_([^_]+)$ ]]; then
+        # Insert the date before the category (which is before the management flag)
+        # Handle the case where there's a management flag (_yes or _no) at the end
+        if [[ "$base_without_ext" =~ ^(.+)_([^_]+)_(yes|no)$ ]]; then
+            # Format: prefix_category_management_flag
+            prefix="${BASH_REMATCH[1]}"
+            category="${BASH_REMATCH[2]}"
+            management_flag="${BASH_REMATCH[3]}"
+            echo "${prefix}_${extracted_date}_${category}_${management_flag}${extension}"
+        elif [[ "$base_without_ext" =~ ^(.+)_([^_]+)$ ]]; then
+            # Format: prefix_category (no management flag)
             prefix="${BASH_REMATCH[1]}"
             category="${BASH_REMATCH[2]}"
             echo "${prefix}_${extracted_date}_${category}${extension}"
