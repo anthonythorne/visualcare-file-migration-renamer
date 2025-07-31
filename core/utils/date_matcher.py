@@ -532,6 +532,7 @@ def extract_date_from_file_metadata(file_path: str) -> str:
             # Convert timestamp to datetime and format using config
             from datetime import datetime
             date_obj = datetime.fromtimestamp(timestamp)
+            config = load_config()
             normalized_format = config.get('Date', {}).get('normalized_format', '%Y-%m-%d')
             return date_obj.strftime(normalized_format)
         
