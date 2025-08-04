@@ -3478,20 +3478,20 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }
 
-@test "complete_integration - VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf" {
-  # Test case: Real-world incorrect name mapping test (AShepherd should be Alexander Shepherd)
-  # Input: VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf
+@test "complete_integration - VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf" {
+  # Test case: Real-world incorrect name mapping test (JohnDoe should be John Doe)
+  # Input: VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf
   # Expected: 1001_John Doe_1 Plan NDIS_20240807_Service Agreements_no.pdf
   
   echo "=== COMPLETE INTEGRATION TEST ===" >&2
-  echo "Test case: Real-world incorrect name mapping test (AShepherd should be Alexander Shepherd)" >&2
-  echo "Input path: VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf" >&2
+  echo "Test case: Real-world incorrect name mapping test (JohnDoe should be John Doe)" >&2
+  echo "Input path: VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf" >&2
   echo "Expected filename: 1001_John Doe_1 Plan NDIS_20240807_Service Agreements_no.pdf" >&2
   echo "=================================" >&2
   
   # Test user mapping
   echo "Testing user mapping..." >&2
-  result="$(extract_user_from_path "VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf")"
+  result="$(extract_user_from_path "VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf")"
   IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
   
   expected_user_id="1001"
@@ -3513,11 +3513,11 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   # Test category mapping (if there's a second directory)
   # Extract the second directory as the category candidate
   # Use cut to get the second field when splitting by '/'
-  category_candidate=$(echo "VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf" | cut -d'/' -f2)
+  category_candidate=$(echo "VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf" | cut -d'/' -f2)
   if [ -n "$category_candidate" ]; then
     
     echo "Testing category mapping..." >&2
-    result="$(extract_category_from_path "VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf")"
+    result="$(extract_category_from_path "VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf")"
     IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
     
     expected_category="Service Agreements"
@@ -3540,7 +3540,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   
   # Test date extraction
   echo "Testing date extraction..." >&2
-  result="$(extract_date_from_path_for_string_test_fallback "VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf" "2024-08-07" "today" "modified")"
+  result="$(extract_date_from_path_for_string_test_fallback "VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf" "2024-08-07" "today" "modified")"
   IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
   
   expected_date="20240807"
@@ -3563,7 +3563,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   echo "Testing complete filename generation..." >&2
   
   # Use the test-specific function that handles fallback dates
-  result="$(extract_complete_filename_with_fallback "VC - John Doe Management/Service Agreements/1.AShepherd Plan NDIS.pdf" "2024-08-07" "today" "modified")"
+  result="$(extract_complete_filename_with_fallback "VC - John Doe Management/Service Agreements/1.JohnDoe Plan NDIS.pdf" "2024-08-07" "today" "modified")"
   
   expected_filename="1001_John Doe_1 Plan NDIS_20240807_Service Agreements_no.pdf"
   

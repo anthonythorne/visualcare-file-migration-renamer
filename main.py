@@ -78,7 +78,7 @@ class FileMigrationRenamer:
         return logging.getLogger(__name__)
     
     def process_directory(self, input_dir: str, output_dir: str, user_mapping: Dict[str, str], 
-                         category_mapping: Dict[str, str], duplicate: bool = True) -> List[Dict]:
+                         category_mapping: Dict[str, str], duplicate: bool = True, exclude_management_flag: bool = False) -> List[Dict]:
         """
         Process all files in a directory with multi-level support.
         
@@ -164,7 +164,7 @@ class FileMigrationRenamer:
                     cleaned_person_name = user_parts[2] if len(user_parts) > 2 else person_directory
                     is_management_folder = user_parts[5] == 'True' if len(user_parts) > 5 else False
                     
-                    normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping, str(filepath), is_management_folder)
+                    normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping, str(filepath), is_management_folder, exclude_management_flag)
             
                     result = {
                         'original_filename': str(relative_path),
@@ -219,7 +219,7 @@ class FileMigrationRenamer:
         
         return results
     
-    def process_test_files(self, duplicate: bool = False, person_filter: Optional[str] = None, test_name: str = "basic") -> List[Dict]:
+    def process_test_files(self, duplicate: bool = False, person_filter: Optional[str] = None, test_name: str = "basic", exclude_management_flag: bool = False) -> List[Dict]:
         """
         Process files using the tests/test-files structure with multi-level support.
         Args:
@@ -273,7 +273,7 @@ class FileMigrationRenamer:
                         is_management_folder = user_parts[5] == 'True' if len(user_parts) > 5 else False
                         
                         # Use the real normalize_filename function
-                        normalized_filename = normalize_filename(str(full_relative_path), is_management_folder=is_management_folder)
+                        normalized_filename = normalize_filename(str(full_relative_path), is_management_folder=is_management_folder, exclude_management_flag=exclude_management_flag)
                         
                         result = {
                             'person': cleaned_person_name,
@@ -354,7 +354,7 @@ class FileMigrationRenamer:
                 print(f"\nTest output directories: {', '.join(f'to-{name}' for name in test_names)}")
 
 
-def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, category_mapping: Dict[str, str] = None, full_file_path: str = None, is_management_folder: bool = False) -> str:
+def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, category_mapping: Dict[str, str] = None, full_file_path: str = None, is_management_folder: bool = False, exclude_management_flag: bool = False) -> str:
     """
     Normalize a filename from a full path using existing core functions.
     This is the main function for real-world applications.
@@ -510,7 +510,8 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
         remainder=cleaned_remainder,
         date=extracted_date,
         category=extracted_category,
-        management_flag=management_flag
+        management_flag=management_flag,
+        exclude_management_flag=exclude_management_flag
     )
     
     # Add the file extension
@@ -520,7 +521,7 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
     return formatted
 
 
-def format_filename(user_id: str = "", name: str = "", remainder: str = "", date: str = "", category: str = "", management_flag: str = "") -> str:
+def format_filename(user_id: str = "", name: str = "", remainder: str = "", date: str = "", category: str = "", management_flag: str = "", exclude_management_flag: bool = False) -> str:
     """
     Format a filename using the global component order and separator configuration.
     
@@ -530,13 +531,15 @@ def format_filename(user_id: str = "", name: str = "", remainder: str = "", date
         remainder: Remainder component
         date: Date component
         category: Category component
+        management_flag: Management flag component
+        exclude_management_flag: Whether to exclude the management flag
         
     Returns:
         Formatted filename string
     """
     config = load_config()
     global_config = config.get('Global', {})
-    component_order = global_config.get('component_order', ['id', 'name', 'remainder', 'date', 'category'])
+    component_order = global_config.get('component_order', ['id', 'name', 'remainder', 'date', 'category', 'management'])
     component_separator = global_config.get('component_separator', '_')
     
     # Build filename using component order
@@ -552,16 +555,17 @@ def format_filename(user_id: str = "", name: str = "", remainder: str = "", date
             value = date
         elif component == 'category':
             value = category
+        elif component == 'management':
+            # Skip management component if exclude_management_flag is True
+            if exclude_management_flag:
+                continue
+            value = management_flag
         else:
             value = ""
         
         # Only add non-empty components
         if value:
             filename_parts.append(value)
-    
-    # Add management flag at the end if provided
-    if management_flag:
-        filename_parts.append(management_flag)
     
     # Join with component separator
     formatted = component_separator.join(filename_parts)
@@ -608,6 +612,11 @@ def main():
         '--duplicate',
         action='store_true',
         help='Copy files instead of moving them (default: move/rename)'
+    )
+    parser.add_argument(
+        '--exclude-management-flag',
+        action='store_true',
+        help='Exclude management flag from filenames (default: include management flag)'
     )
     parser.add_argument(
         '--verbose', '-v',
@@ -684,7 +693,7 @@ def main():
         print(f"Test name: {args.test_name}")
         if args.person_filter:
             print(f"Filtering to person: {args.person_filter}")
-        results = renamer.process_test_files(duplicate=args.duplicate, person_filter=args.person_filter, test_name=args.test_name)
+        results = renamer.process_test_files(duplicate=args.duplicate, person_filter=args.person_filter, test_name=args.test_name, exclude_management_flag=args.exclude_management_flag)
         renamer.print_summary(results)
     elif args.input_dir and args.output_dir:
         # Load user mapping if provided
@@ -718,7 +727,7 @@ def main():
                 sys.exit(1)
         
         print(f"Processing directory: {args.input_dir} -> {args.output_dir}")
-        results = renamer.process_directory(args.input_dir, args.output_dir, user_mapping, category_mapping, args.duplicate)
+        results = renamer.process_directory(args.input_dir, args.output_dir, user_mapping, category_mapping, args.duplicate, args.exclude_management_flag)
         renamer.print_summary(results)
     else:
         print("Error: Must specify either --test-mode or both --input-dir and --output-dir")
