@@ -487,7 +487,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
 }
 
 @test "extract_user_from_path___VC___Person_With_Numbers_123_Test_Files_test.pdf" {
-    # Name with numbers (unmapped) 
+    # Name with numbers (unmapped)
     result="$(extract_user_from_path "VC - Person With Numbers 123/Test Files/test.pdf")"
     
     # Parse result components
@@ -498,7 +498,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     
     # Debug output
     echo "----- TEST CASE -----"
-    echo "Comment: Name with numbers (unmapped) "
+    echo "Comment: Name with numbers (unmapped)"
     echo "function: extract_user_from_path"
     echo "input_path: VC - Person With Numbers 123/Test Files/test.pdf"
     echo "expected_user_id: "
@@ -521,5 +521,116 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     [ "$cleaned_name" = "Person With Numbers 123" ]
     [ "$raw_remainder" = "Test Files/test.pdf" ]
     [ "$cleaned_remainder" = "Test Files test.pdf" ]
+}
+
+@test "extract_user_from_path___VC___John_Doe_Management_Client_Compliance_Form.pdf" {
+    # Directory with VC prefix and Management suffix
+    result="$(extract_user_from_path "VC - John Doe Management/Client Compliance/Form.pdf")"
+    
+    # Parse result components
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - John Doe Management/Client Compliance/Form.pdf")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Directory with VC prefix and Management suffix"
+    echo "function: extract_user_from_path"
+    echo "input_path: VC - John Doe Management/Client Compliance/Form.pdf"
+    echo "expected_user_id: 1001"
+    echo "raw_name expected: VC - John Doe Management"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: John Doe"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: Client Compliance/Form.pdf"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: Client Compliance Form.pdf"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1001"
+    echo "user_id matched: $user_id"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1001" ]
+    [ "$raw_name" = "VC - John Doe Management" ]
+    [ "$cleaned_name" = "John Doe" ]
+    [ "$raw_remainder" = "Client Compliance/Form.pdf" ]
+    [ "$cleaned_remainder" = "Client Compliance Form.pdf" ]
+}
+
+@test "extract_user_from_path___VC___Jane_Smith_Management_Consent_Consent_Form.pdf" {
+    # Directory with VC prefix and Management suffix
+    result="$(extract_user_from_path "VC - Jane Smith Management/Consent/Consent Form.pdf")"
+    
+    # Parse result components
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Jane Smith Management/Consent/Consent Form.pdf")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Directory with VC prefix and Management suffix"
+    echo "function: extract_user_from_path"
+    echo "input_path: VC - Jane Smith Management/Consent/Consent Form.pdf"
+    echo "expected_user_id: 1002"
+    echo "raw_name expected: VC - Jane Smith Management"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: Jane Smith"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: Consent/Consent Form.pdf"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: Consent Consent Form.pdf"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1002"
+    echo "user_id matched: $user_id"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1002" ]
+    [ "$raw_name" = "VC - Jane Smith Management" ]
+    [ "$cleaned_name" = "Jane Smith" ]
+    [ "$raw_remainder" = "Consent/Consent Form.pdf" ]
+    [ "$cleaned_remainder" = "Consent Consent Form.pdf" ]
+}
+
+@test "extract_user_from_path___VC___Mary_Jane_Wilson_Management_Service_Agreements_Agreement.pdf" {
+    # Multi-word name with VC prefix and Management suffix 
+    result="$(extract_user_from_path "VC - Mary Jane Wilson Management/Service Agreements/Agreement.pdf")"
+    
+    # Parse result components
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Mary Jane Wilson Management/Service Agreements/Agreement.pdf")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Multi-word name with VC prefix and Management suffix "
+    echo "function: extract_user_from_path"
+    echo "input_path: VC - Mary Jane Wilson Management/Service Agreements/Agreement.pdf"
+    echo "expected_user_id: 1003"
+    echo "raw_name expected: VC - Mary Jane Wilson Management"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: Mary Jane Wilson"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: Service Agreements/Agreement.pdf"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: Service Agreements Agreement.pdf"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1003"
+    echo "user_id matched: $user_id"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1003" ]
+    [ "$raw_name" = "VC - Mary Jane Wilson Management" ]
+    [ "$cleaned_name" = "Mary Jane Wilson" ]
+    [ "$raw_remainder" = "Service Agreements/Agreement.pdf" ]
+    [ "$cleaned_remainder" = "Service Agreements Agreement.pdf" ]
 }
 

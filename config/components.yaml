@@ -11,6 +11,7 @@ Global:
     - remainder
     - date
     - category
+    - management
   component_separator: "_"  # Separator between components in final filename
   file_exclusions:
     - "desktop.ini"
