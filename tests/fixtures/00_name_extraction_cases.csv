@@ -1,8 +1,4 @@
 filename|name_to_match|expected_match|extracted_name|raw_remainder|cleaned_remainder|matcher_function|use_case
-john-doe-report.pdf|john doe|true|john|-doe-report.pdf|doe report.pdf|extract_first_name_from_filename|First Name only
-John Doe 20240525 report.pdf|john doe|true|John| Doe 20240525 report.pdf|Doe 20240525 report.pdf|extract_first_name_from_filename|First Name only
-john-doe-report.pdf|john doe|true|doe|john--report.pdf|john report.pdf|extract_last_name_from_filename|Last Name only
-John Doe 20240525 report.pdf|john doe|true|Doe|John  20240525 report.pdf|John 20240525 report.pdf|extract_last_name_from_filename|Last Name only
 j-d-report.pdf|john doe|true|j-d|-report.pdf|report.pdf|extract_initials_from_filename|Both Initials - Hyphen separator
 Home J.D report.pdf|john doe|true|J.D|Home  report.pdf|Home report.pdf|extract_initials_from_filename|Both Initials - Period separator
 File j d report.pdf|john doe|true|j d|File  report.pdf|File report.pdf|extract_initials_from_filename|Both Initials - Space separator
@@ -28,7 +24,7 @@ john*doe-report.pdf|john doe|true|john,doe|*-report.pdf|report.pdf|extract_name_
 john@doe-report.pdf|john doe|true|john,doe|@-report.pdf|report.pdf|extract_name_from_filename|Non-standard separator (at sign)
 john#doe-report.pdf|john doe|true|john,doe|#-report.pdf|report.pdf|extract_name_from_filename|Non-standard separator (hash)
 j0hn-d03-report.pdf|john doe|true|j0hn,d03|--report.pdf|report.pdf|extract_name_from_filename|Name with numbers/letter substitution
-jôn-döe-report.pdf|john doe|true|döe|jôn--report.pdf|jôn report.pdf|extract_name_from_filename|Name with accents
+jôn-döe-report.pdf|john doe|true|döe|jôn--report.pdf|jôn report.pdf|extract_name_from_filename|Name with accents (only matches last name)
 john-doe-john-doe-report.pdf|john doe|true|john,john,doe,doe|----report.pdf|report.pdf|extract_name_from_filename|Multiple matches (same name twice)
 john-doe-jdoe-report.pdf|john doe|true|jdoe,john,doe|---report.pdf|report.pdf|extract_name_from_filename|Multiple matches (full and initials)
 john-doe-jdoe-report-john.pdf|john doe|true|jdoe,john,john,doe|---report-.pdf|report.pdf|extract_name_from_filename|Multiple matches (full and initials)
@@ -48,3 +44,13 @@ john . doe - report.pdf|john doe|true|john,doe| .  - report.pdf|report.pdf|extra
  john doe report.pdf|john doe|true|john,doe|   report.pdf|report.pdf|extract_name_from_filename|Leading space
 john doe report .pdf|john doe|true|john,doe|  report .pdf|report.pdf|extract_name_from_filename|Trailing space before extension
 john-doe_report report.pdf|john doe|true|john,doe|-_report report.pdf|report report.pdf|extract_name_from_filename|Mixed separators (hyphen, underscore, space)
+maria-isabella-rodriguez-santos-report.pdf|maria isabella rodriguez santos|true|maria,isabella,rodriguez,santos|----report.pdf|report.pdf|extract_name_from_filename|Four Name Parts - Hyphen separator
+maria_isabella_rodriguez_santos_report.pdf|maria isabella rodriguez santos|true|maria,isabella,rodriguez,santos|____report.pdf|report.pdf|extract_name_from_filename|Four Name Parts - Underscore separator
+maria isabella rodriguez santos report.pdf|maria isabella rodriguez santos|true|maria,isabella,rodriguez,santos|    report.pdf|report.pdf|extract_name_from_filename|Four Name Parts - Space separator
+maria.isabella.rodriguez.santos.report.pdf|maria isabella rodriguez santos|true|maria,isabella,rodriguez,santos|....report.pdf|report.pdf|extract_name_from_filename|Four Name Parts - Period separator
+m-i-r-s-report.pdf|maria isabella rodriguez santos|true|m-i-r-s|-report.pdf|report.pdf|extract_initials_from_filename|Four Initials - Hyphen separator
+m.i.r.s.report.pdf|maria isabella rodriguez santos|true|m.i.r.s|.report.pdf|report.pdf|extract_initials_from_filename|Four Initials - Period separator
+m i r s report.pdf|maria isabella rodriguez santos|true|m i r s| report.pdf|report.pdf|extract_initials_from_filename|Four Initials - Space separator
+m_i_r_s_report.pdf|maria isabella rodriguez santos|true|m_i_r_s|_report.pdf|report.pdf|extract_initials_from_filename|Four Initials - Underscore separator
+m-rodriguez-report.pdf|maria isabella rodriguez santos|false||m-rodriguez-report.pdf|m rodriguez report.pdf|extract_shorthand_name_from_filename|Shorthand Not Applicable - Four Names
+m.santos-report.pdf|maria isabella rodriguez santos|false||m.santos-report.pdf|m santos report.pdf|extract_shorthand_name_from_filename|Shorthand Not Applicable - Four Names

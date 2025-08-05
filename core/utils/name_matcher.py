@@ -103,13 +103,13 @@ def match_both_initials(filename, first_initial, last_initial):
 def get_extraction_order():
     config = load_config()
     return config.get('Name', {}).get('extraction_order', [
-        'shorthand', 'initials', 'first_name', 'last_name'
+        'shorthand', 'initials', 'name_components'
     ])
 
 def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     """
     Extract all possible name matches following the configured extraction order.
-    For three-part names, skip shorthand matching and allow middle name extraction.
+    For 2+ name patterns, uses extract_name_part_from_filename for full name extraction.
     Returns: extracted_names|raw_remainder|cleaned_remainder|matched
     """
     name_parts = name_to_match.split()
@@ -120,67 +120,81 @@ def extract_all_name_matches(filename: str, name_to_match: str) -> str:
     # Get the configured extraction order
     extraction_order = get_extraction_order()
     
-    # Process each extraction type in order
-    for extraction_type in extraction_order:
-        if extraction_type == 'shorthand':
-            # Skip shorthand for three-part names
-            if len(name_parts) == 2:
-                # Find all shorthand matches
-                while True:
+    # For 2+ name patterns, handle differently
+    if len(name_parts) >= 2:
+        # Try shorthand first (should fail for 3+ names)
+        if 'shorthand' in extraction_order:
+            result = extract_shorthand_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
+            parts = result.split('|')
+            if parts[2] == 'true':  # matched
+                # Split by comma to get individual shorthands
+                shorthands = parts[0].split(',')
+                extracted.extend(shorthands)
+                raw_remainder = parts[1]
+                matched = True
+        
+        # Try initials
+        if 'initials' in extraction_order and not matched:
+            result = extract_initials_from_filename(raw_remainder, name_to_match, clean_filename=False)
+            parts = result.split('|')
+            if parts[2] == 'true':  # matched
+                # Split by comma to get individual initials
+                initials = parts[0].split(',')
+                extracted.extend(initials)
+                raw_remainder = parts[1]
+                matched = True
+        
+        # Try name components extraction - extract all components in one call
+        if 'name_components' in extraction_order:
+            result = extract_name_part_from_filename(raw_remainder, name_to_match, clean_filename=False)
+            parts = result.split('|')
+            if parts[2] == 'true':  # matched
+                # The new extract_name_part_from_filename returns individual components in canonical order
+                # Split by comma to get individual names
+                name_parts_extracted = parts[0].split(',')
+                extracted.extend(name_parts_extracted)
+                raw_remainder = parts[1]
+                matched = True
+        
+        # Don't try middle_name or last_name for 2+ name patterns
+        # as they would conflict with the full name extraction
+    
+    # For single name patterns, use the original logic
+    else:
+        # Process each extraction type in order
+        for extraction_type in extraction_order:
+            if extraction_type == 'shorthand':
+                # Only allow shorthand for 2-name patterns
+                if len(name_parts) == 2:
                     result = extract_shorthand_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
                     parts = result.split('|')
                     if parts[2] == 'true':  # matched
-                        extracted.append(parts[0])
+                        # Split by comma to get individual shorthands
+                        shorthands = parts[0].split(',')
+                        extracted.extend(shorthands)
                         raw_remainder = parts[1]
                         matched = True
-                    else:
-                        break
-        elif extraction_type == 'initials':
-            # Find all initials matches
-            while True:
+            elif extraction_type == 'initials':
+                # Find all initials matches - now handles 4+ name patterns
                 result = extract_initials_from_filename(raw_remainder, name_to_match, clean_filename=False)
                 parts = result.split('|')
                 if parts[2] == 'true':  # matched
-                    extracted.append(parts[0])
+                    # Split by comma to get individual initials
+                    initials = parts[0].split(',')
+                    extracted.extend(initials)
                     raw_remainder = parts[1]
                     matched = True
-                else:
-                    break
-        elif extraction_type == 'first_name':
-            # Find all first name matches
-            while True:
-                result = extract_first_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
+            elif extraction_type == 'name_components':
+                # Extract all name components in one call
+                result = extract_name_part_from_filename(raw_remainder, name_to_match, clean_filename=False)
                 parts = result.split('|')
                 if parts[2] == 'true':  # matched
-                    extracted.append(parts[0])
+                    # The new extract_name_part_from_filename returns individual components in canonical order
+                    # Split by comma to get individual names
+                    name_parts_extracted = parts[0].split(',')
+                    extracted.extend(name_parts_extracted)
                     raw_remainder = parts[1]
                     matched = True
-                else:
-                    break
-        elif extraction_type == 'middle_name':
-            # Only extract middle name for three-part names
-            if len(name_parts) == 3:
-                # Find all middle name matches
-                while True:
-                    result = extract_middle_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
-                    parts = result.split('|')
-                    if parts[3] == 'true':  # matched
-                        extracted.append(parts[0])
-                        raw_remainder = parts[1]
-                        matched = True
-                    else:
-                        break
-        elif extraction_type == 'last_name':
-            # Find all last name matches
-            while True:
-                result = extract_last_name_from_filename(raw_remainder, name_to_match, clean_filename=False)
-                parts = result.split('|')
-                if parts[2] == 'true':  # matched
-                    extracted.append(parts[0])
-                    raw_remainder = parts[1]
-                    matched = True
-                else:
-                    break
     
     cleaned_remainder = clean_filename_remainder_py(raw_remainder)
     return f"{','.join(extracted)}|{raw_remainder}|{cleaned_remainder}|{'true' if matched else 'false'}"
@@ -220,63 +234,110 @@ def extract_name_from_filename(filename: str, name_to_match: str) -> str:
     """
     return extract_all_name_matches(filename, name_to_match)
 
-def extract_first_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
+def extract_name_part_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
     """
-    Extract only the first name from a filename.
+    Extract individual name components from a filename in canonical order.
+    For 2+ name patterns, extracts each name component individually in the order they appear in name_to_match.
+    For multiple matches, extracts ALL occurrences of each name component (all first names, then all last names, etc.).
+    Handles mixed separators and flexible spacing.
     Returns: matched_name|remainder|matched
     """
-    sep = separator_regex_for_searching()
-    first_name = name_to_match.split()[0]
-    fuzzy_pattern = _generate_fuzzy_regex(first_name)
-    # Capture the leading separator (or start) and the name
-    pattern = re.compile(rf"(^|{sep})({fuzzy_pattern})(?=$|{sep})", re.IGNORECASE)
-    first_match = pattern.search(filename)
-    if not first_match:
-        return f"|{filename}|false"
-    matched_name = first_match.group(2)
-    if clean_filename:
-        start, end = first_match.span(0)
-        remainder = filename[:start] + filename[end:]
-        remainder = clean_filename_remainder_py(remainder)
-    else:
-        # Remove only the name, not the leading separator
-        sep_start, sep_end = first_match.span(1)
-        name_start, name_end = first_match.span(2)
-        remainder = filename[:sep_end] + filename[name_end:]
-    return f"{matched_name}|{remainder}|true"
-
-def extract_last_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
-    """
-    Extract only the last name from a filename.
-    Returns: matched_name|remainder|matched
-    """
-    sep = separator_regex_for_searching()
     name_parts = name_to_match.split()
-    if not name_parts:
+    if len(name_parts) < 2:
         return f"|{filename}|false"
-    last_name = name_parts[-1]
-    fuzzy_pattern = _generate_fuzzy_regex(last_name)
-    pattern = re.compile(rf"{fuzzy_pattern}(?=$|{sep})", re.IGNORECASE)
-    match = pattern.search(filename)
-    if not match:
-        return f"|{filename}|false"
-    matched_name = match.group(0)
-    if clean_filename:
-        start, end = match.span(0)
-        remainder = filename[:start] + filename[end:]
-        remainder = clean_filename_remainder_py(remainder)
+    
+    extracted_names = []
+    current_filename = filename
+    input_seps = load_global_separators()
+    sep_pattern = '|'.join([re.escape(sep) for sep in input_seps])
+    sep_class = f'[{sep_pattern}]'
+    
+    # For raw remainder, we need to track the exact separators between names
+    if not clean_filename:
+        # Find ALL name matches first to preserve exact separators
+        name_matches = []
+        temp_filename = filename
+        
+        # For each name part, find ALL occurrences
+        for name_part in name_parts:
+            name_pattern = _generate_fuzzy_regex(name_part)
+            pattern = re.compile(rf"(^|{sep_class})({name_pattern})(?=$|{sep_class})", re.IGNORECASE)
+            
+            # Find all matches for this name part in the original filename
+            matches = list(pattern.finditer(filename))
+            for match in matches:
+                name_matches.append({
+                    'name': match.group(2),
+                    'start': match.start(2),
+                    'end': match.end(2),
+                    'full_start': match.start(0),
+                    'full_end': match.end(0),
+                    'name_part': name_part  # Track which name part this is
+                })
+        
+        if not name_matches:
+            return f"|{filename}|false"
+        
+        # Sort matches by position to maintain order
+        name_matches.sort(key=lambda x: x['start'])
+        
+        # Extract names in canonical order: all first names, then all last names, etc.
+        for name_part in name_parts:
+            for match in name_matches:
+                if match['name_part'].lower() == name_part.lower():
+                    extracted_names.append(match['name'])
+        
+        # Build raw remainder by preserving the original separators that were between names
+        # Start with the original filename
+        raw_remainder = filename
+        
+        # Replace each matched name with a placeholder, working backwards to maintain positions
+        for i, match in enumerate(reversed(name_matches)):
+            raw_remainder = raw_remainder[:match['start']] + f"_NAME_{i}_" + raw_remainder[match['end']:]
+        
+        # Replace placeholders with empty strings (remove the names completely)
+        # The separators that were between the names will remain in the raw_remainder
+        for i in range(len(name_matches)):
+            raw_remainder = raw_remainder.replace(f"_NAME_{i}_", "")
+        
+        current_filename = raw_remainder
+    
     else:
-        start, end = match.span(0)
-        remainder = filename[:start] + filename[end:]
-    return f"{matched_name}|{remainder}|true"
+        # For clean filename, use the original logic
+        for name_part in name_parts:
+            name_pattern = _generate_fuzzy_regex(name_part)
+            pattern = re.compile(rf"(^|{sep_class})({name_pattern})(?=$|{sep_class})", re.IGNORECASE)
+            match = pattern.search(current_filename)
+            
+            if match:
+                extracted_names.append(match.group(2))
+                start, end = match.span(0)
+                current_filename = current_filename[:start] + current_filename[end:]
+                current_filename = clean_filename_remainder_py(current_filename)
+            else:
+                continue
+    
+    if not extracted_names:
+        return f"|{filename}|false"
+    
+    # Join the extracted names in canonical order
+    matched_name = ",".join(extracted_names)
+    
+    return f"{matched_name}|{current_filename}|true"
+
+
+
+
 
 def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
     """
     Extracts shorthand name patterns like 'j-doe' or 'john-d'.
+    Only works for 2-name patterns.
+    Finds ALL occurrences of shorthand patterns.
     """
     sep = separator_regex_for_searching()
     name_parts = name_to_match.split()
-    if len(name_parts) < 2:
+    if len(name_parts) != 2:
         return f"|{filename}|false"
     first_name, last_name = name_parts[0], name_parts[-1]
     first_initial, last_initial = first_name[0], last_name[0]
@@ -289,8 +350,17 @@ def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clea
     pattern2_str = rf"(^|{sep})({fuzzy_first_name}{sep}{fuzzy_last_initial})(?=$|{sep})"
     pattern3_str = rf"(^|{sep})({fuzzy_first_initial}{fuzzy_last_name})(?=$|{sep})"
     pattern = re.compile(f"{pattern1_str}|{pattern2_str}|{pattern3_str}", re.IGNORECASE)
-    match = pattern.search(filename)
-    if match:
+    
+    # Find ALL matches
+    matches = list(pattern.finditer(filename))
+    if not matches:
+        return f"|{filename}|false"
+    
+    # Extract all matched shorthand patterns
+    extracted_shorthands = []
+    raw_remainder = filename
+    
+    for match in reversed(matches):  # Process backwards to maintain positions
         # Find which group matched
         matched_text = None
         for i in [2, 4, 6]:
@@ -299,17 +369,22 @@ def extract_shorthand_name_from_filename(filename: str, name_to_match: str, clea
                 sep_start, sep_end = match.span(i-1)
                 name_start, name_end = match.span(i)
                 break
-        if matched_text is None:
-            return f"|{filename}|false"
-        if clean_filename:
-            start, end = match.span(0)
-            remainder = filename[:start] + filename[end:]
-            remainder = clean_filename_remainder_py(remainder)
-        else:
-            # Remove only the name, not the leading separator
-            remainder = filename[:sep_end] + filename[name_end:]
-        return f"{matched_text}|{remainder}|true"
-    return f"|{filename}|false"
+        
+        if matched_text is not None:
+            extracted_shorthands.append(matched_text)
+            if clean_filename:
+                start, end = match.span(0)
+                raw_remainder = raw_remainder[:start] + raw_remainder[end:]
+            else:
+                # Remove only the name, not the leading separator
+                raw_remainder = raw_remainder[:sep_end] + raw_remainder[name_end:]
+    
+    if clean_filename:
+        raw_remainder = clean_filename_remainder_py(raw_remainder)
+    
+    # Join all extracted shorthands
+    matched_text = ",".join(extracted_shorthands)
+    return f"{matched_text}|{raw_remainder}|true"
 
 def separator_char_class():
     """Return a regex character class for all separators from YAML config."""
@@ -318,42 +393,96 @@ def separator_char_class():
 
 def extract_initials_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
     """
-    Extract only initials from a filename. This handles separated (j-d) and grouped (jd) initials.
+    Extract initials from a filename. This handles separated and grouped initials for all name parts.
+    For 4+ name patterns, extracts initials for all parts (e.g., m-i-r-s for Maria Isabella Rodriguez Santos).
+    Finds ALL occurrences of initials patterns.
     """
     parts = name_to_match.split()
     if len(parts) < 2:
         return f"|{filename}|false"
-    first_initial = parts[0][0].lower()
-    last_initial = parts[1][0].lower()
-    sep = separator_regex_for_searching()
-    sep_class = separator_char_class()
-    # Capture the leading separator (or start) and the initials
-    pattern_sep = re.compile(rf"(^|{sep})({re.escape(first_initial)}{sep_class}+{re.escape(last_initial)})(?=$|{sep})", re.IGNORECASE)
-    match = pattern_sep.search(filename)
-    if match:
-        matched_text = match.group(2)
-        if clean_filename:
-            start, end = match.span(0)
-            remainder = filename[:start] + filename[end:]
-            remainder = clean_filename_remainder_py(remainder)
-        else:
-            sep_start, sep_end = match.span(1)
-            name_start, name_end = match.span(2)
-            remainder = filename[:sep_end] + filename[name_end:]
-        return f"{matched_text}|{remainder}|true"
-    pattern_grouped = re.compile(rf"(^|{sep})({re.escape(first_initial)}{re.escape(last_initial)})(?=$|{sep})", re.IGNORECASE)
-    match = pattern_grouped.search(filename)
-    if match:
-        matched_text = match.group(2)
-        if clean_filename:
-            start, end = match.span(0)
-            remainder = filename[:start] + filename[end:]
-            remainder = clean_filename_remainder_py(remainder)
-        else:
-            sep_start, sep_end = match.span(1)
-            name_start, name_end = match.span(2)
-            remainder = filename[:sep_end] + filename[name_end:]
-        return f"{matched_text}|{remainder}|true"
+    
+    # For 2-name patterns, use the original logic
+    if len(parts) == 2:
+        first_initial = parts[0][0].lower()
+        last_initial = parts[1][0].lower()
+        sep = separator_regex_for_searching()
+        sep_class = separator_char_class()
+        
+        # Try separated initials pattern first (e.g., j-d)
+        pattern_sep = re.compile(rf"(^|{sep})({re.escape(first_initial)}{sep_class}+{re.escape(last_initial)})(?=$|{sep})", re.IGNORECASE)
+        matches = list(pattern_sep.finditer(filename))
+        
+        if not matches:
+            # Try grouped initials pattern (e.g., jd)
+            pattern_grouped = re.compile(rf"(^|{sep})({re.escape(first_initial)}{re.escape(last_initial)})(?=$|{sep})", re.IGNORECASE)
+            matches = list(pattern_grouped.finditer(filename))
+        
+        if matches:
+            # Extract all matched initials
+            extracted_initials = []
+            raw_remainder = filename
+            
+            for match in reversed(matches):  # Process backwards to maintain positions
+                matched_text = match.group(2)
+                extracted_initials.append(matched_text)
+                
+                if clean_filename:
+                    start, end = match.span(0)
+                    raw_remainder = raw_remainder[:start] + raw_remainder[end:]
+                else:
+                    sep_start, sep_end = match.span(1)
+                    name_start, name_end = match.span(2)
+                    raw_remainder = raw_remainder[:sep_end] + raw_remainder[name_end:]
+            
+            if clean_filename:
+                raw_remainder = clean_filename_remainder_py(raw_remainder)
+            
+            # Join all extracted initials
+            matched_text = ",".join(extracted_initials)
+            return f"{matched_text}|{raw_remainder}|true"
+    
+    # For 4+ name patterns, extract initials for all parts
+    else:
+        # Get initials for all name parts
+        all_initials = [part[0].lower() for part in parts]
+        sep = separator_regex_for_searching()
+        sep_class = separator_char_class()
+        
+        # Try separated initials pattern (e.g., m-i-r-s)
+        initials_pattern = sep_class.join([re.escape(initial) for initial in all_initials])
+        pattern_sep = re.compile(rf"(^|{sep})({initials_pattern})(?=$|{sep})", re.IGNORECASE)
+        matches = list(pattern_sep.finditer(filename))
+        
+        if not matches:
+            # Try grouped initials pattern (e.g., mirs)
+            grouped_initials = ''.join(all_initials)
+            pattern_grouped = re.compile(rf"(^|{sep})({re.escape(grouped_initials)})(?=$|{sep})", re.IGNORECASE)
+            matches = list(pattern_grouped.finditer(filename))
+        
+        if matches:
+            # Extract all matched initials
+            extracted_initials = []
+            raw_remainder = filename
+            
+            for match in reversed(matches):  # Process backwards to maintain positions
+                matched_text = match.group(2)
+                extracted_initials.append(matched_text)
+                
+                if clean_filename:
+                    start, end = match.span(0)
+                    raw_remainder = raw_remainder[:start] + raw_remainder[end:]
+                else:
+                    sep_start, sep_end = match.span(1)
+                    name_start, name_end = match.span(2)
+                    raw_remainder = raw_remainder[:sep_end] + raw_remainder[name_end:]
+            
+            if clean_filename:
+                raw_remainder = clean_filename_remainder_py(raw_remainder)
+            
+            # Join all extracted initials
+            matched_text = ",".join(extracted_initials)
+            return f"{matched_text}|{raw_remainder}|true"
+    
     return f"|{filename}|false"
 
 def clean_filename_remainder_py(remainder):
@@ -510,9 +639,20 @@ def clean_filename_remainder_py(remainder):
             elif fmt == "%d.%m.%y":
                 prefix_date_patterns.append(f"{re.escape(prefix)}\\s+\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}")
     
-    # STEP 4: Apply general separator normalization, but protect normalized date ranges and prefix dates
+    # STEP 4: Apply general separator normalization, but protect normalized date ranges, prefix dates, and file extensions
     input_seps = load_global_separators()
     norm_sep = get_normalized_separator()
+    
+    # Protect file extensions first
+    file_extension = ""
+    if '.' in remainder:
+        base, ext = remainder.rsplit('.', 1)
+        if not ext.isdigit() and len(ext) <= 4:  # Likely a file extension
+            file_extension = '.' + ext
+            remainder = base
+        else:
+            # Not a file extension, restore the dot
+            remainder = base + '.' + ext
     
     # Split the text into parts, preserving normalized date ranges and prefix dates
     combined_pattern = '|'.join(normalized_date_patterns + prefix_date_patterns)
@@ -530,24 +670,15 @@ def clean_filename_remainder_py(remainder):
     
     remainder = "".join(parts)
     
-    # STEP 4: Collapse runs of separators
+    # STEP 5: Collapse runs of separators
     remainder = re.sub(f'{re.escape(norm_sep)}+', norm_sep, remainder)
     
-    # STEP 5: Trim leading/trailing separators (all known input separators)
+    # STEP 6: Trim leading/trailing separators (all known input separators)
     for sep in input_seps:
         remainder = remainder.strip(sep)
     
-    # Now split extension, but only if it's not numeric
-    if '.' in remainder:
-        base, ext = remainder.rsplit('.', 1)
-        if not ext.isdigit():
-            ext = '.' + ext
-        else:
-            base, ext = remainder, ""
-    else:
-        base, ext = remainder, ""
-    
-    result = base + ext
+    # STEP 7: Restore file extension
+    result = remainder + file_extension
     return result
 
 def extract_name_and_date_from_filename(filename: str, name_to_match: str) -> str:
@@ -653,22 +784,7 @@ def extract_name_from_path(full_path: str, name_to_match: str) -> str:
     # Fallback if parsing fails
     return f"|{full_path}|{clean_filename_remainder_py(full_path)}|false"
 
-def extract_middle_name_from_filename(filename: str, name_to_match: str, clean_filename: bool = True) -> str:
-    """
-    Extract the middle name from a filename if the name_to_match has three parts.
-    Returns: extracted_middle|raw_remainder|cleaned_remainder|matched
-    """
-    import re
-    name_parts = name_to_match.split()
-    if len(name_parts) != 3:
-        return f"|{filename}|{clean_filename_remainder_py(filename)}|false"
-    middle_name = name_parts[1]
-    # Remove all occurrences of the middle name (case-insensitive)
-    pattern = re.compile(re.escape(middle_name), re.IGNORECASE)
-    raw_remainder = pattern.sub('', filename)
-    cleaned_remainder = clean_filename_remainder_py(raw_remainder)
-    matched = 'true' if middle_name.lower() in filename.lower() else 'false'
-    return f"{middle_name}|{raw_remainder}|{cleaned_remainder}|{matched}"
+
 
 def main():
     """Main function to process command line arguments."""
@@ -698,7 +814,7 @@ def main():
         sys.exit(1)
         
     # For individual matcher functions, pass clean_filename=False to preserve raw remainder
-    if function_name in ["extract_first_name_from_filename", "extract_last_name_from_filename", "extract_initials_from_filename", "extract_shorthand_name_from_filename"]:
+    if function_name in ["extract_initials_from_filename", "extract_shorthand_name_from_filename"]:
         result = matcher_function(filename, target_name, clean_filename=False)
         print(result)  # Only print the result to stdout
     elif function_name == "extract_name_from_path":

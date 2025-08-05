@@ -107,7 +107,7 @@ class FileMigrationRenamer:
         for filepath in input_path.rglob('*'):
             if filepath.is_file():
                 # Check if file should be excluded
-                filename = filepath.name
+            filename = filepath.name
                 should_exclude = False
                 
                 # Load config to get exclusions
@@ -141,7 +141,7 @@ class FileMigrationRenamer:
                 
                 if should_exclude:
                     self.logger.info(f"Skipping excluded file: {filename}")
-                    continue
+                continue
             
                 # Debug: Log files that are being processed
                 if filename == "desktop.ini":
@@ -166,12 +166,12 @@ class FileMigrationRenamer:
                     
                     normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping, str(filepath), is_management_folder, exclude_management_flag)
             
-                    result = {
-                        'original_filename': str(relative_path),
+            result = {
+                'original_filename': str(relative_path),
                         'new_filename': normalized_filename,
                         'person': cleaned_person_name,
-                        'success': True
-                    }
+                'success': True
+            }
             
                     try:
                         # Create person subdirectory in output using cleaned name
@@ -186,8 +186,8 @@ class FileMigrationRenamer:
                         # Process file (copy or move)
                         new_filepath = person_output_dir / normalized_filename
                         if duplicate:
-                            shutil.copy2(filepath, new_filepath)
-                            result['copied'] = True
+                    shutil.copy2(filepath, new_filepath)
+                    result['copied'] = True
                             self.logger.info(f"Copied: {relative_path} -> {cleaned_person_name}/{normalized_filename}")
                         else:
                             filepath.rename(new_filepath)
@@ -201,12 +201,12 @@ class FileMigrationRenamer:
                             # Windows files might not allow timestamp modification, but that's okay
                             self.logger.warning(f"Could not restore timestamps for {relative_path}: {e}")
                             # Continue processing - the file was still copied/moved successfully
-                    except Exception as e:
+                except Exception as e:
                         result['error'] = f"Failed to process {relative_path}: {e}"
-                        result['success'] = False
-                        self.logger.error(result['error'])
+                    result['success'] = False
+                    self.logger.error(result['error'])
             
-                    results.append(result)
+            results.append(result)
                     
                 except Exception as e:
                     result = {
@@ -252,7 +252,7 @@ class FileMigrationRenamer:
             cleaned_person_name = user_parts[2] if len(user_parts) > 2 else person_name
             
             output_person_dir = to_dir / cleaned_person_name
-            output_person_dir.mkdir(parents=True, exist_ok=True)
+                output_person_dir.mkdir(parents=True, exist_ok=True)
             
             # Process all files in the person directory
             for filepath in person_dir.rglob('*'):
@@ -275,13 +275,13 @@ class FileMigrationRenamer:
                         # Use the real normalize_filename function
                         normalized_filename = normalize_filename(str(full_relative_path), is_management_folder=is_management_folder, exclude_management_flag=exclude_management_flag)
                         
-                        result = {
+                result = {
                             'person': cleaned_person_name,
                             'original_filename': str(relative_path),
                             'new_filename': normalized_filename,
-                            'success': True,
-                            'test_name': test_name
-                        }
+                    'success': True,
+                    'test_name': test_name
+                }
                         
                         try:
                             new_filepath = output_person_dir / normalized_filename
@@ -289,8 +289,8 @@ class FileMigrationRenamer:
                             orig_mtime = orig_stat.st_mtime
                             orig_atime = orig_stat.st_atime
                             if duplicate:
-                                shutil.copy2(filepath, new_filepath)
-                                result['copied'] = True
+                        shutil.copy2(filepath, new_filepath)
+                        result['copied'] = True
                                 self.logger.info(f"Copied: {person_name}/{relative_path} -> {test_name}/{cleaned_person_name}/{normalized_filename}")
                             else:
                                 filepath.rename(new_filepath)
@@ -313,7 +313,7 @@ class FileMigrationRenamer:
                             'success': False,
                             'test_name': test_name
                         }
-                        results.append(result)
+                results.append(result)
                         self.logger.error(f"Error processing {relative_path}: {e}")
         
         return results
@@ -444,25 +444,11 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
         except:
             extracted_category = ""
     
-    # STEP 3: Extract name from remainder using existing name_matcher function
-    if raw_remainder and cleaned_name:
-        from core.utils.name_matcher import extract_name_from_filename
-        name_result = extract_name_from_filename(raw_remainder, cleaned_name)
-        name_parts = name_result.split('|')
-        if len(name_parts) > 1:
-            # Use the canonical name from the name matcher if available
-            canonical_name = name_parts[0].replace(',', ' ').strip()
-            if canonical_name and canonical_name.lower() != cleaned_name.lower():
-                cleaned_name = canonical_name
-            # Use the remainder after name extraction
-            raw_remainder = name_parts[1]
-            # Remove file extension from raw_remainder if it's still there
-            if file_extension and raw_remainder.endswith(file_extension):
-                raw_remainder = raw_remainder[:-len(file_extension)]
-    
-    # STEP 4: Extract date from remainder using existing date_matcher function
+    # STEP 3: Extract date from remainder using existing date_matcher function (BEFORE name extraction)
+    extracted_date = ""
     if raw_remainder:
-        # Use the existing date_matcher function
+        # Use the existing date_matcher function on the raw remainder (before name extraction)
+        from core.utils.date_matcher import extract_date_matches
         date_result = extract_date_matches(raw_remainder)
         date_parts = date_result.split('|')
         if date_parts[0]:  # If date found
@@ -487,6 +473,20 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
                 extracted_date = metadata_parts[0]
                 # Keep the original remainder since metadata date doesn't change the filename
                 # raw_remainder stays the same
+    
+    # STEP 4: Extract name from remainder using existing name_matcher function (AFTER date extraction)
+    if raw_remainder and cleaned_name:
+        from core.utils.name_matcher import extract_name_from_filename
+        name_result = extract_name_from_filename(raw_remainder, cleaned_name)
+        name_parts = name_result.split('|')
+        if len(name_parts) > 2:  # Check for at least 3 fields
+            # DO NOT change the person's name - it should remain the canonical name from user mapping
+            # The name extraction is only used to remove additional name occurrences from the remainder
+            # Use the cleaned remainder after name extraction (field 2)
+            raw_remainder = name_parts[2]  # Use cleaned remainder instead of raw remainder
+            # Remove file extension from raw_remainder if it's still there
+            if file_extension and raw_remainder.endswith(file_extension):
+                raw_remainder = raw_remainder[:-len(file_extension)]
     
     # STEP 5: Clean the final remainder using existing name_matcher function
     cleaned_remainder = clean_filename_remainder_py(raw_remainder) if raw_remainder else ""

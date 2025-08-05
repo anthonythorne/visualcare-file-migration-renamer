@@ -25,9 +25,7 @@ Name:
   extraction_order:
     - shorthand
     - initials
-    - first_name
-    - middle_name
-    - last_name
+    - name_components
 
 Date:
   use_global_separators: true
