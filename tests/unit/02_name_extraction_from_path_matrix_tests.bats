@@ -133,11 +133,11 @@ source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Client Files 2024 Support Plans Progress Report.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_name expected: Mary,Mary,Jane,Wilson,Wilson" >&2
+  echo "extracted_name expected: Mary,Mary,Jane,Jane,Wilson,Wilson" >&2
   echo "extracted_name matched: $extracted_name" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_name" "Mary,Mary,Jane,Wilson,Wilson"
+  assert_equal "$extracted_name" "Mary,Mary,Jane,Jane,Wilson,Wilson"
   assert_equal "$raw_remainder" "Client Files/2024/Support Plans/  /   Progress Report.pdf"
   assert_equal "$cleaned_remainder" "Client Files 2024 Support Plans Progress Report.pdf"
 }
@@ -156,11 +156,11 @@ source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Documents Personal Care Assessment 2024.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_name expected: John,John,Michael,Smith,Smith" >&2
+  echo "extracted_name expected: John,John,Michael,Michael,Smith,Smith" >&2
   echo "extracted_name matched: $extracted_name" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_name" "John,John,Michael,Smith,Smith"
+  assert_equal "$extracted_name" "John,John,Michael,Michael,Smith,Smith"
   assert_equal "$raw_remainder" "Documents/Personal Care/  /   Assessment 2024.pdf"
   assert_equal "$cleaned_remainder" "Documents Personal Care Assessment 2024.pdf"
 }
@@ -221,17 +221,17 @@ source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
   echo "full_path: Medical Records/2024/Assessments/Elizabeth van der Berg/Elizabeth van der Berg Medical Assessment.pdf" >&2
   echo "name to match: Elizabeth van der Berg" >&2
   echo "expected_match: true" >&2
-  echo "raw remainder expected: Medical Records/2024/Assessments/ van der / van der  Medical Assessment.pdf" >&2
+  echo "raw remainder expected: Medical Records/2024/Assessments/   /    Medical Assessment.pdf" >&2
   echo "raw remainder matched: $raw_remainder" >&2
-  echo "cleaned remainder expected: Medical Records 2024 Assessments van der van der Medical Assessment.pdf" >&2
+  echo "cleaned remainder expected: Medical Records 2024 Assessments Medical Assessment.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_name expected: Elizabeth,Elizabeth,Berg,Berg" >&2
+  echo "extracted_name expected: Elizabeth,Elizabeth,van,van,der,der,Berg,Berg" >&2
   echo "extracted_name matched: $extracted_name" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_name" "Elizabeth,Elizabeth,Berg,Berg"
-  assert_equal "$raw_remainder" "Medical Records/2024/Assessments/ van der / van der  Medical Assessment.pdf"
-  assert_equal "$cleaned_remainder" "Medical Records 2024 Assessments van der van der Medical Assessment.pdf"
+  assert_equal "$extracted_name" "Elizabeth,Elizabeth,van,van,der,der,Berg,Berg"
+  assert_equal "$raw_remainder" "Medical Records/2024/Assessments/   /    Medical Assessment.pdf"
+  assert_equal "$cleaned_remainder" "Medical Records 2024 Assessments Medical Assessment.pdf"
 }
 
 @test "extract_name_from_path - Support Plans/2023/Active Plans/Maria José Rodriguez/Maria José Rodriguez Support Plan.pdf" {
@@ -248,11 +248,11 @@ source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Support Plans 2023 Active Plans Support Plan.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_name expected: Maria,Maria,José,Rodriguez,Rodriguez" >&2
+  echo "extracted_name expected: Maria,Maria,José,José,Rodriguez,Rodriguez" >&2
   echo "extracted_name matched: $extracted_name" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_name" "Maria,Maria,José,Rodriguez,Rodriguez"
+  assert_equal "$extracted_name" "Maria,Maria,José,José,Rodriguez,Rodriguez"
   assert_equal "$raw_remainder" "Support Plans/2023/Active Plans/  /   Support Plan.pdf"
   assert_equal "$cleaned_remainder" "Support Plans 2023 Active Plans Support Plan.pdf"
 }

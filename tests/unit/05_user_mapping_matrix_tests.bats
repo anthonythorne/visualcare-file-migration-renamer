@@ -10,7 +10,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "John Doe/file.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "John Doe/file.pdf")"
@@ -47,7 +47,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "Jane Smith/report.txt")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "Jane Smith/report.txt")"
@@ -84,7 +84,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - John Doe/document.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - John Doe/document.pdf")"
@@ -121,7 +121,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Jane Smith/notes.docx")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Jane Smith/notes.docx")"
@@ -158,7 +158,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "Temp Person/data.csv")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "Temp Person/data.csv")"
@@ -195,7 +195,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "john doe/image.jpg")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "john doe/image.jpg")"
@@ -232,7 +232,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Mary Jane Wilson/2024/Progress Report.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Mary Jane Wilson/2024/Progress Report.pdf")"
@@ -269,7 +269,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Anne-Marie O'Connor/Photos & Videos/Photo Album.zip")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Anne-Marie O'Connor/Photos & Videos/Photo Album.zip")"
@@ -306,7 +306,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Elizabeth van der Berg/Medical Records/Assessment.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Elizabeth van der Berg/Medical Records/Assessment.pdf")"
@@ -343,7 +343,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf")"
@@ -380,7 +380,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf")"
@@ -417,7 +417,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "Unknown Person With Complex Name/2024/Reports/Report.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "Unknown Person With Complex Name/2024/Reports/Report.pdf")"
@@ -454,7 +454,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - john michael smith/Personal Care/Assessment.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - john michael smith/Personal Care/Assessment.pdf")"
@@ -491,7 +491,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Person With Numbers 123/Test Files/test.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Person With Numbers 123/Test Files/test.pdf")"
@@ -528,7 +528,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - John Doe Management/Client Compliance/Form.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - John Doe Management/Client Compliance/Form.pdf")"
@@ -565,7 +565,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Jane Smith Management/Consent/Consent Form.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Jane Smith Management/Consent/Consent Form.pdf")"
@@ -602,7 +602,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     result="$(extract_user_from_path "VC - Mary Jane Wilson Management/Service Agreements/Agreement.pdf")"
     
     # Parse result components
-    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< "$result"
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
     
     # Get normalized filename using real function
     normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Mary Jane Wilson Management/Service Agreements/Agreement.pdf")"

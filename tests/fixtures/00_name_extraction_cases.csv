@@ -54,3 +54,5 @@ m i r s report.pdf|maria isabella rodriguez santos|true|m i r s| report.pdf|repo
 m_i_r_s_report.pdf|maria isabella rodriguez santos|true|m_i_r_s|_report.pdf|report.pdf|extract_initials_from_filename|Four Initials - Underscore separator
 m-rodriguez-report.pdf|maria isabella rodriguez santos|false||m-rodriguez-report.pdf|m rodriguez report.pdf|extract_shorthand_name_from_filename|Shorthand Not Applicable - Four Names
 m.santos-report.pdf|maria isabella rodriguez santos|false||m.santos-report.pdf|m santos report.pdf|extract_shorthand_name_from_filename|Shorthand Not Applicable - Four Names
+johndoe-report.pdf|john doe|true|john,doe|-report.pdf|report.pdf|extract_name_from_filename|Concatenated name without spaces
+johndoe-plan.pdf|john doe|true|john,doe|-plan.pdf|plan.pdf|extract_name_from_filename|Concatenated name in filename

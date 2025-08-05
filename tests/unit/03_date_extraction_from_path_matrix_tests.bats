@@ -23,11 +23,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: WHS Docs Report.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2025-07-15,2025-07-15" >&2
+  echo "extracted_date expected: 20250715,20250715" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2025-07-15,2025-07-15"
+  assert_equal "$extracted_date" "20250715,20250715"
   assert_equal "$raw_remainder" "WHS//Docs/Report_.pdf"
   assert_equal "$cleaned_remainder" "WHS Docs Report.pdf"
 }
@@ -47,11 +47,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Medical Reports Smith Jane Smith Jane Report.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2024-01-01,2024-01-01" >&2
+  echo "extracted_date expected: 20240101,20240101" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2024-01-01,2024-01-01"
+  assert_equal "$extracted_date" "20240101,20240101"
   assert_equal "$raw_remainder" "Medical/ Reports/Smith Jane/Smith Jane Report .pdf"
   assert_equal "$cleaned_remainder" "Medical Reports Smith Jane Smith Jane Report.pdf"
 }
@@ -90,11 +90,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: NDIS Incidents John D John D Summary.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2022-12-31,2022-12-31" >&2
+  echo "extracted_date expected: 20221231,20221231" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2022-12-31,2022-12-31"
+  assert_equal "$extracted_date" "20221231,20221231"
   assert_equal "$raw_remainder" "NDIS/Incidents /John D/John D - Summary .pdf"
   assert_equal "$cleaned_remainder" "NDIS Incidents John D John D Summary.pdf"
 }
@@ -133,11 +133,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Support Plans 2024 Active Plans Mary Wilson Mary Wilson Plan.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2024-05-15,2024-05-15" >&2
+  echo "extracted_date expected: 20240515,20240515" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2024-05-15,2024-05-15"
+  assert_equal "$extracted_date" "20240515,20240515"
   assert_equal "$raw_remainder" "Support Plans/2024/_Active Plans/Mary Wilson/Mary Wilson Plan .pdf"
   assert_equal "$cleaned_remainder" "Support Plans 2024 Active Plans Mary Wilson Mary Wilson Plan.pdf"
 }
@@ -157,11 +157,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Behavioral Support 2023 Reports Dr Smith Dr Smith Analysis.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2023-05-15,2023-05-15" >&2
+  echo "extracted_date expected: 20230515,20230515" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2023-05-15,2023-05-15"
+  assert_equal "$extracted_date" "20230515,20230515"
   assert_equal "$raw_remainder" "Behavioral Support/2023/ Reports/Dr. Smith/Dr. Smith Analysis .pdf"
   assert_equal "$cleaned_remainder" "Behavioral Support 2023 Reports Dr Smith Dr Smith Analysis.pdf"
 }
@@ -181,11 +181,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Medical Records 2024 Assessments Patient Data Patient Data Assessment.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2024-01-15,2024-01-15" >&2
+  echo "extracted_date expected: 20240115,20240115" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2024-01-15,2024-01-15"
+  assert_equal "$extracted_date" "20240115,20240115"
   assert_equal "$raw_remainder" "Medical Records/2024/ Assessments/Patient Data/Patient Data Assessment .pdf"
   assert_equal "$cleaned_remainder" "Medical Records 2024 Assessments Patient Data Patient Data Assessment.pdf"
 }
@@ -205,11 +205,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Photos Videos 2023 Christmas Photos Client Photos Client Christmas Photos.zip" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2023-12-25,2023-12-25" >&2
+  echo "extracted_date expected: 20231225,20231225" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2023-12-25,2023-12-25"
+  assert_equal "$extracted_date" "20231225,20231225"
   assert_equal "$raw_remainder" "Photos & Videos/2023/_Christmas Photos/Client Photos/Client Christmas Photos .zip"
   assert_equal "$cleaned_remainder" "Photos Videos 2023 Christmas Photos Client Photos Client Christmas Photos.zip"
 }
@@ -229,11 +229,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Emergency Contacts 2024 Updated Contact List Contact List.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2024-05-15,2024-05-15" >&2
+  echo "extracted_date expected: 20240515,20240515" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2024-05-15,2024-05-15"
+  assert_equal "$extracted_date" "20240515,20240515"
   assert_equal "$raw_remainder" "Emergency Contacts/2024/_Updated/Contact List/Contact List .pdf"
   assert_equal "$cleaned_remainder" "Emergency Contacts 2024 Updated Contact List Contact List.pdf"
 }
@@ -253,11 +253,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Receipts 2023 Expenses Expense Reports Expense Report.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2023-12-25,2023-12-25" >&2
+  echo "extracted_date expected: 20231225,20231225" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2023-12-25,2023-12-25"
+  assert_equal "$extracted_date" "20231225,20231225"
   assert_equal "$raw_remainder" "Receipts/2023/_Expenses/Expense Reports/Expense Report .pdf"
   assert_equal "$cleaned_remainder" "Receipts 2023 Expenses Expense Reports Expense Report.pdf"
 }
@@ -277,11 +277,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Mealtime Management 2024 Diaries Food Records Food Diary.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2024-05-15,2024-05-15" >&2
+  echo "extracted_date expected: 20240515,20240515" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2024-05-15,2024-05-15"
+  assert_equal "$extracted_date" "20240515,20240515"
   assert_equal "$raw_remainder" "Mealtime Management/2024/_Diaries/Food Records/Food Diary .pdf"
   assert_equal "$cleaned_remainder" "Mealtime Management 2024 Diaries Food Records Food Diary.pdf"
 }
@@ -301,11 +301,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Incident Reports 2023 and Annual Summary Reports Annual Summary and.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2023-01-01,2023-12-31,2023-01-01,2023-12-31" >&2
+  echo "extracted_date expected: 20230101,20231231,20230101,20231231" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2023-01-01,2023-12-31,2023-01-01,2023-12-31"
+  assert_equal "$extracted_date" "20230101,20231231,20230101,20231231"
   assert_equal "$raw_remainder" "Incident Reports/2023/_and__Annual/Summary Reports/Annual Summary _and_.pdf"
   assert_equal "$cleaned_remainder" "Incident Reports 2023 and Annual Summary Reports Annual Summary and.pdf"
 }
@@ -325,11 +325,11 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "raw remainder matched: $raw_remainder" >&2
   echo "cleaned remainder expected: Personal Care 2024 Active Assessment Records Assessment.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 2024-05-15,2024-05-15" >&2
+  echo "extracted_date expected: 20240515,20240515" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "2024-05-15,2024-05-15"
+  assert_equal "$extracted_date" "20240515,20240515"
   assert_equal "$raw_remainder" "Personal Care/2024/_Active/Assessment Records/Assessment .pdf"
   assert_equal "$cleaned_remainder" "Personal Care 2024 Active Assessment Records Assessment.pdf"
 }

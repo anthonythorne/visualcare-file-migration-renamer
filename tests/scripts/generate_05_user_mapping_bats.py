@@ -64,7 +64,7 @@ def generate_bats_tests():
                 f.write(f"    result=\"$(extract_user_from_path \"{input_path}\")\"\n")
                 f.write(f"    \n")
                 f.write(f"    # Parse result components\n")
-                f.write(f"    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder <<< \"$result\"\n")
+                f.write(f"    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< \"$result\"\n")
                 f.write(f"    \n")
                 f.write(f"    # Get normalized filename using real function\n")
                 f.write(f"    normalized_filename=\"$(python3 {project_root}/tests/utils/normalize_test.py \"{input_path}\")\"\n")

@@ -261,10 +261,17 @@ def extract_name_part_from_filename(filename: str, name_to_match: str, clean_fil
         # For each name part, find ALL occurrences
         for name_part in name_parts:
             name_pattern = _generate_fuzzy_regex(name_part)
-            pattern = re.compile(rf"(^|{sep_class})({name_pattern})(?=$|{sep_class})", re.IGNORECASE)
+            # Pattern 1: Name part surrounded by separators or at start/end
+            pattern1 = re.compile(rf"(^|{sep_class})({name_pattern})(?=$|{sep_class})", re.IGNORECASE)
+            # Pattern 2: Name part as part of a concatenated name (no separators)
+            pattern2 = re.compile(rf"({name_pattern})", re.IGNORECASE)
             
             # Find all matches for this name part in the original filename
-            matches = list(pattern.finditer(filename))
+            matches = list(pattern1.finditer(filename))
+            # Also find concatenated matches
+            concat_matches = list(pattern2.finditer(filename))
+            
+            # Add separator-bounded matches
             for match in matches:
                 name_matches.append({
                     'name': match.group(2),
@@ -272,8 +279,30 @@ def extract_name_part_from_filename(filename: str, name_to_match: str, clean_fil
                     'end': match.end(2),
                     'full_start': match.start(0),
                     'full_end': match.end(0),
-                    'name_part': name_part  # Track which name part this is
+                    'name_part': name_part,  # Track which name part this is
+                    'type': 'separated'
                 })
+            
+            # Add concatenated matches (but avoid duplicates)
+            for match in concat_matches:
+                # Check if this match is already covered by a separator-bounded match
+                is_duplicate = False
+                for existing in name_matches:
+                    if (existing['start'] <= match.start() and existing['end'] >= match.end() and 
+                        existing['name_part'] == name_part):
+                        is_duplicate = True
+                        break
+                
+                if not is_duplicate:
+                    name_matches.append({
+                        'name': match.group(1),
+                        'start': match.start(1),
+                        'end': match.end(1),
+                        'full_start': match.start(0),
+                        'full_end': match.end(0),
+                        'name_part': name_part,  # Track which name part this is
+                        'type': 'concatenated'
+                    })
         
         if not name_matches:
             return f"|{filename}|false"
@@ -306,16 +335,28 @@ def extract_name_part_from_filename(filename: str, name_to_match: str, clean_fil
         # For clean filename, use the original logic
         for name_part in name_parts:
             name_pattern = _generate_fuzzy_regex(name_part)
-            pattern = re.compile(rf"(^|{sep_class})({name_pattern})(?=$|{sep_class})", re.IGNORECASE)
-            match = pattern.search(current_filename)
+            # Pattern 1: Name part surrounded by separators or at start/end
+            pattern1 = re.compile(rf"(^|{sep_class})({name_pattern})(?=$|{sep_class})", re.IGNORECASE)
+            # Pattern 2: Name part as part of a concatenated name (no separators)
+            pattern2 = re.compile(rf"({name_pattern})", re.IGNORECASE)
             
+            # Try separator-bounded match first
+            match = pattern1.search(current_filename)
             if match:
                 extracted_names.append(match.group(2))
                 start, end = match.span(0)
                 current_filename = current_filename[:start] + current_filename[end:]
                 current_filename = clean_filename_remainder_py(current_filename)
             else:
-                continue
+                # Try concatenated match
+                match = pattern2.search(current_filename)
+                if match:
+                    extracted_names.append(match.group(1))
+                    start, end = match.span(0)
+                    current_filename = current_filename[:start] + current_filename[end:]
+                    current_filename = clean_filename_remainder_py(current_filename)
+                else:
+                    continue
     
     if not extracted_names:
         return f"|{filename}|false"

@@ -101,13 +101,13 @@ class FileMigrationRenamer:
             return results
         
         # Create output directory if it doesn't exist
-            output_path.mkdir(parents=True, exist_ok=True)
+        output_path.mkdir(parents=True, exist_ok=True)
         
         # Get all files recursively
         for filepath in input_path.rglob('*'):
             if filepath.is_file():
                 # Check if file should be excluded
-            filename = filepath.name
+                filename = filepath.name
                 should_exclude = False
                 
                 # Load config to get exclusions
@@ -141,7 +141,7 @@ class FileMigrationRenamer:
                 
                 if should_exclude:
                     self.logger.info(f"Skipping excluded file: {filename}")
-                continue
+                    continue
             
                 # Debug: Log files that are being processed
                 if filename == "desktop.ini":
@@ -165,13 +165,13 @@ class FileMigrationRenamer:
                     is_management_folder = user_parts[5] == 'True' if len(user_parts) > 5 else False
                     
                     normalized_filename = normalize_filename(str(relative_path), user_mapping, category_mapping, str(filepath), is_management_folder, exclude_management_flag)
-            
-            result = {
-                'original_filename': str(relative_path),
+                    
+                    result = {
+                        'original_filename': str(relative_path),
                         'new_filename': normalized_filename,
                         'person': cleaned_person_name,
-                'success': True
-            }
+                        'success': True
+                    }
             
                     try:
                         # Create person subdirectory in output using cleaned name
@@ -186,8 +186,8 @@ class FileMigrationRenamer:
                         # Process file (copy or move)
                         new_filepath = person_output_dir / normalized_filename
                         if duplicate:
-                    shutil.copy2(filepath, new_filepath)
-                    result['copied'] = True
+                            shutil.copy2(filepath, new_filepath)
+                            result['copied'] = True
                             self.logger.info(f"Copied: {relative_path} -> {cleaned_person_name}/{normalized_filename}")
                         else:
                             filepath.rename(new_filepath)
@@ -201,12 +201,12 @@ class FileMigrationRenamer:
                             # Windows files might not allow timestamp modification, but that's okay
                             self.logger.warning(f"Could not restore timestamps for {relative_path}: {e}")
                             # Continue processing - the file was still copied/moved successfully
-                except Exception as e:
+                    except Exception as e:
                         result['error'] = f"Failed to process {relative_path}: {e}"
-                    result['success'] = False
-                    self.logger.error(result['error'])
-            
-            results.append(result)
+                        result['success'] = False
+                        self.logger.error(result['error'])
+                    
+                    results.append(result)
                     
                 except Exception as e:
                     result = {
@@ -252,7 +252,7 @@ class FileMigrationRenamer:
             cleaned_person_name = user_parts[2] if len(user_parts) > 2 else person_name
             
             output_person_dir = to_dir / cleaned_person_name
-                output_person_dir.mkdir(parents=True, exist_ok=True)
+            output_person_dir.mkdir(parents=True, exist_ok=True)
             
             # Process all files in the person directory
             for filepath in person_dir.rglob('*'):
@@ -275,13 +275,13 @@ class FileMigrationRenamer:
                         # Use the real normalize_filename function
                         normalized_filename = normalize_filename(str(full_relative_path), is_management_folder=is_management_folder, exclude_management_flag=exclude_management_flag)
                         
-                result = {
+                        result = {
                             'person': cleaned_person_name,
                             'original_filename': str(relative_path),
                             'new_filename': normalized_filename,
-                    'success': True,
-                    'test_name': test_name
-                }
+                            'success': True,
+                            'test_name': test_name
+                        }
                         
                         try:
                             new_filepath = output_person_dir / normalized_filename
@@ -289,8 +289,8 @@ class FileMigrationRenamer:
                             orig_mtime = orig_stat.st_mtime
                             orig_atime = orig_stat.st_atime
                             if duplicate:
-                        shutil.copy2(filepath, new_filepath)
-                        result['copied'] = True
+                                shutil.copy2(filepath, new_filepath)
+                                result['copied'] = True
                                 self.logger.info(f"Copied: {person_name}/{relative_path} -> {test_name}/{cleaned_person_name}/{normalized_filename}")
                             else:
                                 filepath.rename(new_filepath)
@@ -313,7 +313,7 @@ class FileMigrationRenamer:
                             'success': False,
                             'test_name': test_name
                         }
-                results.append(result)
+                        results.append(result)
                         self.logger.error(f"Error processing {relative_path}: {e}")
         
         return results
@@ -441,7 +441,7 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
             # Remove file extension from raw_remainder if it's still there
             if file_extension and raw_remainder.endswith(file_extension):
                 raw_remainder = raw_remainder[:-len(file_extension)]
-        except:
+        except Exception:
             extracted_category = ""
     
     # STEP 3: Extract date from remainder using existing date_matcher function (BEFORE name extraction)

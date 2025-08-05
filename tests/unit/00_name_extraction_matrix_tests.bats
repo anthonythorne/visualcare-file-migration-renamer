@@ -1335,3 +1335,51 @@ extract_name_from_filename() {
   assert_equal "$raw_remainder" "m.santos-report.pdf"
   assert_equal "$cleaned_remainder" "m santos report.pdf"
 }
+
+@test "extract_name_from_filename - johndoe-report.pdf" {
+  run extract_name_from_filename "johndoe-report.pdf" "john doe" "extract_name_from_filename"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Concatenated name without spaces" >&2
+  echo "function: extract_name_from_filename" >&2
+  echo "filename: johndoe-report.pdf" >&2
+  echo "name to match: john doe" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: -report.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: report.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: john,doe" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "john,doe"
+  assert_equal "$raw_remainder" "-report.pdf"
+  assert_equal "$cleaned_remainder" "report.pdf"
+}
+
+@test "extract_name_from_filename - johndoe-plan.pdf" {
+  run extract_name_from_filename "johndoe-plan.pdf" "john doe" "extract_name_from_filename"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder matched <<< "$output"
+  cleaned_remainder=$(clean_filename_remainder "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Concatenated name in filename" >&2
+  echo "function: extract_name_from_filename" >&2
+  echo "filename: johndoe-plan.pdf" >&2
+  echo "name to match: john doe" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: -plan.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: plan.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: john,doe" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "john,doe"
+  assert_equal "$raw_remainder" "-plan.pdf"
+  assert_equal "$cleaned_remainder" "plan.pdf"
+}
