@@ -385,7 +385,7 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
 @test "extract_date_from_filename - no_date_just_text_and_numbers_12345.txt" {
   cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "no_date_just_text_and_numbers_12345.txt")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: No-date-just-numbers " >&2
+  echo "Comment: No-date-just-numbers" >&2
   echo "function: extract_date_from_filename" >&2
   echo "filename: no_date_just_text_and_numbers_12345.txt" >&2
   echo "date to match: " >&2
@@ -399,4 +399,76 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "expected match: false" >&2
   echo "---------------------" >&2
   assert_equal "$cleaned_remainder" "no date just text and numbers 12345.txt"
+}
+
+@test "extract_date_from_filename - 2023.10.27 - Elizabeth van der Berg- NDIS Plan exp 2025.10.26.pdf" {
+  run extract_date_from_filename "2023.10.27 - Elizabeth van der Berg- NDIS Plan exp 2025.10.26.pdf" "2023-10-27"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_date raw_remainder matched <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Date with exp prefix exclusion" >&2
+  echo "function: extract_date_from_filename" >&2
+  echo "filename: 2023.10.27 - Elizabeth van der Berg- NDIS Plan exp 2025.10.26.pdf" >&2
+  echo "date to match: 2023-10-27" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected:  - Elizabeth van der Berg- NDIS Plan exp 2025.10.26.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Elizabeth van der Berg NDIS Plan exp 2025.10.26.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_date expected: 20231027" >&2
+  echo "extracted_date matched: $extracted_date" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_date" "20231027"
+  assert_equal "$raw_remainder" " - Elizabeth van der Berg- NDIS Plan exp 2025.10.26.pdf"
+  assert_equal "$cleaned_remainder" "Elizabeth van der Berg NDIS Plan exp 2025.10.26.pdf"
+}
+
+@test "extract_date_from_filename - 2023.10.27 - Blair Van Der Put - SIL service agreement Exp 2025.10.26.pdf" {
+  run extract_date_from_filename "2023.10.27 - Blair Van Der Put - SIL service agreement Exp 2025.10.26.pdf" "2023-10-27"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_date raw_remainder matched <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Date with Exp prefix exclusion " >&2
+  echo "function: extract_date_from_filename" >&2
+  echo "filename: 2023.10.27 - Blair Van Der Put - SIL service agreement Exp 2025.10.26.pdf" >&2
+  echo "date to match: 2023-10-27" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected:  - Blair Van Der Put - SIL service agreement Exp 2025.10.26.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Blair Van Der Put SIL service agreement Exp 2025.10.26.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_date expected: 20231027" >&2
+  echo "extracted_date matched: $extracted_date" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_date" "20231027"
+  assert_equal "$raw_remainder" " - Blair Van Der Put - SIL service agreement Exp 2025.10.26.pdf"
+  assert_equal "$cleaned_remainder" "Blair Van Der Put SIL service agreement Exp 2025.10.26.pdf"
+}
+
+@test "extract_date_from_filename - Mary Jane Wilson - 2023.10.27 - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" {
+  run extract_date_from_filename "Mary Jane Wilson - 2023.10.27 - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" "2023-10-27"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_date raw_remainder matched <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Date with Exp prefix exclusion " >&2
+  echo "function: extract_date_from_filename" >&2
+  echo "filename: Mary Jane Wilson - 2023.10.27 - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" >&2
+  echo "date to match: 2023-10-27" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: Mary Jane Wilson -  - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: Mary Jane Wilson DSOA0476 ISP 2024.07.01 - 2025.06.30.docx" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_date expected: 20231027" >&2
+  echo "extracted_date matched: $extracted_date" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_date" "20231027"
+  assert_equal "$raw_remainder" "Mary Jane Wilson -  - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx"
+  assert_equal "$cleaned_remainder" "Mary Jane Wilson DSOA0476 ISP 2024.07.01 - 2025.06.30.docx"
 }

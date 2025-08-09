@@ -672,13 +672,14 @@ def clean_filename_remainder_py(remainder):
     normalized_prefix_format = config.get('Date', {}).get('normalized_prefix_format', '%Y.%m.%d')
     
     for prefix in excluded_date_by_prefix:
-        for fmt in allowed_formats:
-            if fmt == "%Y.%m.%d":
-                prefix_date_patterns.append(f"{re.escape(prefix)}\\s+\\d{{4}}\\.\\d{{1,2}}\\.\\d{{1,2}}")
-            elif fmt == "%d.%m.%Y":
-                prefix_date_patterns.append(f"{re.escape(prefix)}\\s+\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}")
-            elif fmt == "%d.%m.%y":
-                prefix_date_patterns.append(f"{re.escape(prefix)}\\s+\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}")
+        # Add both lowercase and capitalized versions of the prefix
+        prefixes = [prefix, prefix.capitalize()]
+        for prefix_variant in prefixes:
+            # Pattern for the normalized format (which is what we expect after date normalization)
+            prefix_date_patterns.append(f"{re.escape(prefix_variant)}\\s+\\d{{4}}\\.\\d{{1,2}}\\.\\d{{1,2}}")
+            # Also add patterns for other common formats that might appear
+            prefix_date_patterns.append(f"{re.escape(prefix_variant)}\\s+\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{4}}")
+            prefix_date_patterns.append(f"{re.escape(prefix_variant)}\\s+\\d{{1,2}}\\.\\d{{1,2}}\\.\\d{{2}}")
     
     # STEP 4: Apply general separator normalization, but protect normalized date ranges, prefix dates, and file extensions
     input_seps = load_global_separators()

@@ -279,7 +279,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "Comment: Name with hyphens and apostrophe"
     echo "function: extract_user_from_path"
     echo "input_path: VC - Anne-Marie O'Connor/Photos & Videos/Photo Album.zip"
-    echo "expected_user_id: 1005"
+    echo "expected_user_id: 1006"
     echo "raw_name expected: VC - Anne-Marie O'Connor"
     echo "raw_name matched: $raw_name"
     echo "cleaned_name expected: Anne-Marie O'Connor"
@@ -288,13 +288,13 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "raw_remainder matched: $raw_remainder"
     echo "cleaned_remainder expected: Photos Videos Photo Album.zip"
     echo "cleaned_remainder matched: $cleaned_remainder"
-    echo "user_id expected: 1005"
+    echo "user_id expected: 1006"
     echo "user_id matched: $user_id"
     echo "normalized filename: $normalized_filename"
     echo "---------------------"
     
     # Assertions
-    [ "$user_id" = "1005" ]
+    [ "$user_id" = "1006" ]
     [ "$raw_name" = "VC - Anne-Marie O'Connor" ]
     [ "$cleaned_name" = "Anne-Marie O'Connor" ]
     [ "$raw_remainder" = "Photos & Videos/Photo Album.zip" ]
@@ -316,7 +316,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "Comment: Name with multiple words"
     echo "function: extract_user_from_path"
     echo "input_path: VC - Elizabeth van der Berg/Medical Records/Assessment.pdf"
-    echo "expected_user_id: 1007"
+    echo "expected_user_id: 1008"
     echo "raw_name expected: VC - Elizabeth van der Berg"
     echo "raw_name matched: $raw_name"
     echo "cleaned_name expected: Elizabeth Van Der Berg"
@@ -325,13 +325,13 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "raw_remainder matched: $raw_remainder"
     echo "cleaned_remainder expected: Medical Records Assessment.pdf"
     echo "cleaned_remainder matched: $cleaned_remainder"
-    echo "user_id expected: 1007"
+    echo "user_id expected: 1008"
     echo "user_id matched: $user_id"
     echo "normalized filename: $normalized_filename"
     echo "---------------------"
     
     # Assertions
-    [ "$user_id" = "1007" ]
+    [ "$user_id" = "1008" ]
     [ "$raw_name" = "VC - Elizabeth van der Berg" ]
     [ "$cleaned_name" = "Elizabeth Van Der Berg" ]
     [ "$raw_remainder" = "Medical Records/Assessment.pdf" ]
@@ -353,7 +353,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "Comment: French name with hyphen"
     echo "function: extract_user_from_path"
     echo "input_path: VC - Jean-Pierre Dubois/Emergency Contacts/Contact List.pdf"
-    echo "expected_user_id: 1009"
+    echo "expected_user_id: 1010"
     echo "raw_name expected: VC - Jean-Pierre Dubois"
     echo "raw_name matched: $raw_name"
     echo "cleaned_name expected: Jean-Pierre Dubois"
@@ -362,13 +362,13 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "raw_remainder matched: $raw_remainder"
     echo "cleaned_remainder expected: Emergency Contacts Contact List.pdf"
     echo "cleaned_remainder matched: $cleaned_remainder"
-    echo "user_id expected: 1009"
+    echo "user_id expected: 1010"
     echo "user_id matched: $user_id"
     echo "normalized filename: $normalized_filename"
     echo "---------------------"
     
     # Assertions
-    [ "$user_id" = "1009" ]
+    [ "$user_id" = "1010" ]
     [ "$raw_name" = "VC - Jean-Pierre Dubois" ]
     [ "$cleaned_name" = "Jean-Pierre Dubois" ]
     [ "$raw_remainder" = "Emergency Contacts/Contact List.pdf" ]
@@ -390,7 +390,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "Comment: Name with double hyphen"
     echo "function: extract_user_from_path"
     echo "input_path: VC - Patricia Thompson-Smith/Mealtime Management/Food Diary.pdf"
-    echo "expected_user_id: 1011"
+    echo "expected_user_id: 1012"
     echo "raw_name expected: VC - Patricia Thompson-Smith"
     echo "raw_name matched: $raw_name"
     echo "cleaned_name expected: Patricia Thompson-Smith"
@@ -399,13 +399,13 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "raw_remainder matched: $raw_remainder"
     echo "cleaned_remainder expected: Mealtime Management Food Diary.pdf"
     echo "cleaned_remainder matched: $cleaned_remainder"
-    echo "user_id expected: 1011"
+    echo "user_id expected: 1012"
     echo "user_id matched: $user_id"
     echo "normalized filename: $normalized_filename"
     echo "---------------------"
     
     # Assertions
-    [ "$user_id" = "1011" ]
+    [ "$user_id" = "1012" ]
     [ "$raw_name" = "VC - Patricia Thompson-Smith" ]
     [ "$cleaned_name" = "Patricia Thompson-Smith" ]
     [ "$raw_remainder" = "Mealtime Management/Food Diary.pdf" ]
@@ -464,7 +464,7 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "Comment: Case-insensitive multi-word name"
     echo "function: extract_user_from_path"
     echo "input_path: VC - john michael smith/Personal Care/Assessment.pdf"
-    echo "expected_user_id: 1012"
+    echo "expected_user_id: 1013"
     echo "raw_name expected: VC - john michael smith"
     echo "raw_name matched: $raw_name"
     echo "cleaned_name expected: John Michael Smith"
@@ -473,13 +473,13 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     echo "raw_remainder matched: $raw_remainder"
     echo "cleaned_remainder expected: Personal Care Assessment.pdf"
     echo "cleaned_remainder matched: $cleaned_remainder"
-    echo "user_id expected: 1012"
+    echo "user_id expected: 1013"
     echo "user_id matched: $user_id"
     echo "normalized filename: $normalized_filename"
     echo "---------------------"
     
     # Assertions
-    [ "$user_id" = "1012" ]
+    [ "$user_id" = "1013" ]
     [ "$raw_name" = "VC - john michael smith" ]
     [ "$cleaned_name" = "John Michael Smith" ]
     [ "$raw_remainder" = "Personal Care/Assessment.pdf" ]
@@ -632,5 +632,42 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/use
     [ "$cleaned_name" = "Mary Jane Wilson" ]
     [ "$raw_remainder" = "Service Agreements/Agreement.pdf" ]
     [ "$cleaned_remainder" = "Service Agreements Agreement.pdf" ]
+}
+
+@test "extract_user_from_path___VC___Mary_Jane_Wilson_Management_Support_and_NDIS_Plan_Mary_Jane_Wilson___DSOA0476_ISP___01.07.2024_to_30.06.2025.docx" {
+    # Multi-word name with VC prefix and Management suffix and NDIS plan
+    result="$(extract_user_from_path "VC - Mary Jane Wilson Management/Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx")"
+    
+    # Parse result components
+    IFS='|' read -r user_id raw_name cleaned_name raw_remainder cleaned_remainder is_management_folder <<< "$result"
+    
+    # Get normalized filename using real function
+    normalized_filename="$(python3 /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/normalize_test.py "VC - Mary Jane Wilson Management/Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx")"
+    
+    # Debug output
+    echo "----- TEST CASE -----"
+    echo "Comment: Multi-word name with VC prefix and Management suffix and NDIS plan"
+    echo "function: extract_user_from_path"
+    echo "input_path: VC - Mary Jane Wilson Management/Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx"
+    echo "expected_user_id: 1003"
+    echo "raw_name expected: VC - Mary Jane Wilson Management"
+    echo "raw_name matched: $raw_name"
+    echo "cleaned_name expected: Mary Jane Wilson"
+    echo "cleaned_name matched: $cleaned_name"
+    echo "raw_remainder expected: Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx"
+    echo "raw_remainder matched: $raw_remainder"
+    echo "cleaned_remainder expected: Support and NDIS Plan Mary Jane Wilson DSOA0476 ISP 2024.07.01 - 2025.06.30.docx"
+    echo "cleaned_remainder matched: $cleaned_remainder"
+    echo "user_id expected: 1003"
+    echo "user_id matched: $user_id"
+    echo "normalized filename: $normalized_filename"
+    echo "---------------------"
+    
+    # Assertions
+    [ "$user_id" = "1003" ]
+    [ "$raw_name" = "VC - Mary Jane Wilson Management" ]
+    [ "$cleaned_name" = "Mary Jane Wilson" ]
+    [ "$raw_remainder" = "Support and NDIS Plan/Mary Jane Wilson - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx" ]
+    [ "$cleaned_remainder" = "Support and NDIS Plan Mary Jane Wilson DSOA0476 ISP 2024.07.01 - 2025.06.30.docx" ]
 }
 

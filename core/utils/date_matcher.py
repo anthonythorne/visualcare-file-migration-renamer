@@ -248,22 +248,67 @@ def extract_date_matches(filename):
     is_range, normalized_range = is_date_range_and_normalize(raw_remainder, config)
     if is_range:
         # Replace the original range with the normalized version
-        # Find the original range pattern to replace it
-        for date_pattern in date_patterns_for_ranges:
-            range_pattern = f"{date_pattern}(?:{separator_pattern})*{date_pattern}"
-            match = re.search(range_pattern, raw_remainder, re.IGNORECASE)
-            if match:
-                start, end = match.span()
-                raw_remainder = raw_remainder[:start] + normalized_range + raw_remainder[end:]
+        # Use the same logic as is_date_range_and_normalize to find the range
+        separator_strings = config.get('Date', {}).get('exclude_ranges_separator_strings', [])
+        
+        # First try multi-character string separators (like " to ")
+        range_found = False
+        for sep_str in separator_strings:
+            for date_pattern in date_patterns_for_ranges:
+                range_pattern = f"{date_pattern}{re.escape(sep_str)}{date_pattern}"
+                match = re.search(range_pattern, raw_remainder, re.IGNORECASE)
+                if match:
+                    start, end = match.span()
+                    # Wrap the original range in a special marker to protect it from further extraction
+                    # Keep the original format in raw_remainder, but mark it as protected
+                    original_range = match.group(0)
+                    protected_range = f"__PROTECTED_RANGE__{original_range}__END_RANGE__"
+                    raw_remainder = raw_remainder[:start] + protected_range + raw_remainder[end:]
+                    range_found = True
+                    break
+            if range_found:
                 break
+        
+        # If not found with string separators, try single-character separators
+        if not range_found:
+            for date_pattern in date_patterns_for_ranges:
+                range_pattern = f"{date_pattern}(?:{separator_pattern})*{date_pattern}"
+                match = re.search(range_pattern, raw_remainder, re.IGNORECASE)
+                if match:
+                    start, end = match.span()
+                    # Wrap the original range in a special marker to protect it from further extraction
+                    # Keep the original format in raw_remainder, but mark it as protected
+                    original_range = match.group(0)
+                    protected_range = f"__PROTECTED_RANGE__{original_range}__END_RANGE__"
+                    raw_remainder = raw_remainder[:start] + protected_range + raw_remainder[end:]
+                    break
     
-    while True:
+    # Add safety counter to prevent infinite loops
+    max_iterations = 10
+    iteration_count = 0
+    
+    while iteration_count < max_iterations:
+        iteration_count += 1
         best_match_info = None
         for pattern, date_format in date_patterns:
             match = re.search(pattern, raw_remainder, re.IGNORECASE)
             if match:
-                best_match_info = (match, date_format)
-                break
+                # Check if this match is within a protected range
+                match_start, match_end = match.span()
+                is_in_protected_range = False
+                
+                # Find all protected range markers
+                protected_pattern = r'__PROTECTED_RANGE__(.*?)__END_RANGE__'
+                for protected_match in re.finditer(protected_pattern, raw_remainder):
+                    protected_start, protected_end = protected_match.span()
+                    # Check if our date match is within this protected range
+                    if match_start >= protected_start and match_end <= protected_end:
+                        is_in_protected_range = True
+                        break
+                
+                if not is_in_protected_range:
+                    best_match_info = (match, date_format)
+                    break
         
         if not best_match_info:
             break
@@ -298,9 +343,30 @@ def extract_date_matches(filename):
             date_str = dt.strftime(normalized_format)
             
             # Check if this date pattern should be excluded
-            if should_exclude_date_pattern(filename, match.group(0)):
-                # Mark the matched part as processed to avoid infinite loops
-                raw_remainder = raw_remainder.replace(match.group(0), '', 1)
+            if should_exclude_date_pattern(raw_remainder, match.group(0)):
+                # For excluded dates, we need to preserve them but normalize the format
+                normalized_prefix_format = config.get('Date', {}).get('normalized_prefix_format', '%Y.%m.%d')
+                normalized_excluded_date = dt.strftime(normalized_prefix_format)
+                
+                # Find the prefix that precedes this date
+                excluded_date_by_prefix = config.get('Date', {}).get('excluded_date_by_prefix', [])
+                prefix_found = None
+                for prefix in excluded_date_by_prefix:
+                    # Look for the prefix before this date match in the original filename
+                    prefix_pattern = f"{re.escape(prefix)}\\s*{re.escape(match.group(0))}"
+                    prefix_match = re.search(prefix_pattern, filename, re.IGNORECASE)
+                    if prefix_match:
+                        prefix_found = prefix
+                        break
+                
+                if prefix_found:
+                    # Replace the original prefix + date with normalized version in the remainder
+                    original_text = f"{prefix_found} {match.group(0)}"
+                    normalized_text = f"{prefix_found} {normalized_excluded_date}"
+                    raw_remainder = raw_remainder.replace(original_text, normalized_text, 1)
+                else:
+                    # Just normalize the date part
+                    raw_remainder = raw_remainder.replace(match.group(0), normalized_excluded_date, 1)
                 continue
             
             found_dates.append(date_str)
@@ -330,6 +396,10 @@ def extract_date_matches(filename):
             raw_remainder = raw_remainder.replace(match.group(0), '', 1)
             continue
     
+    # Clean up protected range markers from the final remainder
+    # For raw remainder, preserve the original format
+    raw_remainder = re.sub(r'__PROTECTED_RANGE__(.*?)__END_RANGE__', r'\1', raw_remainder)
+    
     if found_dates:
         return f"{','.join(found_dates)}|{raw_remainder}|true"
     else:
@@ -338,80 +408,51 @@ def extract_date_matches(filename):
 
 def extract_date_from_path(full_path: str, date_to_match: str) -> str:
     """
-    Extract all occurrences of dates from all components of a path (folders and filename).
-    Uses the same pattern matching logic as extract_date_matches.
+    Extract ALL dates from path components (folders and filename).
     Returns: extracted_dates|raw_remainder|matched
     """
-    # Load configuration and build patterns
     config = load_config()
-    allowed_formats = config.get('Date', {}).get('allowed_formats', [])
     normalized_format = config.get('Date', {}).get('normalized_format', '%Y-%m-%d')
-    patterns = build_date_patterns(allowed_formats)
+    
+    # Split the path into components
+    path_parts = full_path.split('/')
+    filename = path_parts[-1] if path_parts else ""
+    folder_parts = path_parts[:-1] if len(path_parts) > 1 else []
     
     extracted_dates = []
     raw_remainder = full_path
     
-    # Try each pattern until we find matches
-    for pattern, date_format in patterns:
-        while True:
-            match = re.search(pattern, raw_remainder, re.IGNORECASE)
-            if not match:
-                break
-            
-            year, month, day = 0, 0, 0
-            if 'Month' in date_format:
-                day = int(match.group('day'))
-                month_str = match.group('month')
-                month_map = {
-                    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-                    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
-                    'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
-                    'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
-                }
-                month = month_map[month_str.lower()]
-                year = int(match.group('year'))
-            else:
-                year = int(match.group('year'))
-                month = int(match.group('month'))
-                day = int(match.group('day'))
-                
-                # Handle 2-digit years (convert to 4-digit)
-                if year < 100:
-                    # All 2-digit years are 2000-2099
-                    # So 25.02.05 = 25th February 2005, 25.02.15 = 25th February 2015
-                    year += 2000
-            
-            try:
-                dt = datetime(year, month, day)
-                extracted_dates.append(dt.strftime(normalized_format))
-                
-                # Remove the matched date portion and preserve separators
-                start, end = match.span()
-                
-                # Find separators before and after the date
-                sep_before = ""
-                sep_after = ""
-                
-                # Look for separator before the date
-                if start > 0 and raw_remainder[start-1] in '-._ ':
-                    sep_before = raw_remainder[start-1]
-                    start -= 1
-                
-                # Look for separator after the date
-                if end < len(raw_remainder) and raw_remainder[end] in '-._ ':
-                    sep_after = raw_remainder[end]
-                    end += 1
-                
-                # Reconstruct remainder with preserved separators
-                raw_remainder = raw_remainder[:start] + sep_before + sep_after + raw_remainder[end:]
-                
-            except ValueError:
-                # Mark the matched part as processed to avoid infinite loops on invalid dates
-                raw_remainder = raw_remainder.replace(match.group(0), '', 1)
-                continue
+    # Extract dates from ALL folder parts
+    processed_folder_parts = []
+    for folder in folder_parts:
+        folder_result = extract_date_matches(folder)
+        folder_parts_result = folder_result.split('|')
+        if folder_parts_result[0]:  # If dates found in folder
+            extracted_dates.extend(folder_parts_result[0].split(','))
+            processed_folder_parts.append(folder_parts_result[1])  # Use processed folder
+        else:
+            processed_folder_parts.append(folder)  # Keep original folder
     
-    matched = 'true' if extracted_dates else 'false'
-    return f"{','.join(extracted_dates)}|{raw_remainder}|{matched}"
+    # Extract dates from filename
+    processed_filename = filename
+    if filename:
+        filename_result = extract_date_matches(filename)
+        filename_parts = filename_result.split('|')
+        if filename_parts[0]:  # If dates found in filename
+            extracted_dates.extend(filename_parts[0].split(','))
+            processed_filename = filename_parts[1]  # Use processed filename
+    
+    # Construct raw_remainder with processed parts
+    raw_remainder = '/'.join(processed_folder_parts + [processed_filename]) if processed_folder_parts else processed_filename
+    
+    # Keep all dates (including duplicates from different sources)
+    # The tests expect both folder and filename dates even if they're the same
+    unique_dates = extracted_dates
+    
+    if unique_dates:
+        return f"{','.join(unique_dates)}|{raw_remainder}|true"
+    else:
+        return f"|{full_path}|false"
 
 
 def extract_date_from_remainder(remainder_string: str) -> str:
@@ -570,10 +611,14 @@ def extract_date_with_metadata_fallback(filename: str, file_path: str = None) ->
 
 def should_exclude_date_pattern(text: str, date_match: str) -> bool:
     """
-    Check if a date pattern should be excluded from extraction, using config.
+    Check if a specific date pattern should be excluded from extraction, using config.
     Excludes:
     - "{exclude_string} {date}" patterns (e.g., "exp 2023-05-15")
     - Date ranges using allowed_formats and exclude_ranges_separators
+    
+    Args:
+        text: The full text to search in
+        date_match: The specific date string to check for exclusion
     """
     config = load_config()
     date_config = config.get('Date', {})
@@ -585,30 +630,76 @@ def should_exclude_date_pattern(text: str, date_match: str) -> bool:
 
     import re
     
-    # Check for excluded prefixes followed by optional separators and dates
-    allowed_formats = date_config.get('allowed_formats', [])
-    exclude_ranges_separators = date_config.get('exclude_ranges_separators', [" ", "-", "_", "."])
+    # Check if the specific date_match is preceded by an excluded prefix
+    for prefix in excluded_date_by_prefix:
+        # Create pattern: {prefix} (optional separator) {date_match}
+        # We need to escape the date_match since it might contain regex special characters
+        escaped_date_match = re.escape(date_match)
+        exclusion_pattern = f"{re.escape(prefix)}\\s*{escaped_date_match}"
+        if re.search(exclusion_pattern, text, re.IGNORECASE):
+            return True
     
-    # Escape separators that are regex special characters
-    escaped_separators = [re.escape(sep) for sep in exclude_ranges_separators]
-    separator_pattern = '|'.join(escaped_separators)
-    
-    # Create exclusion patterns for each allowed format
-    for date_format in allowed_formats:
-        # Convert format to regex pattern
-        format_regex = date_format.replace('%Y', r'\d{4}').replace('%y', r'\d{2}').replace('%m', r'\d{1,2}').replace('%d', r'\d{1,2}').replace('%b', r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)').replace('%B', r'(?:January|February|March|April|May|June|July|August|September|October|November|December)')
-        
-        # Check for excluded prefixes followed by optional separators and dates
-        for prefix in excluded_date_by_prefix:
-            # Pattern: {prefix} (optional separator) {date}
-            exclusion_pattern = f"{re.escape(prefix)}\\s*(?:{separator_pattern})?\\s*{format_regex}"
-            if re.search(exclusion_pattern, text, re.IGNORECASE):
-                return True
-    
+    # Check if the specific date_match is part of a date range
     # Use the centralized date range utility for date range detection
     from core.utils.date_utils import is_date_range_and_normalize
-    is_range, _ = is_date_range_and_normalize(text, config)
-    return is_range
+    is_range, normalized_range = is_date_range_and_normalize(text, config)
+    if is_range:
+        # Check if our date_match is actually part of the range
+        # Only exclude the date if it's actually part of the detected range
+        if normalized_range:
+            # Check if the date_match appears in the normalized range
+            if date_match in normalized_range:
+                return True
+            # Also check if the date_match is part of the original range pattern
+            # Look for the date_match in the context of the range
+            import re
+            
+            # Build patterns for all allowed date formats
+            date_patterns = []
+            for fmt in config.get('Date', {}).get('allowed_formats', []):
+                if fmt == "%Y.%m.%d":
+                    date_patterns.append(r'\d{4}\.\d{1,2}\.\d{1,2}')
+                elif fmt == "%d.%m.%Y":
+                    date_patterns.append(r'\d{1,2}\.\d{1,2}\.\d{4}')
+                elif fmt == "%Y-%m-%d":
+                    date_patterns.append(r'\d{4}-\d{1,2}-\d{1,2}')
+                elif fmt == "%d-%m-%Y":
+                    date_patterns.append(r'\d{1,2}-\d{1,2}-\d{4}')
+                elif fmt == "%Y%m%d":
+                    date_patterns.append(r'\d{8}')
+                elif fmt == "%d%m%Y":
+                    date_patterns.append(r'\d{6,8}')
+                elif fmt == "%m%d%Y":
+                    date_patterns.append(r'\d{6,8}')
+                elif fmt == "%d-%b-%Y" or fmt == "%d-%B-%Y":
+                    date_patterns.append(r'\d{1,2}-[A-Za-z]+-\d{4}')
+                elif fmt == "%b-%d-%Y":
+                    date_patterns.append(r'[A-Za-z]+-\d{1,2}-\d{4}')
+                elif fmt == "%d %b %Y" or fmt == "%d %B %Y":
+                    date_patterns.append(r'\d{1,2}\s+[A-Za-z]+\s+\d{4}')
+                elif fmt == "%B %d, %Y":
+                    date_patterns.append(r'[A-Za-z]+\s+\d{1,2},\s+\d{4}')
+                elif fmt == "%d/%m/%Y":
+                    date_patterns.append(r'\d{1,2}/\d{1,2}/\d{4}')
+                elif fmt == "%Y/%m/%d":
+                    date_patterns.append(r'\d{4}/\d{1,2}/\d{1,2}')
+                elif fmt == "%d.%m.%y":
+                    date_patterns.append(r'\d{1,2}\.\d{1,2}\.\d{2}')
+                elif fmt == "%d/%m/%y":
+                    date_patterns.append(r'\d{1,2}/\d{1,2}/\d{2}')
+                elif fmt == "%d-%m-%y":
+                    date_patterns.append(r'\d{1,2}-\d{1,2}-\d{2}')
+            
+            # Look for a range pattern that contains our date_match
+            separator_pattern = '|'.join([re.escape(sep) for sep in config.get('Date', {}).get('exclude_ranges_separators', [])])
+            
+            for date_pattern in date_patterns:
+                range_pattern = f"({date_pattern})(?:{separator_pattern})+({date_pattern})"
+                match = re.search(range_pattern, text, re.IGNORECASE)
+                if match and (date_match in match.group(1) or date_match in match.group(2)):
+                    return True
+    
+    return False
 
 
 if __name__ == "__main__":

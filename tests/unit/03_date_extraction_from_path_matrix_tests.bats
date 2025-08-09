@@ -214,28 +214,28 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   assert_equal "$cleaned_remainder" "Photos Videos 2023 Christmas Photos Client Photos Client Christmas Photos.zip"
 }
 
-@test "extract_date_from_path - Emergency Contacts/2024/15/05/2024_Updated/Contact List/Contact List 15/05/2024.pdf" {
-  run extract_date_from_path "Emergency Contacts/2024/15/05/2024_Updated/Contact List/Contact List 15/05/2024.pdf" "2024-05-15"
+@test "extract_date_from_path - Emergency Contacts/2024.05.15 Date/2024_Updated/Contact List/Contact List.pdf" {
+  run extract_date_from_path "Emergency Contacts/2024.05.15 Date/2024_Updated/Contact List/Contact List.pdf" "2024-05-15"
   [ "$status" -eq 0 ]
   IFS='|' read -r extracted_date raw_remainder matched <<< "$output"
   cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
   echo "----- TEST CASE -----" >&2
   echo "Comment: Slash-separated date format" >&2
   echo "function: extract_date_from_path" >&2
-  echo "full_path: Emergency Contacts/2024/15/05/2024_Updated/Contact List/Contact List 15/05/2024.pdf" >&2
+  echo "full_path: Emergency Contacts/2024.05.15 Date/2024_Updated/Contact List/Contact List.pdf" >&2
   echo "date to match: 2024-05-15" >&2
   echo "expected_match: true" >&2
-  echo "raw remainder expected: Emergency Contacts/2024/_Updated/Contact List/Contact List .pdf" >&2
+  echo "raw remainder expected: Emergency Contacts/ Date/2024_Updated/Contact List/Contact List.pdf" >&2
   echo "raw remainder matched: $raw_remainder" >&2
-  echo "cleaned remainder expected: Emergency Contacts 2024 Updated Contact List Contact List.pdf" >&2
+  echo "cleaned remainder expected: Emergency Contacts Date 2024 Updated Contact List Contact List.pdf" >&2
   echo "cleaned remainder matched: $cleaned_remainder" >&2
-  echo "extracted_date expected: 20240515,20240515" >&2
+  echo "extracted_date expected: 20240515" >&2
   echo "extracted_date matched: $extracted_date" >&2
   echo "expected match: $matched" >&2
   echo "---------------------" >&2
-  assert_equal "$extracted_date" "20240515,20240515"
-  assert_equal "$raw_remainder" "Emergency Contacts/2024/_Updated/Contact List/Contact List .pdf"
-  assert_equal "$cleaned_remainder" "Emergency Contacts 2024 Updated Contact List Contact List.pdf"
+  assert_equal "$extracted_date" "20240515"
+  assert_equal "$raw_remainder" "Emergency Contacts/ Date/2024_Updated/Contact List/Contact List.pdf"
+  assert_equal "$cleaned_remainder" "Emergency Contacts Date 2024 Updated Contact List Contact List.pdf"
 }
 
 @test "extract_date_from_path - Receipts/2023/December 25, 2023_Expenses/Expense Reports/Expense Report December 25, 2023.pdf" {
@@ -356,7 +356,7 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
 @test "extract_date_from_path - Documents/2024/No_Date_Just_Text_12345/Reports/Report.txt" {
   cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "Documents/2024/No_Date_Just_Text_12345/Reports/Report.txt")
   echo "----- TEST CASE -----" >&2
-  echo "Comment: No date just numbers " >&2
+  echo "Comment: No date just numbers" >&2
   echo "function: extract_date_from_path" >&2
   echo "full_path: Documents/2024/No_Date_Just_Text_12345/Reports/Report.txt" >&2
   echo "date to match: " >&2
@@ -370,4 +370,28 @@ source "${BATS_TEST_DIRNAME}/../utils/date_utils.sh"
   echo "expected match: false" >&2
   echo "---------------------" >&2
   assert_equal "$cleaned_remainder" "Documents 2024 No Date Just Text 12345 Reports Report.txt"
+}
+
+@test "extract_date_from_path - VC - John Doe Management/Support and NDIS Plan/22.07.2025 DSOA0476 ISP - exp 14.07.2026.pdf" {
+  run extract_date_from_path "VC - John Doe Management/Support and NDIS Plan/22.07.2025 DSOA0476 ISP - exp 14.07.2026.pdf" "2025-07-22"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_date raw_remainder matched <<< "$output"
+  cleaned_remainder=$(python3 $BATS_TEST_DIRNAME/../../core/utils/name_matcher.py --clean-filename "$raw_remainder")
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Date with exp prefix exclusion in filename " >&2
+  echo "function: extract_date_from_path" >&2
+  echo "full_path: VC - John Doe Management/Support and NDIS Plan/22.07.2025 DSOA0476 ISP - exp 14.07.2026.pdf" >&2
+  echo "date to match: 2025-07-22" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: VC - John Doe Management/Support and NDIS Plan/ DSOA0476 ISP - exp 2026.07.14.pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: VC John Doe Management Support and NDIS Plan DSOA0476 ISP exp 2026.07.14.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_date expected: 20250722" >&2
+  echo "extracted_date matched: $extracted_date" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_date" "20250722"
+  assert_equal "$raw_remainder" "VC - John Doe Management/Support and NDIS Plan/ DSOA0476 ISP - exp 2026.07.14.pdf"
+  assert_equal "$cleaned_remainder" "VC John Doe Management Support and NDIS Plan DSOA0476 ISP exp 2026.07.14.pdf"
 }

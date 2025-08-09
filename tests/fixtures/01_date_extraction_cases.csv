@@ -15,4 +15,7 @@ progress_report_2023-12-25_and_2024-01-01.pdf|2023-12-25,2024-01-01|true|2023122
 client_photo_album_2024.01.15_updated.zip|2024-01-15|true|20240115|client_photo_album__updated.zip|client photo album updated.zip|extract_date_from_filename|Complex-filename-with-dots
 emergency_contact_15-January-2024_backup.doc|2024-01-15|true|20240115|emergency_contact__backup.doc|emergency contact backup.doc|extract_date_from_filename|Full-month-format
 invalid_date_32-13-2023_test.txt||false||invalid_date_32-13-2023_test.txt|invalid date 32 13 2023 test.txt|extract_date_from_filename|Invalid-date-format
-no_date_just_text_and_numbers_12345.txt||false||no_date_just_text_and_numbers_12345.txt|no date just text and numbers 12345.txt|extract_date_from_filename|No-date-just-numbers 
+no_date_just_text_and_numbers_12345.txt||false||no_date_just_text_and_numbers_12345.txt|no date just text and numbers 12345.txt|extract_date_from_filename|No-date-just-numbers
+2023.10.27 - Elizabeth van der Berg- NDIS Plan exp 2025.10.26.pdf|2023-10-27|true|20231027| - Elizabeth van der Berg- NDIS Plan exp 2025.10.26.pdf|Elizabeth van der Berg NDIS Plan exp 2025.10.26.pdf|extract_date_from_filename|Date with exp prefix exclusion
+2023.10.27 - Blair Van Der Put - SIL service agreement Exp 2025.10.26.pdf|2023-10-27|true|20231027| - Blair Van Der Put - SIL service agreement Exp 2025.10.26.pdf|Blair Van Der Put SIL service agreement Exp 2025.10.26.pdf|extract_date_from_filename|Date with Exp prefix exclusion 
+Mary Jane Wilson - 2023.10.27 - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx|2023-10-27|true|20231027|Mary Jane Wilson -  - DSOA0476 ISP - 01.07.2024 to 30.06.2025.docx|Mary Jane Wilson DSOA0476 ISP 2024.07.01 - 2025.06.30.docx|extract_date_from_filename|Date with Exp prefix exclusion 
