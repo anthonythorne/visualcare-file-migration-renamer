@@ -4293,3 +4293,207 @@ source /home/athorne/dev/repos/visualcare-file-migration-renamer/tests/utils/com
   
   echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
 }
+
+@test "complete_integration - Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf" {
+  # Test case: Cap-surname preservation and case-insensitive stripping test
+  # Input: Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf
+  # Expected: 1014_Alex McDonald_2024 Incidents_20240305_WHS_yes.pdf
+  
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: Cap-surname preservation and case-insensitive stripping test" >&2
+  echo "Input path: Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf" >&2
+  echo "Expected filename: 1014_Alex McDonald_2024 Incidents_20240305_WHS_yes.pdf" >&2
+  echo "=================================" >&2
+  
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
+  
+  expected_user_id="1014"
+  expected_name="Alex McDonald"
+  
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
+  
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
+  
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
+    
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="WHS"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path_for_string_test_fallback "Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf" "" "today" "filename")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date="20240305"
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation
+  echo "Testing complete filename generation..." >&2
+  
+  # Use the test-specific function that handles fallback dates
+  result="$(extract_complete_filename_with_fallback "Alex McDonald/WHS/2024/Incidents/05.03.2024 - Alex McDonald.pdf" "" "today" "filename")"
+  
+  expected_filename="1014_Alex McDonald_2024 Incidents_20240305_WHS_yes.pdf"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Generated filename: '$result'" >&2
+  echo "-------------------------------------" >&2
+  
+  # Compare the actual generated filename with the expected filename
+  if [ -n "$expected_filename" ]; then
+    [ "$result" = "$expected_filename" ]
+  fi
+  
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
+}
+
+@test "complete_integration - Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf" {
+  # Test case: Case-insensitive name removal in folders/filename with preserved casing
+  # Input: Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf
+  # Expected: 1014_Alex McDonald_Reports Annual Checkup 2025_20250110_Medical_yes.pdf
+  
+  echo "=== COMPLETE INTEGRATION TEST ===" >&2
+  echo "Test case: Case-insensitive name removal in folders/filename with preserved casing" >&2
+  echo "Input path: Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf" >&2
+  echo "Expected filename: 1014_Alex McDonald_Reports Annual Checkup 2025_20250110_Medical_yes.pdf" >&2
+  echo "=================================" >&2
+  
+  # Test user mapping
+  echo "Testing user mapping..." >&2
+  result="$(extract_user_from_path "Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf")"
+  IFS='|' read -r extracted_user_id raw_name extracted_name raw_remainder cleaned_remainder <<< "$result"
+  
+  expected_user_id="1014"
+  expected_name="Alex McDonald"
+  
+  echo "----- USER MAPPING RESULTS -----" >&2
+  echo "Expected user ID: '$expected_user_id'" >&2
+  echo "Extracted user ID: '$extracted_user_id'" >&2
+  echo "Expected name: '$expected_name'" >&2
+  echo "Raw name: '$raw_name'" >&2
+  echo "Extracted name (cleaned): '$extracted_name'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "-------------------------------" >&2
+  
+  [ "$extracted_user_id" = "$expected_user_id" ]
+  [ "$extracted_name" = "$expected_name" ]
+  
+  # Test category mapping (if there's a second directory)
+  # Extract the second directory as the category candidate
+  # Use cut to get the second field when splitting by '/'
+  category_candidate=$(echo "Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf" | cut -d'/' -f2)
+  if [ -n "$category_candidate" ]; then
+    
+    echo "Testing category mapping..." >&2
+    result="$(extract_category_from_path "Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf")"
+    IFS='|' read -r extracted_category raw_category cleaned_category raw_remainder cleaned_remainder error_status <<< "$result"
+    
+    expected_category="Medical"
+    
+    echo "----- CATEGORY MAPPING RESULTS -----" >&2
+    echo "Category candidate: '$category_candidate'" >&2
+    echo "Expected category: '$expected_category'" >&2
+    echo "Extracted category: '$extracted_category'" >&2
+    echo "Raw category: '$raw_category'" >&2
+    echo "Cleaned category: '$cleaned_category'" >&2
+    echo "Raw remainder: '$raw_remainder'" >&2
+    echo "Cleaned remainder: '$cleaned_remainder'" >&2
+    echo "Error status: '$error_status'" >&2
+    echo "----------------------------------" >&2
+    
+    if [ -n "$expected_category" ]; then
+      [ "$extracted_category" = "$expected_category" ]
+    fi
+  fi
+  
+  # Test date extraction
+  echo "Testing date extraction..." >&2
+  result="$(extract_date_from_path_for_string_test_fallback "Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf" "2025-01-10" "today" "modified")"
+  IFS='|' read -r extracted_date raw_date cleaned_date raw_remainder cleaned_remainder error_status <<< "$result"
+  
+  expected_date="20250110"
+  
+  echo "----- DATE EXTRACTION RESULTS -----" >&2
+  echo "Expected date: '$expected_date'" >&2
+  echo "Extracted date: '$extracted_date'" >&2
+  echo "Raw date: '$raw_date'" >&2
+  echo "Cleaned date: '$cleaned_date'" >&2
+  echo "Raw remainder: '$raw_remainder'" >&2
+  echo "Cleaned remainder: '$cleaned_remainder'" >&2
+  echo "Error status: '$error_status'" >&2
+  echo "--------------------------------" >&2
+  
+  if [ -n "$expected_date" ]; then
+    [ "$extracted_date" = "$expected_date" ]
+  fi
+  
+  # Test complete filename generation
+  echo "Testing complete filename generation..." >&2
+  
+  # Use the test-specific function that handles fallback dates
+  result="$(extract_complete_filename_with_fallback "Alex McDonald/Medical/Reports/Alex McDoNaLd Annual Checkup 2025.pdf" "2025-01-10" "today" "modified")"
+  
+  expected_filename="1014_Alex McDonald_Reports Annual Checkup 2025_20250110_Medical_yes.pdf"
+  
+  echo "----- COMPLETE FILENAME VALIDATION -----" >&2
+  echo "Expected filename: '$expected_filename'" >&2
+  echo "Generated filename: '$result'" >&2
+  echo "-------------------------------------" >&2
+  
+  # Compare the actual generated filename with the expected filename
+  if [ -n "$expected_filename" ]; then
+    [ "$result" = "$expected_filename" ]
+  fi
+  
+  echo "=== TEST COMPLETED SUCCESSFULLY ===" >&2
+}

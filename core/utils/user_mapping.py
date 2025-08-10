@@ -296,13 +296,19 @@ def extract_user_from_path(full_path: str) -> str:
         cleaned_name = cleaned_name[:-len(management_suffix)].strip()
         is_management_folder = True
     
-    # Apply case normalization
-    if case_normalization == 'titlecase':
-        cleaned_name = cleaned_name.title()
-    elif case_normalization == 'lowercase':
-        cleaned_name = cleaned_name.lower()
-    elif case_normalization == 'uppercase':
-        cleaned_name = cleaned_name.upper()
+    # If we have a mapped user, always use the name exactly as provided by the mapping CSV.
+    if user_id:
+        mapped_name = get_name_by_user_id(user_id)
+        if mapped_name:
+            cleaned_name = mapped_name
+    else:
+        # Apply case normalization only when no canonical mapping is found
+        if case_normalization == 'titlecase':
+            cleaned_name = cleaned_name.title()
+        elif case_normalization == 'lowercase':
+            cleaned_name = cleaned_name.lower()
+        elif case_normalization == 'uppercase':
+            cleaned_name = cleaned_name.upper()
     
     # Get cleaned remainder using global cleaner
     cleaned_remainder = raw_remainder

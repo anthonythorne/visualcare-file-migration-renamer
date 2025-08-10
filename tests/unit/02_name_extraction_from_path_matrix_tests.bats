@@ -325,3 +325,26 @@ source "${BATS_TEST_DIRNAME}/../utils/name_utils.sh"
   assert_equal "$raw_remainder" "Mealtime Management/2024/Diary Records/ /  Food Diary.pdf"
   assert_equal "$cleaned_remainder" "Mealtime Management 2024 Diary Records Food Diary.pdf"
 }
+
+@test "extract_name_from_path - WHS/2024/Alex McDoNaLd/05.03.2024 - Alex McDoNaLd.pdf" {
+  run extract_name_from_path "WHS/2024/Alex McDoNaLd/05.03.2024 - Alex McDoNaLd.pdf" "Alex McDonald"
+  [ "$status" -eq 0 ]
+  IFS='|' read -r extracted_name raw_remainder cleaned_remainder matched <<< "$output"
+  echo "----- TEST CASE -----" >&2
+  echo "Comment: Mixed-case surname in folder and filename (case-insensitive removal)" >&2
+  echo "function: extract_name_from_path" >&2
+  echo "full_path: WHS/2024/Alex McDoNaLd/05.03.2024 - Alex McDoNaLd.pdf" >&2
+  echo "name to match: Alex McDonald" >&2
+  echo "expected_match: true" >&2
+  echo "raw remainder expected: WHS/2024/ /05.03.2024 -  .pdf" >&2
+  echo "raw remainder matched: $raw_remainder" >&2
+  echo "cleaned remainder expected: WHS 2024 05 03 2024.pdf" >&2
+  echo "cleaned remainder matched: $cleaned_remainder" >&2
+  echo "extracted_name expected: Alex,Alex,McDoNaLd,McDoNaLd" >&2
+  echo "extracted_name matched: $extracted_name" >&2
+  echo "expected match: $matched" >&2
+  echo "---------------------" >&2
+  assert_equal "$extracted_name" "Alex,Alex,McDoNaLd,McDoNaLd"
+  assert_equal "$raw_remainder" "WHS/2024/ /05.03.2024 -  .pdf"
+  assert_equal "$cleaned_remainder" "WHS 2024 05 03 2024.pdf"
+}
