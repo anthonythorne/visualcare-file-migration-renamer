@@ -57,13 +57,17 @@ def load_user_mapping() -> Dict[str, str]:
     config = load_config()
     user_config = config.get('UserMapping', {})
     
-    mapping_file = user_config.get('mapping_test_file', 'config/user_mapping.csv')
+    # Allow override via environment variable for real runs
+    mapping_file = os.environ.get('VC_USER_MAPPING_FILE') or user_config.get('mapping_test_file', 'config/user_mapping.csv')
     id_column = user_config.get('id_column', 'user_id')
     name_column = user_config.get('name_column', 'full_name')
     
     # Resolve relative path from project root
     project_root = Path(__file__).parent.parent.parent
-    mapping_path = project_root / mapping_file
+    # Support absolute or relative mapping file paths
+    mapping_path = Path(mapping_file)
+    if not mapping_path.is_absolute():
+        mapping_path = project_root / mapping_path
     
     if not mapping_path.exists():
         if user_config.get('create_if_missing', True):

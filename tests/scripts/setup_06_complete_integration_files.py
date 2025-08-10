@@ -91,10 +91,10 @@ def setup_test_files(matrix_file, from_dir, to_dir, verbose=False):
         
         file_path = os.path.join(dir_path, os.path.basename(full_path))
         
-        # Create test file with content
+        # Create test file with content (include 'Path:' for validator)
         with open(file_path, 'w') as f:
             f.write(f"Test case: {description}\n")
-            f.write(f"Full path: {row['full_path']}\n")
+            f.write(f"Path: {row['full_path']}\n")
             f.write(f"Person: {row['person_name']}\n")
             f.write(f"Expected user ID: {row['expected_user_id']}\n")
             f.write(f"Expected category: {row['expected_category']}\n")
@@ -125,8 +125,8 @@ def main():
     script_dir = Path(__file__).parent
     project_root = script_dir.parent.parent
     matrix_file = script_dir.parent / 'fixtures' / '06_complete_integration_cases.csv'
-    from_dir = project_root / 'tests' / 'test-files' / 'from'
-    to_dir = project_root / 'tests' / 'test-files' / 'to'
+    from_dir = project_root / 'tests' / 'test-files' / 'from-06'
+    to_dir = project_root / 'tests' / 'test-files' / 'to-06'
     
     if not matrix_file.exists():
         print(f"Error: Matrix file not found: {matrix_file}")

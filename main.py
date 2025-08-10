@@ -710,6 +710,8 @@ def main():
             except Exception as e:
                 print(f"Error loading user mapping: {e}")
                 sys.exit(1)
+            # Expose the provided user mapping path to the extractor via env var
+            os.environ['VC_USER_MAPPING_FILE'] = args.user_mapping
         
         # Load category mapping if provided
         category_mapping = {}

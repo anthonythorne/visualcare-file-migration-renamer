@@ -80,4 +80,11 @@ else
   bats tests/unit/06_complete_integration_matrix_tests.bats
 fi
 
-echo "All core extraction tests passed!" 
+# Also scaffold real test files and validate results for Test 06
+echo "[INFO] Setting up 06 integration test files (from-06/to-06) and validating output..."
+python3 tests/scripts/setup_06_complete_integration_files.py --verbose | cat
+# Run the real processor over the scaffolded files to populate the to-06/ directory
+python3 main.py --input-dir tests/test-files/from-06 --output-dir tests/test-files/to-06 --user-mapping tests/fixtures/05_user_mapping.csv --category-mapping tests/fixtures/04_category_mapping.csv --duplicate | cat
+python3 tests/scripts/validate_06_results.py | cat
+
+echo "All core extraction tests passed!"
