@@ -22,6 +22,7 @@ Features:
 import csv
 import sys
 from pathlib import Path
+import os
 from typing import Dict, Optional, Tuple
 
 
@@ -42,13 +43,17 @@ class CategoryProcessor:
     
     def _load_category_mapping(self):
         """Load category mappings from the configured CSV file."""
-        mapping_file = self.category_settings.get('mapping_test_file', 'tests/fixtures/04_category_mapping.csv')
+        # Allow runtime override via environment variable for real runs
+        mapping_file = os.environ.get('VC_CATEGORY_MAPPING_FILE') or self.category_settings.get('mapping_test_file', 'tests/fixtures/04_category_mapping.csv')
         id_column = self.category_settings.get('id_column', 'category_id')
         name_column = self.category_settings.get('name_column', 'category_name')
         
         # Get the project root directory
         project_root = Path(__file__).parent.parent.parent
-        mapping_path = project_root / mapping_file
+        # Support absolute or relative mapping file paths
+        mapping_path = Path(mapping_file)
+        if not mapping_path.is_absolute():
+            mapping_path = project_root / mapping_path
         
         if not mapping_path.exists():
             print(f"Warning: Category mapping file not found: {mapping_path}", file=sys.stderr)
@@ -296,9 +301,12 @@ def extract_category_from_path_cli(input_path: str, config: dict):
     norm_candidate = normalize(category_candidate)
     
     # Load mapping file for exact matching of first directory only
-    mapping_file = processor.category_settings.get('mapping_test_file', 'config/category_mapping.csv')
+    # Allow environment override
+    mapping_file = os.environ.get('VC_CATEGORY_MAPPING_FILE') or processor.category_settings.get('mapping_test_file', 'config/category_mapping.csv')
     project_root = Path(__file__).parent.parent.parent
-    mapping_path = project_root / mapping_file
+    mapping_path = Path(mapping_file)
+    if not mapping_path.is_absolute():
+        mapping_path = project_root / mapping_path
     
     mapped_name_csv = None
     mapped_id = None

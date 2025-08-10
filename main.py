@@ -447,16 +447,16 @@ def normalize_filename(full_path: str, user_mapping: Dict[str, str] = None, cate
     # STEP 3: Extract date from remainder using existing date_matcher function (BEFORE name extraction)
     extracted_date = ""
     if raw_remainder:
-        # Use the existing date_matcher function on the raw remainder (before name extraction)
-        from core.utils.date_matcher import extract_date_matches
-        date_result = extract_date_matches(raw_remainder)
+        # Prefer the single-date API that respects date_priority_order and exclusions
+        from core.utils.date_matcher import extract_date_from_remainder
+        date_result = extract_date_from_remainder(raw_remainder)
         date_parts = date_result.split('|')
+        # date_parts: extracted_date|raw_remainder|cleaned_remainder|matched
         if date_parts[0]:  # If date found
             extracted_date = date_parts[0]
-            # Update remainder to remove the date
+            # Update remainder to remove the date (use raw remainder without the extracted date)
             if len(date_parts) > 1:
-                raw_remainder = date_parts[1]  # This is the remainder with date removed
-                
+                raw_remainder = date_parts[1]
                 # Remove file extension from raw_remainder if it's still there
                 if file_extension and raw_remainder.endswith(file_extension):
                     raw_remainder = raw_remainder[:-len(file_extension)]
@@ -725,6 +725,8 @@ def main():
             except Exception as e:
                 print(f"Error loading category mapping: {e}")
                 sys.exit(1)
+            # Expose the provided category mapping path to the category extractor via env var
+            os.environ['VC_CATEGORY_MAPPING_FILE'] = args.category_mapping
         
         print(f"Processing directory: {args.input_dir} -> {args.output_dir}")
         results = renamer.process_directory(args.input_dir, args.output_dir, user_mapping, category_mapping, args.duplicate, args.exclude_management_flag)

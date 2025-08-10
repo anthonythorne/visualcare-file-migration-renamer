@@ -296,6 +296,7 @@ def extract_date_matches(filename):
                 # Check if this match is within a protected range
                 match_start, match_end = match.span()
                 is_in_protected_range = False
+                is_in_excluded_protected = False
                 
                 # Find all protected range markers
                 protected_pattern = r'__PROTECTED_RANGE__(.*?)__END_RANGE__'
@@ -305,8 +306,16 @@ def extract_date_matches(filename):
                     if match_start >= protected_start and match_end <= protected_end:
                         is_in_protected_range = True
                         break
-                
                 if not is_in_protected_range:
+                    # Also skip matches that fall inside excluded-date protection markers
+                    excluded_protected_pattern = r'__EXCLUDED_DATE__(.*?)__END_EXCLUDED__'
+                    for excluded_match in re.finditer(excluded_protected_pattern, raw_remainder):
+                        excl_start, excl_end = excluded_match.span()
+                        if match_start >= excl_start and match_end <= excl_end:
+                            is_in_excluded_protected = True
+                            break
+                
+                if not is_in_protected_range and not is_in_excluded_protected:
                     best_match_info = (match, date_format)
                     break
         
@@ -344,10 +353,12 @@ def extract_date_matches(filename):
             
             # Check if this date pattern should be excluded
             if should_exclude_date_pattern(raw_remainder, match.group(0)):
-                # For excluded dates, we need to preserve them but normalize the format
+                # For excluded dates, we need to preserve them but normalize the format.
+                # Also protect them from being matched again in this loop to avoid starvation of other dates.
                 normalized_prefix_format = config.get('Date', {}).get('normalized_prefix_format', '%Y.%m.%d')
                 normalized_excluded_date = dt.strftime(normalized_prefix_format)
-                
+                protected_excluded = f"__EXCLUDED_DATE__{normalized_excluded_date}__END_EXCLUDED__"
+
                 # Find the prefix that precedes this date
                 excluded_date_by_prefix = config.get('Date', {}).get('excluded_date_by_prefix', [])
                 prefix_found = None
@@ -358,15 +369,15 @@ def extract_date_matches(filename):
                     if prefix_match:
                         prefix_found = prefix
                         break
-                
+
                 if prefix_found:
-                    # Replace the original prefix + date with normalized version in the remainder
+                    # Replace the original prefix + date with protected normalized version in the remainder
                     original_text = f"{prefix_found} {match.group(0)}"
-                    normalized_text = f"{prefix_found} {normalized_excluded_date}"
+                    normalized_text = f"{prefix_found} {protected_excluded}"
                     raw_remainder = raw_remainder.replace(original_text, normalized_text, 1)
                 else:
-                    # Just normalize the date part
-                    raw_remainder = raw_remainder.replace(match.group(0), normalized_excluded_date, 1)
+                    # Just protect and normalize the date part
+                    raw_remainder = raw_remainder.replace(match.group(0), protected_excluded, 1)
                 continue
             
             found_dates.append(date_str)
@@ -396,9 +407,10 @@ def extract_date_matches(filename):
             raw_remainder = raw_remainder.replace(match.group(0), '', 1)
             continue
     
-    # Clean up protected range markers from the final remainder
-    # For raw remainder, preserve the original format
+    # Clean up protected markers from the final remainder
+    # For raw remainder, preserve the original format, but drop our protection wrappers
     raw_remainder = re.sub(r'__PROTECTED_RANGE__(.*?)__END_RANGE__', r'\1', raw_remainder)
+    raw_remainder = re.sub(r'__EXCLUDED_DATE__(.*?)__END_EXCLUDED__', r'\1', raw_remainder)
     
     if found_dates:
         return f"{','.join(found_dates)}|{raw_remainder}|true"
